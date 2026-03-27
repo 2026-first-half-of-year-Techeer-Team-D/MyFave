@@ -4,7 +4,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: validate   # 테이블은 DDL SQL로 직접 생성. JPA는 검증만 수행
     show-sql: false
     properties:
       hibernate:
@@ -13,13 +13,15 @@ spring:
 
 server:
   port: 8080
+  servlet:
+    context-path: /api/v1   # 모든 API: /api/v1/users, /api/v1/products 등
 
-# 인플루언서 설정 (설정값으로 관리)
+# 인플루언서 설정 (서비스 운영 인플루언서 1명 고정)
 influencer:
   user-id: 1
 
 # JWT 설정
 jwt:
   secret: ${JWT_SECRET}
-  access-token-expiry: 1800000
-  refresh-token-expiry: 1209600000
+  access-token-expiry: 1800000      # 30분 (ms)
+  refresh-token-expiry: 1209600000  # 14일 (ms)

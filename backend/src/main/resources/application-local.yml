@@ -6,13 +6,42 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create-drop   # 로컬에서는 앱 시작 시 테이블 자동 재생성
     show-sql: true
 
   data:
     redis:
       host: localhost
       port: 6379
+
+  # 카카오 소셜 로그인
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            scope: profile_nickname, account_email
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+  # AWS S3
+  cloud:
+    aws:
+      s3:
+        bucket: ${S3_BUCKET_NAME}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ap-northeast-2
 
 springdoc:
   swagger-ui:
