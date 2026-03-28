@@ -161,6 +161,11 @@ payments.orders_id → orders.orders_id
 - `sale_events` 테이블의 `is_live`는 컬럼이 아닌 VIEW로 계산
 - 스키마 변경 시 VIEW 재생성 필요 (`CREATE OR REPLACE VIEW`)
 
+### chat_rooms는 판매 이벤트(sale_id) 기준으로 운영
+- `chat_rooms.sale_id` → `sale_events.sale_id` FK
+- 판매 이벤트 시작 30분 전부터 오픈하는 판매자-고객 소통 채팅방
+- 상품(product_id)과 무관하게 이벤트 1개당 채팅방 1개
+
 ### chat_messages는 Redis에서 관리
 - PostgreSQL에 `chat_messages` 테이블 없음
 - `chat_rooms` 테이블만 존재 (방 메타데이터)
