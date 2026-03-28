@@ -12,6 +12,7 @@
 | 캐시/채팅 | Redis |
 | WebSocket | Spring WebSocket + STOMP |
 | 인증 | JWT (Access + Refresh Token) |
+| 이메일 인증 | JavaMailSender + @Async + Redis (TTL 자동 만료) |
 | 소셜 로그인 | 카카오 OAuth2 |
 | 파일 업로드 | AWS S3 (이미지, GIF, 영상) |
 | 결제 | 토스페이먼츠 / 카카오페이 / 네이버페이 (REST API) |
@@ -109,6 +110,7 @@ myfave/
 │   │   │   │   │   │   ├── WebSocketConfig.java
 │   │   │   │   │   │   ├── SwaggerConfig.java
 │   │   │   │   │   │   ├── S3Config.java
+│   │   │   │   │   │   ├── AsyncConfig.java
 │   │   │   │   │   │   └── WebConfig.java
 │   │   │   │   │   ├── common/
 │   │   │   │   │   │   ├── ApiResponse.java
@@ -167,6 +169,9 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+    // 이메일 인증 (JavaMailSender + @Async + Redis)
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
     // 카카오 소셜 로그인
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
@@ -592,6 +597,63 @@ KAKAO_PAY_CID=TC0ONETIME
 # 결제 - 네이버페이
 NAVER_PAY_CLIENT_ID=your-naverpay-client-id
 NAVER_PAY_CLIENT_SECRET=your-naverpay-client-secret
+```
+
+## 인증 흐름
+
+### 회원가입 / 로그인
+```
+이메일 + 비밀번호 → JWT (Access Token 30분 + Refresh Token 14일) 발급
+```
+
+### 비밀번호 재설정
+```
+1. 이메일 + 전화번호 교차 검증
+2. 인증코드 이메일 발송 (JavaMailSender + @Async)
+3. 인증코드 Redis 저장 (TTL: 5분 자동 만료)
+4. 인증코드 확인 → 일회성 재설정 토큰 발급 (Redis 저장, TTL: 10분)
+5. 재설정 토큰으로 비밀번호 변경
+```
+
+### 이메일 인증 구현 방식
+- `JavaMailSender`: SMTP로 인증 메일 발송
+- `@Async` + `AsyncConfig`: 메일 발송을 별도 스레드에서 처리 (응답 블로킹 방지)
+- `Redis`: 인증코드 및 재설정 토큰 저장, TTL로 자동 만료
+
+```java
+// AsyncConfig.java — 비동기 스레드풀 설정
+@Configuration
+@EnableAsync
+public class AsyncConfig implements AsyncConfigurer {
+    @Override
+    public Executor getAsyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("mail-async-");
+        executor.initialize();
+        return executor;
+    }
+}
+```
+
+> `MyfaveApplication.java`에 `@EnableAsync` 추가 필요 (또는 AsyncConfig에서 담당)
+
+### application-local.yml 메일 설정
+```yaml
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}          # Gmail 앱 비밀번호 사용
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 ```
 
 ## Payment 도메인 연동 준비 사항
