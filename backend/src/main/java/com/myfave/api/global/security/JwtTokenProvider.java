@@ -58,13 +58,17 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String token) {
         try {
-            parseClaims(token);
+            Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token);
             return true;
         } catch (Exception e) {
             return false;
         }
     }
 
+    // 만료된 토큰에서도 claims 추출 (리프레시 토큰 재발급 시 사용)
     private Claims parseClaims(String token) {
         try {
             return Jwts.parser()
