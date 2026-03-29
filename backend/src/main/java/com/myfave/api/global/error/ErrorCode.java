@@ -66,6 +66,21 @@ public enum ErrorCode {
     CHAT_RATE_LIMITED(429, "도배 방지 제한"),
     CHAT_INVALID_MESSAGE(400, "메시지 형식 오류"),
     CHAT_MESSAGE_TOO_LONG(400, "메시지 길이 초과"),
+
+    // 콘텐츠
+    CONTENT_NOT_FOUND(404, "존재하지 않는 콘텐츠"),
+
+    // 파일 업로드
+    FILE_UPLOAD_FAILED(500, "파일 업로드 실패"),
+    FILE_INVALID_TYPE(400, "허용되지 않은 파일 형식"),
+    FILE_SIZE_EXCEEDED(400, "파일 크기 초과"),
+
+    // 결제
+    PAYMENT_NOT_FOUND(404, "존재하지 않는 결제"),
+    PAYMENT_ALREADY_DONE(409, "이미 완료된 결제"),
+    PAYMENT_CANCELLED(409, "취소된 결제"),
+    PAYMENT_AMOUNT_MISMATCH(400, "결제 금액 불일치"),
+    PAYMENT_FAILED(502, "외부 결제 서비스 오류"),
     ;
 
     private final int httpStatus;

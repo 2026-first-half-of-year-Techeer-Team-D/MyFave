@@ -1,5 +1,6 @@
 package com.myfave.api.global.common;
 
+import com.myfave.api.global.error.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -20,5 +21,9 @@ public class ApiResponse<T> {
 
     public static ApiResponse<Void> ok(String message) {
         return new ApiResponse<>(200, message, null);
+    }
+
+    public static ApiResponse<Void> error(ErrorCode errorCode) {
+        return new ApiResponse<>(errorCode.getHttpStatus(), errorCode.getMessage(), null);
     }
 }

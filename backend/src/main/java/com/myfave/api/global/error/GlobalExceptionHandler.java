@@ -15,34 +15,31 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = e.getErrorCode();
         return ResponseEntity
                 .status(errorCode.getHttpStatus())
-                .body(new ApiResponse<>(errorCode.getHttpStatus(), errorCode.getMessage(), null));
+                .body(ApiResponse.error(errorCode));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationException(MethodArgumentNotValidException e) {
-        ErrorCode errorCode = ErrorCode.COMMON_INVALID_INPUT;
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .findFirst()
-                .orElse(errorCode.getMessage());
+                .orElse(ErrorCode.COMMON_INVALID_INPUT.getMessage());
         return ResponseEntity
-                .status(errorCode.getHttpStatus())
-                .body(new ApiResponse<>(errorCode.getHttpStatus(), message, null));
+                .status(400)
+                .body(new ApiResponse<>(400, message, null));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiResponse<Void>> handleMethodNotAllowed(HttpRequestMethodNotSupportedException e) {
-        ErrorCode errorCode = ErrorCode.COMMON_METHOD_NOT_ALLOWED;
         return ResponseEntity
-                .status(errorCode.getHttpStatus())
-                .body(new ApiResponse<>(errorCode.getHttpStatus(), errorCode.getMessage(), null));
+                .status(405)
+                .body(ApiResponse.error(ErrorCode.COMMON_METHOD_NOT_ALLOWED));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
-        ErrorCode errorCode = ErrorCode.COMMON_INTERNAL_ERROR;
         return ResponseEntity
-                .status(errorCode.getHttpStatus())
-                .body(new ApiResponse<>(errorCode.getHttpStatus(), errorCode.getMessage(), null));
+                .status(500)
+                .body(ApiResponse.error(ErrorCode.COMMON_INTERNAL_ERROR));
     }
 }

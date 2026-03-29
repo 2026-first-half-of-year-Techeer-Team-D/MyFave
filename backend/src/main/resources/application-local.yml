@@ -6,7 +6,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop   # 로컬에서는 앱 시작 시 테이블 자동 재생성
+      ddl-auto: update   # DDL로 스키마 생성 후, 엔티티 추가 시 자동 반영
     show-sql: true
 
   data:
