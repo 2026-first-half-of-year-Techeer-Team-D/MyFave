@@ -38,6 +38,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+        e.printStackTrace();
         return ResponseEntity
                 .status(500)
                 .body(ApiResponse.error(ErrorCode.COMMON_INTERNAL_ERROR));
