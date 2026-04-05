@@ -2,3 +2,6 @@
 .env
 document
 .obsidian
+.vscode
+.idea
+.claude

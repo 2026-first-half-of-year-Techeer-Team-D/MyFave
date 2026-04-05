@@ -12,6 +12,13 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/myfave
       SPRING_DATA_REDIS_HOST: redis
       JWT_SECRET: ${JWT_SECRET:-myfave-dev-secret-key-minimum-32-characters-long}
+      MAIL_USERNAME: ${MAIL_USERNAME:-dummy@gmail.com}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-dummy}
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID:-dummy}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:-dummy}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY:-dummy}
+      AWS_SECRET_KEY: ${AWS_SECRET_KEY:-dummy}sj
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-dummy}
     depends_on:
       postgres:
         condition: service_healthy

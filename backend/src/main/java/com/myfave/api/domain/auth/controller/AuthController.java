@@ -2,8 +2,10 @@ package com.myfave.api.domain.auth.controller;
 
 import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.request.TokenReissueRequest;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
+import com.myfave.api.domain.auth.dto.response.TokenReissueResponse;
 import com.myfave.api.domain.auth.service.AuthService;
 import com.myfave.api.global.common.ApiResponse;
 import jakarta.validation.Valid;
@@ -12,7 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -27,5 +29,10 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return new ApiResponse<>(200, "로그인 성공", authService.login(request));
+    }
+
+    @PostMapping("/reissue")
+    public ApiResponse<TokenReissueResponse> reissue(@Valid @RequestBody TokenReissueRequest request) {
+        return new ApiResponse<>(200, "토큰 재발급 성공", authService.reissue(request));
     }
 }

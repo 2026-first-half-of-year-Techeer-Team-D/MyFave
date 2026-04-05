@@ -2,8 +2,10 @@ package com.myfave.api.domain.auth.service;
 
 import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.request.TokenReissueRequest;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
+import com.myfave.api.domain.auth.dto.response.TokenReissueResponse;
 import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
@@ -53,7 +55,8 @@ public class AuthService {
                 .phone(request.getPhone())
                 .build();
 
-        return SignUpResponse.from(userRepository.save(user));
+        User savedUser = userRepository.saveAndFlush(user);
+        return SignUpResponse.from(savedUser);
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -75,5 +78,41 @@ public class AuthService {
         );
 
         return LoginResponse.of(accessToken, refreshToken, user);
+    }
+
+    public TokenReissueResponse reissue(TokenReissueRequest request) {
+        // 토큰 서명/형식 검증 (만료 포함 모든 오류 → INVALID)
+        Long userId;
+        try {
+            userId = jwtTokenProvider.getUserId(request.getRefreshToken());
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.AUTH_INVALID_REFRESH_TOKEN);
+        }
+
+        // Redis에서 저장된 Refresh Token 조회
+        String redisKey = "refresh:" + userId;
+        String storedToken = (String) redisTemplate.opsForValue().get(redisKey);
+
+        if (storedToken == null) {
+            // TTL 만료로 Redis에서 삭제된 경우
+            throw new CustomException(ErrorCode.AUTH_EXPIRED_REFRESH_TOKEN);
+        }
+        if (!storedToken.equals(request.getRefreshToken())) {
+            // Redis 저장값과 불일치 (탈취 후 재사용 시도 등)
+            throw new CustomException(ErrorCode.AUTH_INVALID_REFRESH_TOKEN);
+        }
+
+        // 새 토큰 발급 (Refresh Token Rotation)
+        String newAccessToken = jwtTokenProvider.createAccessToken(userId);
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(userId);
+
+        redisTemplate.opsForValue().set(
+                redisKey,
+                newRefreshToken,
+                refreshTokenExpiry,
+                TimeUnit.MILLISECONDS
+        );
+
+        return TokenReissueResponse.of(newAccessToken, newRefreshToken);
     }
 }
