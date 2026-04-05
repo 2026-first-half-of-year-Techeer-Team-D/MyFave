@@ -35,4 +35,18 @@ public class SaleEvent extends BaseEntity {
         this.saleStartAt = saleStartAt;
         this.saleEndAt = saleEndAt;
     }
+
+    // PATCH용 수정 메서드 — 컬럼 추가/삭제 아님, 기존 필드 값만 변경하는 Java 로직이라 DB 마이그레이션 불필요
+    // null이 아닌 필드만 업데이트 (PATCH는 보낸 필드만 변경)
+    public void update(String eventName, ZonedDateTime saleStartAt, ZonedDateTime saleEndAt) {
+        if (eventName != null) {
+            this.eventName = eventName;
+        }
+        if (saleStartAt != null) {
+            this.saleStartAt = saleStartAt;
+        }
+        if (saleEndAt != null) {
+            this.saleEndAt = saleEndAt;
+        }
+    }
 }

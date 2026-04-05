@@ -1,9 +1,14 @@
 package com.myfave.api.domain.saleevent.controller;
 
+import com.myfave.api.domain.saleevent.dto.request.SaleEventCreateRequest;
+import com.myfave.api.domain.saleevent.dto.request.SaleEventUpdateRequest;
+import com.myfave.api.domain.saleevent.dto.response.SaleEventCreateResponse;
+import com.myfave.api.domain.saleevent.dto.response.SaleEventResponse;
+import com.myfave.api.domain.saleevent.dto.response.SaleEventUpdateResponse;
 import com.myfave.api.domain.saleevent.service.SaleEventService;
+import com.myfave.api.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/sale-events")
@@ -11,4 +16,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class SaleEventController {
 
     private final SaleEventService saleEventService;
+
+    @GetMapping("/current") //이벤트 조회
+    public ApiResponse<SaleEventResponse> getCurrentEvent() {
+        return ApiResponse.ok(saleEventService.getCurrentEvent());
+    }
+
+    @PostMapping //이벤트 등록
+    public ApiResponse<SaleEventCreateResponse> createEvent(@RequestBody SaleEventCreateRequest request) { //JSON → Request DTO
+        return ApiResponse.created("판매 이벤트가 등록되었습니다.", saleEventService.createEvent(request));
+    }
+
+    @PatchMapping("/{saleId}") //이벤트 수정
+    public ApiResponse<SaleEventUpdateResponse> updateEvent(
+            @PathVariable Long saleId,                      // URL에서 saleId 추출
+            @RequestBody SaleEventUpdateRequest request) {  // JSON → Request DTO
+        return ApiResponse.ok(saleEventService.updateEvent(saleId, request));
+    }
 }
