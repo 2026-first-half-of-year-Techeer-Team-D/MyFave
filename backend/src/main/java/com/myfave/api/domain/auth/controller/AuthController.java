@@ -1,14 +1,24 @@
 package com.myfave.api.domain.auth.controller;
 
+import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.response.SignUpResponse;
 import com.myfave.api.domain.auth.service.AuthService;
+import com.myfave.api.global.common.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+
+    @PostMapping("/signup")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<SignUpResponse> signUp(@Valid @RequestBody SignUpRequest request) {
+        return ApiResponse.created("회원가입이 완료되었습니다.", authService.signUp(request));
+    }
 }
