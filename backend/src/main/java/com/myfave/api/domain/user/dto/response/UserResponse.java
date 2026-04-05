@@ -4,6 +4,8 @@ import com.myfave.api.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.ZonedDateTime;
+
 @Getter
 @AllArgsConstructor
 public class UserResponse {
@@ -13,6 +15,8 @@ public class UserResponse {
     private String name;
     private String nickname;
     private String phone;
+    private ZonedDateTime createdAt;
+    private ZonedDateTime updatedAt;
 
     public static UserResponse from(User user) {
         return new UserResponse(
@@ -20,7 +24,9 @@ public class UserResponse {
                 user.getEmail(),
                 user.getName(),
                 user.getNickname(),
-                user.getPhone()
+                user.getPhone(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
         );
     }
 }
