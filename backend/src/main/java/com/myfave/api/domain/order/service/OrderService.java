@@ -1,16 +1,175 @@
 package com.myfave.api.domain.order.service;
 
+import com.myfave.api.domain.cart.entity.CartItem;
+import com.myfave.api.domain.cart.repository.CartItemRepository;
+import com.myfave.api.domain.order.dto.request.OrderCreateRequest;
+import com.myfave.api.domain.order.dto.response.OrderResponse;
+import com.myfave.api.domain.order.entity.Order;
+import com.myfave.api.domain.order.entity.OrderItem;
+import com.myfave.api.domain.order.entity.OrderType;
 import com.myfave.api.domain.order.repository.OrderItemRepository;
 import com.myfave.api.domain.order.repository.OrderRepository;
+import com.myfave.api.domain.product.entity.Product;
+import com.myfave.api.domain.product.repository.ProductRepository;
+import com.myfave.api.domain.shipping.entity.ShippingAddress;
+import com.myfave.api.domain.shipping.repository.ShippingAddressRepository;
+import com.myfave.api.domain.user.entity.User;
+import com.myfave.api.domain.user.repository.UserRepository;
+import com.myfave.api.global.error.CustomException;
+import com.myfave.api.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional(readOnly = true) // 기본적으로 읽기 전용. 변경이 필요한 메서드에 별도 @Transactional 추가
 public class OrderService {
 
+    // 주문 저장/조회용 Repository
     private final OrderRepository orderRepository;
+
+    // 주문 항목(상품 스냅샷) 저장용 Repository
     private final OrderItemRepository orderItemRepository;
+
+    // JWT에서 추출한 userId로 실제 User 엔티티를 조회하기 위한 Repository
+    private final UserRepository userRepository;
+
+    // 상품 존재 여부 및 품절 여부 확인용 Repository
+    private final ProductRepository productRepository;
+
+    // 장바구니 항목 조회용 Repository (CART 주문 시 사용)
+    private final CartItemRepository cartItemRepository;
+
+    // 배송지 존재 여부 및 소유자 확인용 Repository
+    private final ShippingAddressRepository shippingAddressRepository;
+
+    /**
+     * 주문 생성 (5-1)
+     * @Transactional: DB에 실제로 데이터를 저장하므로 읽기 전용을 해제
+     */
+    @Transactional
+    public OrderResponse createOrder(Long userId, OrderCreateRequest request) {
+
+        // ── 1. 사용자 조회 ──────────────────────────────────────────────
+        // JWT 토큰이 없으면 userId가 null → 개발 테스트용으로 임시 1L 사용
+        // TODO: Auth API 완성 후 아래 줄 제거하고 AUTH_UNAUTHORIZED 예외로 교체
+        if (userId == null) {
+            userId = 1L;
+        }
+        // JWT 토큰에서 꺼낸 userId로 User 엔티티를 DB에서 조회
+        // 없으면 CustomException → GlobalExceptionHandler가 404 응답 반환
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // ── 2. 배송지 조회 ─────────────────────────────────────────────
+        // 요청으로 받은 shippingAddressId가 실제로 DB에 존재하는지 확인
+        ShippingAddress shippingAddress = shippingAddressRepository.findById(request.getShippingAddressId())
+                .orElseThrow(() -> new CustomException(ErrorCode.SHIPPING_ADDRESS_NOT_FOUND));
+
+        // ── 3. 배송지 소유자 확인 ──────────────────────────────────────
+        // 로그인한 사람(userId)과 배송지 등록자(shippingAddress.getUser())가 같아야 함
+        // 다르면 다른 사람의 배송지를 쓰려는 것이므로 403 반환
+        if (!shippingAddress.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        // ── 4. 주문 번호 생성 ──────────────────────────────────────────
+        // 형식: ORD-yyyyMMdd-UUID앞8자리 (예: ORD-20260405-A1B2C3D4)
+        // UUID는 매번 랜덤하게 생성되어 중복될 확률이 사실상 0에 가까움
+        String orderNumber = "ORD-"
+                + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                + "-"
+                + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+        // ── 5. Order 엔티티 생성 및 저장 ──────────────────────────────
+        // Builder 패턴: 정해진 필드만 받아 Order 객체를 안전하게 생성
+        // orderStatus는 Order.java 빌더 내부에서 자동으로 PENDING으로 세팅됨
+        Order order = Order.builder()
+                .user(user)
+                .orderNumber(orderNumber)
+                .orderType(request.getOrderType())
+                .build();
+        orderRepository.save(order); // INSERT INTO orders ... 실행
+
+        // ── 6. orderType에 따라 OrderItem 저장 ────────────────────────
+        if (request.getOrderType() == OrderType.DIRECT) {
+            // ── DIRECT: 단일 상품 바로 구매 ──────────────────────────
+
+            // productId가 null이면 요청 자체가 잘못된 것
+            if (request.getProductId() == null) {
+                throw new CustomException(ErrorCode.ORDER_INVALID_ORDER_TYPE);
+            }
+
+            // 상품 조회
+            Product product = productRepository.findById(request.getProductId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+
+            // 품절 확인: isSoldout이 true이면 주문 불가
+            if (product.getIsSoldout()) {
+                throw new CustomException(ErrorCode.PRODUCT_SOLD_OUT);
+            }
+
+            // OrderItem 저장
+            // price, productName을 현재 값으로 스냅샷 저장 → 나중에 상품 정보가 바뀌어도 주문 기록은 유지됨
+            OrderItem orderItem = OrderItem.builder()
+                    .order(order)
+                    .product(product)
+                    .price(product.getPrice())             // 주문 당시 가격 스냅샷
+                    .productName(product.getProductName()) // 주문 당시 상품명 스냅샷
+                    .build();
+            orderItemRepository.save(orderItem);
+
+        } else {
+            // ── CART: 장바구니 상품 구매 ─────────────────────────────
+
+            // cartItemIds가 null이거나 비어있으면 요청이 잘못된 것
+            if (request.getCartItemIds() == null || request.getCartItemIds().isEmpty()) {
+                throw new CustomException(ErrorCode.ORDER_INVALID_ORDER_TYPE);
+            }
+
+            // 요청한 장바구니 ID 목록으로 CartItem 전체 조회
+            // JpaRepository가 기본 제공하는 findAllById: IN 쿼리로 한 번에 조회
+            List<CartItem> cartItems = cartItemRepository.findAllById(request.getCartItemIds());
+
+            // 요청한 개수와 실제 조회된 개수가 다르면 없는 항목이 포함된 것
+            if (cartItems.size() != request.getCartItemIds().size()) {
+                throw new CustomException(ErrorCode.CART_ITEM_NOT_FOUND);
+            }
+
+            // 각 장바구니 항목에 대해 처리
+            for (CartItem cartItem : cartItems) {
+
+                // 해당 장바구니 항목이 로그인한 사용자 것인지 확인
+                if (!cartItem.getUser().getUserId().equals(userId)) {
+                    throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+                }
+
+                Product product = cartItem.getProduct();
+
+                // 각 상품 품절 확인
+                if (product.getIsSoldout()) {
+                    throw new CustomException(ErrorCode.PRODUCT_SOLD_OUT);
+                }
+
+                // OrderItem 저장 (상품별 스냅샷)
+                OrderItem orderItem = OrderItem.builder()
+                        .order(order)
+                        .product(product)
+                        .price(product.getPrice())
+                        .productName(product.getProductName())
+                        .build();
+                orderItemRepository.save(orderItem);
+            }
+        }
+
+        // ── 7. 응답 반환 ───────────────────────────────────────────────
+        // OrderResponse.from(order): order 엔티티에서 필요한 필드만 뽑아 DTO로 변환
+        return OrderResponse.from(order);
+    }
 }
