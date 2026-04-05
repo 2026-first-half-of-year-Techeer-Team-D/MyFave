@@ -1,6 +1,8 @@
 package com.myfave.api.domain.auth.controller;
 
+import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
 import com.myfave.api.domain.auth.service.AuthService;
 import com.myfave.api.global.common.ApiResponse;
@@ -20,5 +22,10 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<SignUpResponse> signUp(@Valid @RequestBody SignUpRequest request) {
         return ApiResponse.created("회원가입이 완료되었습니다.", authService.signUp(request));
+    }
+
+    @PostMapping("/login")
+    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        return new ApiResponse<>(200, "로그인 성공", authService.login(request));
     }
 }
