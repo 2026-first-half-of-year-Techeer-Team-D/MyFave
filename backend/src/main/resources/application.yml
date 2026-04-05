@@ -22,6 +22,6 @@ influencer:
 
 # JWT 설정
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:local-dev-jwt-secret-key-must-be-at-least-256-bits-long-here}
   access-token-expiry: 1800000      # 30분 (ms)
   refresh-token-expiry: 1209600000  # 14일 (ms)
