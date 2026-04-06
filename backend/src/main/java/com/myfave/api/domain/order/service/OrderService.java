@@ -3,7 +3,9 @@ package com.myfave.api.domain.order.service;
 import com.myfave.api.domain.cart.entity.CartItem;
 import com.myfave.api.domain.cart.repository.CartItemRepository;
 import com.myfave.api.domain.order.dto.request.OrderCreateRequest;
+import com.myfave.api.domain.order.dto.response.OrderListResponse;
 import com.myfave.api.domain.order.dto.response.OrderResponse;
+import com.myfave.api.domain.order.dto.response.OrderSummaryResponse;
 import com.myfave.api.domain.order.entity.Order;
 import com.myfave.api.domain.order.entity.OrderItem;
 import com.myfave.api.domain.order.entity.OrderType;
@@ -18,13 +20,18 @@ import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -171,5 +178,55 @@ public class OrderService {
         // ── 7. 응답 반환 ───────────────────────────────────────────────
         // OrderResponse.from(order): order 엔티티에서 필요한 필드만 뽑아 DTO로 변환
         return OrderResponse.from(order);
+    }
+
+    /**
+     * 주문 목록 조회 (5-2)
+     * 클래스 레벨 @Transactional(readOnly = true) 그대로 적용 (조회 전용)
+     */
+    public OrderListResponse getOrders(Long userId, Pageable pageable) {
+
+        // ── 1. 사용자 조회 ──────────────────────────────────────────────
+        // TODO: Auth API 완성 후 null 체크를 AUTH_UNAUTHORIZED 예외로 교체
+        if (userId == null) {
+            userId = 1L;
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // ── 2. 주문 목록 조회 (페이지네이션, 최신순) ────────────────────
+        // Page<Order>: content(주문 목록) + totalElements, totalPages 등 메타 정보 포함
+        Page<Order> orderPage = orderRepository.findByUserOrderByCreatedAtDesc(user, pageable);
+        List<Order> orders = orderPage.getContent();
+
+        // ── 3. 주문이 없으면 빈 응답 반환 ──────────────────────────────
+        if (orders.isEmpty()) {
+            return OrderListResponse.from(Page.empty(pageable));
+        }
+
+        // ── 4. OrderItem 배치 조회 (N+1 방지) ───────────────────────────
+        // findByOrderIn: 여러 주문의 OrderItem을 IN 쿼리 한 번으로 조회
+        // (orders 수만큼 개별 쿼리를 날리는 N+1 문제를 방지)
+        List<OrderItem> allOrderItems = orderItemRepository.findByOrderIn(orders);
+
+        // ── 5. OrderItem을 주문별로 그룹핑 ──────────────────────────────
+        // Map<orderId, List<OrderItem>>: 각 주문 ID에 해당하는 상품 목록으로 분류
+        Map<Long, List<OrderItem>> itemsByOrderId = allOrderItems.stream()
+                .collect(Collectors.groupingBy(item -> item.getOrder().getOrderId()));
+
+        // ── 6. 주문별 DTO 변환 ──────────────────────────────────────────
+        List<OrderSummaryResponse> summaries = orders.stream()
+                .map(order -> OrderSummaryResponse.from(
+                        order,
+                        // 해당 주문의 OrderItem 목록 (없으면 빈 리스트)
+                        itemsByOrderId.getOrDefault(order.getOrderId(), List.of())
+                ))
+                .toList();
+
+        // ── 7. Page<OrderSummaryResponse>로 래핑 후 반환 ────────────────
+        // PageImpl: content + pageable + totalElements를 조합해 Page 객체 생성
+        Page<OrderSummaryResponse> summaryPage =
+                new PageImpl<>(summaries, pageable, orderPage.getTotalElements());
+        return OrderListResponse.from(summaryPage);
     }
 }
