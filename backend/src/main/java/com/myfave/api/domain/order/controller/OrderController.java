@@ -1,6 +1,7 @@
 package com.myfave.api.domain.order.controller;
 
 import com.myfave.api.domain.order.dto.request.OrderCreateRequest;
+import com.myfave.api.domain.order.dto.response.OrderListResponse;
 import com.myfave.api.domain.order.dto.response.OrderResponse;
 import com.myfave.api.domain.order.service.OrderService;
 import com.myfave.api.global.common.ApiResponse;
@@ -9,6 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -62,5 +65,35 @@ public class OrderController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.created("주문이 생성되었습니다.", response));
+    }
+
+    /**
+     * 주문 목록 조회 (5-2)
+     * GET /api/v1/orders?page=0&size=20
+     */
+    @Operation(
+            summary = "주문 목록 조회",
+            description = "로그인한 사용자의 주문 목록을 최신순으로 페이지네이션하여 반환합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문 목록 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료")
+    })
+    @GetMapping
+    public ResponseEntity<ApiResponse<OrderListResponse>> getOrders(
+            @AuthenticationPrincipal Long userId,
+
+            // @RequestParam: URL 쿼리 파라미터(?page=0&size=20)를 바인딩
+            // defaultValue: 파라미터가 없을 때 사용할 기본값
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        // PageRequest.of(page, size): 페이지 번호와 크기를 Pageable 객체로 변환
+        Pageable pageable = PageRequest.of(page, size);
+
+        OrderListResponse response = orderService.getOrders(userId, pageable);
+
+        // ApiResponse.success(): code=200, message="OK", data=response
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
