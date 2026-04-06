@@ -20,6 +20,7 @@ public class SignUpRequest {
 
     @NotBlank
     @Size(min = 2, max = 20)
+    @Pattern(regexp = "^[가-힣a-zA-Z]+$", message = "이름은 한글 또는 영문만 입력 가능합니다.")
     private String name;
 
     @NotBlank
