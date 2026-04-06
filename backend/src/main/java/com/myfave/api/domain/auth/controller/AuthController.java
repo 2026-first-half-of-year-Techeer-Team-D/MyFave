@@ -1,8 +1,10 @@
 package com.myfave.api.domain.auth.controller;
 
+import com.myfave.api.domain.auth.dto.request.FindEmailRequest;
 import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.ReissueResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
@@ -41,5 +43,10 @@ public class AuthController {
         String accessToken = bearerToken.substring(7); // "Bearer " 제거
         authService.logout(accessToken);
         return new ApiResponse<>(200, "로그아웃 되었습니다.", null);
+    }
+
+    @PostMapping("/find-email")
+    public ApiResponse<FindEmailResponse> findEmail(@Valid @RequestBody FindEmailRequest request) {
+        return new ApiResponse<>(200, "아이디 조회 성공", authService.findEmail(request));
     }
 }
