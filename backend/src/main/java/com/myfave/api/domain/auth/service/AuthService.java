@@ -1,8 +1,10 @@
 package com.myfave.api.domain.auth.service;
 
 import com.myfave.api.domain.auth.dto.request.LoginRequest;
+import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
+import com.myfave.api.domain.auth.dto.response.ReissueResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
 import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
@@ -75,5 +77,38 @@ public class AuthService {
         );
 
         return LoginResponse.of(accessToken, refreshToken, user);
+    }
+
+    public ReissueResponse reissue(ReissueRequest request) {
+        String token = request.getRefreshToken(); //Refresh 토큰을 꺼냄
+
+        // 토큰 유효성 검증
+        if (!jwtTokenProvider.validateToken(token)) {
+            if (jwtTokenProvider.isExpiredToken(token)) {
+                throw new CustomException(ErrorCode.AUTH_EXPIRED_REFRESH_TOKEN);
+            }
+            throw new CustomException(ErrorCode.AUTH_INVALID_REFRESH_TOKEN);
+        }
+
+        // redis에 저장된 토큰과 비교
+        Long userId = jwtTokenProvider.getUserId(token);
+        String storedToken = (String) redisTemplate.opsForValue().get("refresh:" + userId);
+
+        if (storedToken == null || !storedToken.equals(token)) {
+            throw new CustomException(ErrorCode.AUTH_INVALID_REFRESH_TOKEN);
+        }
+
+        // 새로운 토큰 발급
+        String newAccessToken = jwtTokenProvider.createAccessToken(userId);
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(userId);
+
+        redisTemplate.opsForValue().set(
+                "refresh:" + userId,
+                newRefreshToken,
+                refreshTokenExpiry,
+                TimeUnit.MILLISECONDS
+        );
+
+        return ReissueResponse.of(newAccessToken, newRefreshToken);
     }
 }
