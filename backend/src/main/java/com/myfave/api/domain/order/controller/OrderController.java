@@ -93,7 +93,7 @@ public class OrderController {
 
         OrderListResponse response = orderService.getOrders(userId, pageable);
 
-        // ApiResponse.success(): code=200, message="OK", data=response
-        return ResponseEntity.ok(ApiResponse.success(response));
+        // ApiResponse.ok(): code=200, message="OK", data=response
+        return ResponseEntity.ok(ApiResponse.ok(response));
     }
 }
