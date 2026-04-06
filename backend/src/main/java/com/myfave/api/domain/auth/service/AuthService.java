@@ -112,7 +112,12 @@ public class AuthService {
         return ReissueResponse.of(newAccessToken, newRefreshToken);
     }
 
-    public void logout(String accessToken, String refreshToken) {
+    public void logout(String accessToken) {
+        // Access Token 유효성 검증 (위변조, 형식 오류 차단)
+        if (!jwtTokenProvider.validateToken(accessToken) && !jwtTokenProvider.isExpiredToken(accessToken)) {
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
+        }
+
         // Access Token 블랙리스트 등록
         long remaining = jwtTokenProvider.getRemainingExpiry(accessToken);
         if (remaining > 0) { // accessToken이 기간이 남아있으면 남아있는 기간만큼 블랙리스트

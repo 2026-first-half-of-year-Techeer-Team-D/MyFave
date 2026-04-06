@@ -37,11 +37,9 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ApiResponse<Void> logout(
-            @RequestHeader("Authorization") String bearerToken,
-            @RequestHeader("Refresh-Token") String refreshToken) {
+    public ApiResponse<Void> logout(@RequestHeader("Authorization") String bearerToken) {
         String accessToken = bearerToken.substring(7); // "Bearer " 제거
-        authService.logout(accessToken, refreshToken);
+        authService.logout(accessToken);
         return new ApiResponse<>(200, "로그아웃 되었습니다.", null);
     }
 }
