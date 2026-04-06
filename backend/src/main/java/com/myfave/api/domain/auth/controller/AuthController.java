@@ -14,7 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -34,5 +34,12 @@ public class AuthController {
     @PostMapping("/reissue")
     public ApiResponse<ReissueResponse> reissue(@Valid @RequestBody ReissueRequest request) {
         return new ApiResponse<>(200, "토큰 재발급 성공", authService.reissue(request));
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(@RequestHeader("Authorization") String bearerToken) {
+        String accessToken = bearerToken.substring(7); // "Bearer " 제거
+        authService.logout(accessToken);
+        return new ApiResponse<>(200, "로그아웃 되었습니다.", null);
     }
 }
