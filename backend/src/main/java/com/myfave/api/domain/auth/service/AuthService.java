@@ -111,4 +111,21 @@ public class AuthService {
 
         return ReissueResponse.of(newAccessToken, newRefreshToken);
     }
+
+    public void logout(String accessToken, String refreshToken) {
+        // Access Token 블랙리스트 등록
+        long remaining = jwtTokenProvider.getRemainingExpiry(accessToken);
+        if (remaining > 0) { // accessToken이 기간이 남아있으면 남아있는 기간만큼 블랙리스트
+            redisTemplate.opsForValue().set(
+                    "blacklist:" + accessToken,
+                    "logout",
+                    remaining,
+                    TimeUnit.MILLISECONDS
+            );
+        }
+
+        // Refresh Token Redis에서 삭제
+        Long userId = jwtTokenProvider.getUserId(accessToken);
+        redisTemplate.delete("refresh:" + userId);
+    }
 }
