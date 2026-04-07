@@ -1,6 +1,7 @@
 package com.myfave.api.domain.product.service;
 
 import com.myfave.api.domain.product.dto.request.ProductRequest;
+import com.myfave.api.domain.product.dto.request.ProductUpdateRequest;
 import com.myfave.api.domain.product.dto.response.ProductListResponse;
 import com.myfave.api.domain.product.dto.response.ProductResponse;
 import com.myfave.api.domain.product.entity.CategoryCode;
@@ -107,6 +108,61 @@ public class ProductService {
                     .build();
 
             productImageRepository.save(productImage);
+        }
+
+        return product.getProductId();
+    }
+
+    // 3-4. 상품 수정 (인플루언서 전용)
+    @Transactional
+    public Long updateProduct(Long userId, Long productId, ProductUpdateRequest request,
+                              List<MultipartFile> newImages) {
+        validateInfluencer(userId);
+        //기존 product 가져오기 & 삭제된 상품 제외
+        Product product = productRepository.findByProductIdAndDeletedAtIsNull(productId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        // 상품 정보 수정 (보낸 필드만 변경)
+        if (request != null) {
+            product.update(
+                    request.getProductName(),
+                    request.getPrice(),
+                    request.getDescription(),
+                    request.getShortReview(),
+                    request.getSize(),
+                    request.getCondition(),
+                    request.getCategoryCode()
+            );
+
+            // 이미지 삭제
+            if (request.getDeleteImageIds() != null && !request.getDeleteImageIds().isEmpty()) {
+                productImageRepository.deleteAllByProductImgIdIn(request.getDeleteImageIds());
+            }
+        }
+
+        // 새 이미지 추가
+        if (newImages != null && !newImages.isEmpty()) {
+            //기존 이미지 정렬 순서 중 가장 큰 값 찾아서 그 다음값 배당 (순서 중복 이슈 방지)
+            int currentMaxOrder = productImageRepository.findByProductOrderBySortOrderAsc(product)
+                    .stream()
+                    .mapToInt(ProductImage::getSortOrder)
+                    .max()
+                    .orElse(0);
+
+            for (int i = 0; i < newImages.size(); i++) {
+                MultipartFile image = newImages.get(i);
+                // TODO: Sprint 2에서 S3 업로드로 교체
+                String imageUrl = "/images/" + UUID.randomUUID() + "_" + image.getOriginalFilename();
+
+                ProductImage productImage = ProductImage.builder()
+                        .product(product)
+                        .imageUrl(imageUrl)
+                        .sortOrder(currentMaxOrder + i + 1)
+                        .isMain(false)
+                        .build();
+
+                productImageRepository.save(productImage);
+            }
         }
 
         return product.getProductId();

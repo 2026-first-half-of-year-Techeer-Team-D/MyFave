@@ -14,4 +14,7 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, Long
 
     // 대표 이미지
     Optional<ProductImage> findByProductAndIsMainTrue(Product product);
+
+    // 특정 이미지 ID 목록으로 삭제
+    void deleteAllByProductImgIdIn(List<Long> productImgIds);
 }

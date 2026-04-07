@@ -1,6 +1,7 @@
 package com.myfave.api.domain.product.controller;
 
 import com.myfave.api.domain.product.dto.request.ProductRequest;
+import com.myfave.api.domain.product.dto.request.ProductUpdateRequest;
 import com.myfave.api.domain.product.dto.response.ProductListResponse;
 import com.myfave.api.domain.product.dto.response.ProductResponse;
 import com.myfave.api.domain.product.entity.CategoryCode;
@@ -55,5 +56,18 @@ public class ProductController {
         Long productId = productService.createProduct(userId, request, images);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created("Created", Map.of("id", productId)));
+    }
+
+    // 3-4. 상품 수정 (인플루언서 전용)
+    @PatchMapping(value = "/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<Map<String, Long>>> updateProduct(
+            @PathVariable Long productId,
+            //수정에서는 필수값 아니라 false 처리
+            @RequestPart(required = false) @Valid ProductUpdateRequest request,
+            @RequestPart(required = false) List<MultipartFile> images) {
+        // TODO: JWT에서 userId 가져오기 (지금은 임시로 1L)
+        Long userId = 1L;
+        Long updatedId = productService.updateProduct(userId, productId, request, images);
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("id", updatedId)));
     }
 }
