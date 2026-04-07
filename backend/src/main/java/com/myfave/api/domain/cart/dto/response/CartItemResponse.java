@@ -12,13 +12,15 @@ public class CartItemResponse {
     private Long productId;
     private String productName;
     private Integer price;
+    private Boolean isSoldOut;
 
     public static CartItemResponse from(CartItem cartItem) {
         return new CartItemResponse(
                 cartItem.getCartId(),
                 cartItem.getProduct().getProductId(),
                 cartItem.getProduct().getProductName(),
-                cartItem.getProduct().getPrice()
+                cartItem.getProduct().getPrice(),
+                cartItem.getProduct().getIsSoldout()
         );
     }
 }
