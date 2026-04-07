@@ -1,5 +1,6 @@
 package com.myfave.api.domain.product.service;
 
+import com.myfave.api.domain.product.dto.request.ProductRequest;
 import com.myfave.api.domain.product.dto.response.ProductListResponse;
 import com.myfave.api.domain.product.dto.response.ProductResponse;
 import com.myfave.api.domain.product.entity.CategoryCode;
@@ -7,17 +8,22 @@ import com.myfave.api.domain.product.entity.Product;
 import com.myfave.api.domain.product.entity.ProductImage;
 import com.myfave.api.domain.product.repository.ProductImageRepository;
 import com.myfave.api.domain.product.repository.ProductRepository;
+import com.myfave.api.domain.user.entity.User;
+import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +32,11 @@ public class ProductService {
 
     private final ProductRepository productRepository; //상품 데이터
     private final ProductImageRepository productImageRepository; //이미지 데이터
+    private final UserRepository userRepository;
+
+    //설정파일에서 읽어오는거라 인플루언서 아이디 application.yml 에서 변경 가능
+    @Value("${influencer.user-id}")
+    private Long influencerUserId;
 
     // 3-1. 상품 목록 조회
     public ProductListResponse getProducts(CategoryCode categoryCode, int page, int size, String sort) {
@@ -61,6 +72,53 @@ public class ProductService {
 
         return ProductResponse.Detail.from(product, images);
     }
+    // 3-3. 상품 등록 (인플루언서 전용)
+    @Transactional //쓰기 가능
+    public Long createProduct(Long userId, ProductRequest request, List<MultipartFile> images) {
+        validateInfluencer(userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        Product product = Product.builder()
+                .user(user)
+                .productName(request.getProductName())
+                .shortReview(request.getShortReview())
+                .price(request.getPrice())
+                .description(request.getDescription())
+                .size(request.getSize())
+                .conditionCode(request.getCondition())
+                .categoryCode(request.getCategoryCode())
+                .build();
+
+        productRepository.save(product);
+
+        // 이미지 저장 (첫 번째 이미지가 메인)
+        for (int i = 0; i < images.size(); i++) {
+            MultipartFile image = images.get(i);
+            // TODO: Sprint 2에서 S3 업로드로 교체
+            String imageUrl = "/images/" + UUID.randomUUID() + "_" + image.getOriginalFilename();
+
+            ProductImage productImage = ProductImage.builder()
+                    .product(product)
+                    .imageUrl(imageUrl)
+                    .sortOrder(i + 1)
+                    .isMain(i == 0)
+                    .build();
+
+            productImageRepository.save(productImage);
+        }
+
+        return product.getProductId();
+    }
+
+    // 인플루언서 권한 검증
+    private void validateInfluencer(Long userId) {
+        if (!influencerUserId.equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+    }
+
     // 정렬 파라미터("price,asc" 등)를 JPA Sort 객체로 변환 (기본값: 최신순)
     private Sort resolveSort(String sort) {
         if (sort == null || sort.isBlank()) {

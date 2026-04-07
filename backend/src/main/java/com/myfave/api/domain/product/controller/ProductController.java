@@ -1,13 +1,21 @@
 package com.myfave.api.domain.product.controller;
 
+import com.myfave.api.domain.product.dto.request.ProductRequest;
 import com.myfave.api.domain.product.dto.response.ProductListResponse;
 import com.myfave.api.domain.product.dto.response.ProductResponse;
 import com.myfave.api.domain.product.entity.CategoryCode;
 import com.myfave.api.domain.product.service.ProductService;
 import com.myfave.api.global.common.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/products")
@@ -33,5 +41,19 @@ public class ProductController {
             @PathVariable Long productId) {
         ProductResponse.Detail response = productService.getProduct(productId);
         return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    // 3-3. 상품 등록 (인플루언서 전용)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE) //이미지 파일 같이 받아야해서 일반 json 불가
+    public ResponseEntity<ApiResponse<Map<String, Long>>> createProduct(
+            //상품정보 json
+            @RequestPart @Valid ProductRequest request,
+            //이미지 파일 목록
+            @RequestPart List<MultipartFile> images) {
+        // TODO: JWT에서 userId 가져오기 (지금은 임시로 1L)
+        Long userId = 1L;
+        Long productId = productService.createProduct(userId, request, images);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created("Created", Map.of("id", productId)));
     }
 }
