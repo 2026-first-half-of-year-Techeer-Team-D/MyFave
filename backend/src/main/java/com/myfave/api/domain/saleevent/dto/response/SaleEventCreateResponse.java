@@ -8,23 +8,21 @@ import java.time.ZonedDateTime;
 
 @Getter
 @AllArgsConstructor
-public class SaleEventResponse {
+public class SaleEventCreateResponse {
 
     private Long id;
     private String eventName;
     private ZonedDateTime saleStartAt;
     private ZonedDateTime saleEndAt;
-    private boolean isLive;
-    private ZonedDateTime serverTime; //카운트다운 동기화용
+    private ZonedDateTime createdAt;
 
-    public static SaleEventResponse of(SaleEvent saleEvent, boolean isLive) {
-        return new SaleEventResponse(
+    public static SaleEventCreateResponse from(SaleEvent saleEvent) {
+        return new SaleEventCreateResponse(
                 saleEvent.getSaleId(),
                 saleEvent.getEventName(),
                 saleEvent.getSaleStartAt(),
                 saleEvent.getSaleEndAt(),
-                isLive,
-                ZonedDateTime.now()
+                saleEvent.getCreatedAt()
         );
     }
 }

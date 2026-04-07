@@ -68,6 +68,22 @@ public class JwtTokenProvider {
         }
     }
 
+    public boolean isExpiredToken(String token) {
+        try {
+            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
+            return false;
+        } catch (ExpiredJwtException e) {// 토큰 만료시 true 반환
+            return true;
+        } catch (Exception e) { // 혹시 모를 안전장치 굳이 필요하지않음.
+            return false;
+        }
+    }
+    // 토큰의 남은 시간을 return 해주는 함수
+    public long getRemainingExpiry(String token) {
+        Claims claims = parseClaims(token);
+        return claims.getExpiration().getTime() - System.currentTimeMillis();
+    }
+
     // 만료된 토큰에서도 claims 추출 (리프레시 토큰 재발급 시 사용)
     private Claims parseClaims(String token) {
         try {

@@ -12,6 +12,7 @@
 ## 3. GitHub & Workflow
 - **Issue-Based**: 반드시 Issue(#번호) 생성 후 관련 브랜치에서 작업하세요.
 - **Commit Style**: `.gitmessage.txt` 템플릿을 준수하고, "Why"에 집중하여 작성하세요.
+- **No Co-Authored-By**: 커밋 메시지에 `Co-Authored-By: Claude` 트레일러를 절대 추가하지 마세요.
 - **Safe Push**: Push 전 반드시 `git pull`을 수행하여 충돌을 로컬에서 해결하세요.
 
 ## 4. Key Global Commands

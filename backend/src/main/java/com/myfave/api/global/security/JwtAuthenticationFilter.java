@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +19,7 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisTemplate<String, Object> redisTemplate; // redis에 접근하기 위해 추가
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -25,6 +27,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
+            // 블랙리스트 확인 (로그아웃된 Access Token 차단)
+            Boolean isBlacklisted = redisTemplate.hasKey("blacklist:" + token);
+            if (Boolean.TRUE.equals(isBlacklisted)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             Long userId = jwtTokenProvider.getUserId(token);
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     userId, null, Collections.emptyList());

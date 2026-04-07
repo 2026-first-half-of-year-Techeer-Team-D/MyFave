@@ -1,2 +1,14 @@
 # 환경변수 (실제 키 포함 — 절대 커밋 금지)
 .env
+document
+.obsidian
+
+# Talk with AI (로컬 학습 및 내부 문서 — 커밋 금지)
+Talk with AI/
+
+# IDE 설정
+.idea/
+
+# 개인 문서
+Sprint_계획서.md
+.claude\settings.local.json
