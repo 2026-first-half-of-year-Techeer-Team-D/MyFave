@@ -1,8 +1,10 @@
 package com.myfave.api.domain.auth.service;
 
+import com.myfave.api.domain.auth.dto.request.FindEmailRequest;
 import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.ReissueResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
@@ -132,5 +134,11 @@ public class AuthService {
         // Refresh Token Redis에서 삭제
         Long userId = jwtTokenProvider.getUserId(accessToken);
         redisTemplate.delete("refresh:" + userId);
+    }
+
+    public FindEmailResponse findEmail(FindEmailRequest request) {
+        User user = userRepository.findByNameAndPhone(request.getName(), request.getPhone()) // 이름 + 전화번호로 조회
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND)); // 없으면 에러
+        return FindEmailResponse.from(user.getEmail());
     }
 }

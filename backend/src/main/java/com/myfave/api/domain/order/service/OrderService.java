@@ -3,6 +3,7 @@ package com.myfave.api.domain.order.service;
 import com.myfave.api.domain.cart.entity.CartItem;
 import com.myfave.api.domain.cart.repository.CartItemRepository;
 import com.myfave.api.domain.order.dto.request.OrderCreateRequest;
+import com.myfave.api.domain.order.dto.response.OrderDetailResponse;
 import com.myfave.api.domain.order.dto.response.OrderListResponse;
 import com.myfave.api.domain.order.dto.response.OrderResponse;
 import com.myfave.api.domain.order.dto.response.OrderSummaryResponse;
@@ -11,9 +12,12 @@ import com.myfave.api.domain.order.entity.OrderItem;
 import com.myfave.api.domain.order.entity.OrderType;
 import com.myfave.api.domain.order.repository.OrderItemRepository;
 import com.myfave.api.domain.order.repository.OrderRepository;
+import com.myfave.api.domain.payment.entity.Payment;
 import com.myfave.api.domain.product.entity.Product;
 import com.myfave.api.domain.product.repository.ProductRepository;
+import com.myfave.api.domain.shipping.entity.Delivery;
 import com.myfave.api.domain.shipping.entity.ShippingAddress;
+import com.myfave.api.domain.shipping.repository.DeliveryRepository;
 import com.myfave.api.domain.shipping.repository.ShippingAddressRepository;
 import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
@@ -55,6 +59,9 @@ public class OrderService {
 
     // 배송지 존재 여부 및 소유자 확인용 Repository
     private final ShippingAddressRepository shippingAddressRepository;
+
+    // 배송 정보 조회용 Repository (주문 상세 조회 시 사용)
+    private final DeliveryRepository deliveryRepository;
 
     /**
      * 주문 생성 (5-1)
@@ -228,5 +235,42 @@ public class OrderService {
         Page<OrderSummaryResponse> summaryPage =
                 new PageImpl<>(summaries, pageable, orderPage.getTotalElements());
         return OrderListResponse.from(summaryPage);
+    }
+
+    /**
+     * 주문 상세 조회 (5-3)
+     * 클래스 레벨 @Transactional(readOnly = true) 그대로 적용 (조회 전용)
+     */
+    public OrderDetailResponse getOrderDetail(Long userId, Long orderId) {
+
+        // ── 1. userId null 체크 ──────────────────────────────────────────
+        // TODO: Auth API 완성 후 null 체크를 AUTH_UNAUTHORIZED 예외로 교체
+        if (userId == null) {
+            userId = 1L;
+        }
+
+        // ── 2. orderId → Order 조회 ──────────────────────────────────────
+        // 없으면 CustomException → GlobalExceptionHandler가 404 응답 반환
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        // ── 3. 본인 주문 확인 ────────────────────────────────────────────
+        // 로그인한 사람(userId)과 주문자(order.getUser())가 같아야 함
+        if (!order.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        // ── 4. OrderItem 조회 ────────────────────────────────────────────
+        List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
+
+        // ── 5. Delivery 조회 (배송 생성 전이면 null) ──────────────────────
+        Delivery delivery = deliveryRepository.findByOrder(order).orElse(null);
+
+        // ── 6. Payment 조회 (미결제 상태이면 null) ───────────────────────
+        // Order.finalPayment: completePay() 호출 시 세팅, 미결제이면 null
+        Payment payment = order.getFinalPayment();
+
+        // ── 7. OrderDetailResponse 반환 ───────────────────────────────────
+        return OrderDetailResponse.from(order, payment, delivery, orderItems);
     }
 }

@@ -1,6 +1,7 @@
 package com.myfave.api.domain.order.controller;
 
 import com.myfave.api.domain.order.dto.request.OrderCreateRequest;
+import com.myfave.api.domain.order.dto.response.OrderDetailResponse;
 import com.myfave.api.domain.order.dto.response.OrderListResponse;
 import com.myfave.api.domain.order.dto.response.OrderResponse;
 import com.myfave.api.domain.order.service.OrderService;
@@ -94,6 +95,33 @@ public class OrderController {
         OrderListResponse response = orderService.getOrders(userId, pageable);
 
         // ApiResponse.ok(): code=200, message="OK", data=response
+        return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    /**
+     * 주문 상세 조회 (5-3)
+     * GET /api/v1/orders/{orderId}
+     */
+    @Operation(
+            summary = "주문 상세 조회",
+            description = "특정 주문의 상세 정보를 반환합니다.\n\n" +
+                          "- 미결제 상태이면 Payment 관련 필드(totalProductPrice 등)는 null\n" +
+                          "- 배송 생성 전이면 Delivery 관련 필드(receiverName 등)는 null"
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문 상세 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 주문이 아님"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "주문 없음")
+    })
+    @GetMapping("/{orderId}")
+    public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrderDetail(
+            @AuthenticationPrincipal Long userId,
+
+            // @PathVariable: URL 경로의 {orderId} 값을 파라미터로 바인딩
+            @PathVariable Long orderId) {
+
+        OrderDetailResponse response = orderService.getOrderDetail(userId, orderId);
+
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 }

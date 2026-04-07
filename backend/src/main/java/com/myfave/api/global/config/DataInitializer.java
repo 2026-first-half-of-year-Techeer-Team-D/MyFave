@@ -2,11 +2,21 @@ package com.myfave.api.global.config;
 
 import com.myfave.api.domain.cart.entity.CartItem;
 import com.myfave.api.domain.cart.repository.CartItemRepository;
+import com.myfave.api.domain.order.entity.Order;
+import com.myfave.api.domain.order.entity.OrderItem;
+import com.myfave.api.domain.order.entity.OrderType;
+import com.myfave.api.domain.order.repository.OrderItemRepository;
+import com.myfave.api.domain.order.repository.OrderRepository;
+import com.myfave.api.domain.payment.entity.Payment;
+import com.myfave.api.domain.payment.entity.PaymentMethod;
+import com.myfave.api.domain.payment.repository.PaymentRepository;
 import com.myfave.api.domain.product.entity.CategoryCode;
 import com.myfave.api.domain.product.entity.ConditionCode;
 import com.myfave.api.domain.product.entity.Product;
 import com.myfave.api.domain.product.repository.ProductRepository;
+import com.myfave.api.domain.shipping.entity.Delivery;
 import com.myfave.api.domain.shipping.entity.ShippingAddress;
+import com.myfave.api.domain.shipping.repository.DeliveryRepository;
 import com.myfave.api.domain.shipping.repository.ShippingAddressRepository;
 import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
@@ -29,6 +39,10 @@ public class DataInitializer implements CommandLineRunner {
     private final ProductRepository productRepository;
     private final ShippingAddressRepository shippingAddressRepository;
     private final CartItemRepository cartItemRepository;
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final PaymentRepository paymentRepository;
+    private final DeliveryRepository deliveryRepository;
     private final PasswordEncoder passwordEncoder;
 
     // CommandLineRunner: 앱 시작 완료 직후 자동 실행
@@ -93,6 +107,74 @@ public class DataInitializer implements CommandLineRunner {
         cartItemRepository.save(cartItem);
         log.info("[DataInitializer] 테스트 장바구니 항목 생성 완료 (id={})", cartItem.getCartId());
 
-        log.info("[DataInitializer] Order API 테스트 데이터 삽입 완료");
+        log.info("[DataInitializer] Order API 기본 테스트 데이터 삽입 완료");
+
+        // ── 5-3 테스트용 Order, OrderItem, Payment, Delivery 생성 ────
+        // 5-3 상세 조회 테스트 시 orderId=1 사용
+        createOrderDetailTestData(user, product);
+    }
+
+    // 5-3 주문 상세 조회 테스트용 데이터 생성
+    // 이미 존재하면 건너뜀 (중복 방지)
+    private void createOrderDetailTestData(User user, Product product) {
+
+        if (orderRepository.findByOrderNumber("ORD-20260407-TEST001").isPresent()) {
+            log.info("[DataInitializer] 5-3 테스트 데이터가 이미 존재합니다. 건너뜁니다.");
+            return;
+        }
+
+        // ── 5-1. Order 생성 ─────────────────────────────────────────
+        Order order = Order.builder()
+                .user(user)
+                .orderNumber("ORD-20260407-TEST001")
+                .orderType(OrderType.DIRECT)
+                .build();
+        orderRepository.save(order);
+        log.info("[DataInitializer] 테스트 주문 생성 완료 (id={})", order.getOrderId());
+
+        // ── 5-2. OrderItem 생성 ──────────────────────────────────────
+        OrderItem orderItem = OrderItem.builder()
+                .order(order)
+                .product(product)
+                .price(product.getPrice())
+                .productName(product.getProductName())
+                .build();
+        orderItemRepository.save(orderItem);
+        log.info("[DataInitializer] 테스트 주문 항목 생성 완료 (id={})", orderItem.getOrderItemId());
+
+        // ── 5-3. Payment 생성 ────────────────────────────────────────
+        // Payment 도메인 미완성 → 테스트용 더미 결제 데이터
+        Payment payment = Payment.builder()
+                .order(order)
+                .paymentMethod(PaymentMethod.CREDITCARD)
+                .totalProductPrice(10000)
+                .deliveryFee(3000)
+                .discountPrice(0)
+                .totalPaymentPrice(13000)
+                .build();
+        paymentRepository.save(payment);
+        log.info("[DataInitializer] 테스트 결제 생성 완료 (id={})", payment.getPaymentId());
+
+        // ── 5-4. Order에 finalPayment 연결 + 상태 PAID로 변경 ────────
+        // completePay(): finalPayment 세팅 + orderStatus = PAID
+        order.completePay(payment);
+        orderRepository.save(order);
+
+        // ── 5-5. Delivery 생성 ───────────────────────────────────────
+        Delivery delivery = Delivery.builder()
+                .order(order)
+                .receiverName("홍길동")
+                .receiverPhone("010-1234-5678")
+                .receiverAddress("서울시 강남구 역삼동 123")
+                .deliveryRequest("문 앞에 놓아주세요")
+                .build();
+        deliveryRepository.save(delivery);
+
+        // ship(): courierName, trackingNumber 세팅 + deliveryStatus = SHIPPING
+        delivery.ship("CJ대한통운", "1234567890");
+        deliveryRepository.save(delivery);
+        log.info("[DataInitializer] 테스트 배송 생성 완료 (id={})", delivery.getDeliveryId());
+
+        log.info("[DataInitializer] 5-3 테스트 데이터 삽입 완료 — orderId={} 로 상세 조회 테스트 가능", order.getOrderId());
     }
 }
