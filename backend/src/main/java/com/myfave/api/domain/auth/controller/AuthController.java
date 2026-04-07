@@ -47,6 +47,6 @@ public class AuthController {
 
     @PostMapping("/find-email")
     public ApiResponse<FindEmailResponse> findEmail(@Valid @RequestBody FindEmailRequest request) {
-        return new ApiResponse<>(200, "아이디 조회 성공", authService.findEmail(request));
+        return new ApiResponse<>(200, "이메일 조회 성공", authService.findEmail(request));
     }
 }
