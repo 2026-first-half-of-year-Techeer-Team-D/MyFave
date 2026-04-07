@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.ZonedDateTime;
+
 @Entity
 @Table(name = "products")
 @Getter
@@ -49,6 +51,8 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private Boolean isSoldout = false;
 
+    private ZonedDateTime deletedAt;
+
     @Builder
     private Product(User user, String productName, String shortReview, Integer price,
                     String description, String size, ConditionCode conditionCode, CategoryCode categoryCode) {
@@ -65,5 +69,13 @@ public class Product extends BaseEntity {
 
     public void markAsSoldout() {
         this.isSoldout = true;
+    }
+
+    public void softDelete() {
+        this.deletedAt = ZonedDateTime.now();
+    }
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
     }
 }
