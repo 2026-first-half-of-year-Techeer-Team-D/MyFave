@@ -7,6 +7,9 @@ import com.myfave.api.domain.product.dto.response.ProductResponse;
 import com.myfave.api.domain.product.entity.CategoryCode;
 import com.myfave.api.domain.product.service.ProductService;
 import com.myfave.api.global.common.ApiResponse;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -47,7 +50,8 @@ public class ProductController {
     // 3-3. 상품 등록 (인플루언서 전용)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE) //이미지 파일 같이 받아야해서 일반 json 불가
     public ResponseEntity<ApiResponse<Map<String, Long>>> createProduct(
-            //상품정보 json
+            @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ProductRequest.class)))
             @RequestPart @Valid ProductRequest request,
             //이미지 파일 목록
             @RequestPart List<MultipartFile> images) {
@@ -62,7 +66,8 @@ public class ProductController {
     @PatchMapping(value = "/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Map<String, Long>>> updateProduct(
             @PathVariable Long productId,
-            //수정에서는 필수값 아니라 false 처리
+            @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ProductUpdateRequest.class)))
             @RequestPart(required = false) @Valid ProductUpdateRequest request,
             @RequestPart(required = false) List<MultipartFile> images) {
         // TODO: JWT에서 userId 가져오기 (지금은 임시로 1L)
