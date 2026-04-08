@@ -67,6 +67,20 @@ public class Product extends BaseEntity {
         this.isSoldout = false;
     }
 
+    //patch 보낸 것만 변경
+    // Entity 상태 변경 모아서 관리하려고 메서드 하나로 묶음
+    public void update(String productName, Integer price, String description,
+                       String shortReview, String size, ConditionCode conditionCode,
+                       CategoryCode categoryCode) {
+        if (productName != null) this.productName = productName;
+        if (price != null) this.price = price;
+        if (description != null) this.description = description;
+        if (shortReview != null) this.shortReview = shortReview;
+        if (size != null) this.size = size;
+        if (conditionCode != null) this.conditionCode = conditionCode;
+        if (categoryCode != null) this.categoryCode = categoryCode;
+    }
+
     public void markAsSoldout() {
         this.isSoldout = true;
     }
