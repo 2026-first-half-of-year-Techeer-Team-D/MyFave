@@ -3,12 +3,14 @@ package com.myfave.api.domain.order.service;
 import com.myfave.api.domain.cart.entity.CartItem;
 import com.myfave.api.domain.cart.repository.CartItemRepository;
 import com.myfave.api.domain.order.dto.request.OrderCreateRequest;
+import com.myfave.api.domain.order.dto.response.OrderConfirmResponse;
 import com.myfave.api.domain.order.dto.response.OrderDetailResponse;
 import com.myfave.api.domain.order.dto.response.OrderListResponse;
 import com.myfave.api.domain.order.dto.response.OrderResponse;
 import com.myfave.api.domain.order.dto.response.OrderSummaryResponse;
 import com.myfave.api.domain.order.entity.Order;
 import com.myfave.api.domain.order.entity.OrderItem;
+import com.myfave.api.domain.order.entity.OrderStatus;
 import com.myfave.api.domain.order.entity.OrderType;
 import com.myfave.api.domain.order.repository.OrderItemRepository;
 import com.myfave.api.domain.order.repository.OrderRepository;
@@ -272,5 +274,46 @@ public class OrderService {
 
         // ── 7. OrderDetailResponse 반환 ───────────────────────────────────
         return OrderDetailResponse.from(order, payment, delivery, orderItems);
+    }
+
+    /**
+     * 주문 상태 변경 - 구매확정 (5-4)
+     * @Transactional: orderStatus를 PURCHASE_CONFIRMED로 변경하므로 쓰기 트랜잭션 적용
+     */
+    @Transactional
+    public OrderConfirmResponse confirmOrder(Long userId, Long orderId) {
+
+        // ── 1. userId null 체크 ──────────────────────────────────────────
+        // TODO: Auth API 완성 후 null 체크를 AUTH_UNAUTHORIZED 예외로 교체
+        if (userId == null) {
+            userId = 1L;
+        }
+
+        // ── 2. orderId → Order 조회 ──────────────────────────────────────
+        // 없으면 CustomException → GlobalExceptionHandler가 404 응답 반환
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        // ── 3. 본인 주문 확인 ────────────────────────────────────────────
+        // 로그인한 사람(userId)과 주문자(order.getUser())가 같아야 함
+        if (!order.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        // ── 4. 구매확정 가능 상태 확인 ───────────────────────────────────
+        // 스펙: DELIVERY_COMPLETED 상태인 주문만 구매확정 가능
+        // 그 외 상태(PENDING, PAID, SHIPPING 등)이면 409 반환
+        if (order.getOrderStatus() != OrderStatus.DELIVERY_COMPLETED) {
+            throw new CustomException(ErrorCode.ORDER_INVALID_STATUS);
+        }
+
+        // ── 5. 구매확정 처리 ─────────────────────────────────────────────
+        // order.confirm(): orderStatus를 PURCHASE_CONFIRMED로 변경
+        // @Transactional이므로 메서드 종료 시 JPA가 변경 감지 → UPDATE 쿼리 자동 실행
+        order.confirm();
+
+        // ── 6. 응답 반환 ─────────────────────────────────────────────────
+        // OrderConfirmResponse.from(order): orderId, orderStatus(PURCHASE_CONFIRMED) 반환
+        return OrderConfirmResponse.from(order);
     }
 }

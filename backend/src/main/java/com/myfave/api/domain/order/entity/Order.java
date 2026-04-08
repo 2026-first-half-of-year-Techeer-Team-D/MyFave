@@ -58,6 +58,14 @@ public class Order extends BaseEntity {
         this.orderStatus = OrderStatus.CANCELLED;
     }
 
+    public void completeDelivery() {
+        this.orderStatus = OrderStatus.DELIVERY_COMPLETED;
+    }
+
+    public void confirm() {
+        this.orderStatus = OrderStatus.PURCHASE_CONFIRMED;
+    }
+
     public void refund() {
         this.orderStatus = OrderStatus.REFUNDED;
     }
