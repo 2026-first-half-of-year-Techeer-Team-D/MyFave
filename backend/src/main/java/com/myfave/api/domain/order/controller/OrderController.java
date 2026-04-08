@@ -1,6 +1,7 @@
 package com.myfave.api.domain.order.controller;
 
 import com.myfave.api.domain.order.dto.request.OrderCreateRequest;
+import com.myfave.api.domain.order.dto.response.OrderConfirmResponse;
 import com.myfave.api.domain.order.dto.response.OrderDetailResponse;
 import com.myfave.api.domain.order.dto.response.OrderListResponse;
 import com.myfave.api.domain.order.dto.response.OrderResponse;
@@ -122,6 +123,34 @@ public class OrderController {
 
         OrderDetailResponse response = orderService.getOrderDetail(userId, orderId);
 
+        return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    /**
+     * 주문 상태 변경 - 구매확정 (5-4)
+     * PATCH /api/v1/orders/{orderId}/confirm
+     */
+    @Operation(
+            summary = "구매확정",
+            description = "배송완료(DELIVERY_COMPLETED) 상태의 주문을 구매확정(PURCHASE_CONFIRMED)으로 변경합니다.\n\n" +
+                          "- DELIVERY_COMPLETED 상태가 아니면 409 반환"
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "구매확정 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 주문이 아님"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "주문 없음"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "구매확정 가능한 상태가 아님")
+    })
+    @PatchMapping("/{orderId}/confirm")
+    public ResponseEntity<ApiResponse<OrderConfirmResponse>> confirmOrder(
+            @AuthenticationPrincipal Long userId,
+
+            // @PathVariable: URL 경로의 {orderId} 값을 파라미터로 바인딩
+            @PathVariable Long orderId) {
+
+        OrderConfirmResponse response = orderService.confirmOrder(userId, orderId);
+
+        // ApiResponse.ok(): code=200, message="OK", data=response
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 }
