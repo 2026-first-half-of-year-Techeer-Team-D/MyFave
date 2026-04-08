@@ -176,5 +176,68 @@ public class DataInitializer implements CommandLineRunner {
         log.info("[DataInitializer] 테스트 배송 생성 완료 (id={})", delivery.getDeliveryId());
 
         log.info("[DataInitializer] 5-3 테스트 데이터 삽입 완료 — orderId={} 로 상세 조회 테스트 가능", order.getOrderId());
+
+        // ── 5-4 테스트용 Order 생성 (DELIVERY_COMPLETED 상태) ────────────
+        createConfirmTestData(user, product);
+    }
+
+    // 5-4 구매확정 테스트용 데이터 생성
+    // DELIVERY_COMPLETED 상태의 주문 → PATCH /orders/{orderId}/confirm 테스트에 사용
+    private void createConfirmTestData(User user, Product product) {
+
+        if (orderRepository.findByOrderNumber("ORD-20260407-TEST002").isPresent()) {
+            log.info("[DataInitializer] 5-4 테스트 데이터가 이미 존재합니다. 건너뜁니다.");
+            return;
+        }
+
+        // ── 6-1. Order 생성 ─────────────────────────────────────────
+        Order order = Order.builder()
+                .user(user)
+                .orderNumber("ORD-20260407-TEST002")
+                .orderType(OrderType.DIRECT)
+                .build();
+        orderRepository.save(order);
+
+        // ── 6-2. OrderItem 생성 ──────────────────────────────────────
+        OrderItem orderItem = OrderItem.builder()
+                .order(order)
+                .product(product)
+                .price(product.getPrice())
+                .productName(product.getProductName())
+                .build();
+        orderItemRepository.save(orderItem);
+
+        // ── 6-3. Payment 생성 + Order에 연결 ────────────────────────
+        Payment payment = Payment.builder()
+                .order(order)
+                .paymentMethod(PaymentMethod.CREDITCARD)
+                .totalProductPrice(10000)
+                .deliveryFee(3000)
+                .discountPrice(0)
+                .totalPaymentPrice(13000)
+                .build();
+        paymentRepository.save(payment);
+        order.completePay(payment); // orderStatus = PAID
+        orderRepository.save(order);
+
+        // ── 6-4. Delivery 생성 + 배송완료 처리 ──────────────────────
+        Delivery delivery = Delivery.builder()
+                .order(order)
+                .receiverName("홍길동")
+                .receiverPhone("010-1234-5678")
+                .receiverAddress("서울시 강남구 역삼동 123")
+                .deliveryRequest("문 앞에 놓아주세요")
+                .build();
+        deliveryRepository.save(delivery);
+        delivery.ship("CJ대한통운", "9876543210");
+        delivery.deliver(); // deliveryStatus = DELIVERED
+        deliveryRepository.save(delivery);
+
+        // ── 6-5. Order 상태 DELIVERY_COMPLETED로 변경 ───────────────
+        // completeDelivery(): orderStatus = DELIVERY_COMPLETED
+        order.completeDelivery();
+        orderRepository.save(order);
+
+        log.info("[DataInitializer] 5-4 테스트 데이터 삽입 완료 — orderId={} 로 구매확정 테스트 가능", order.getOrderId());
     }
 }
