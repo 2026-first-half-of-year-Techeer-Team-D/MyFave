@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ChatMessageRequest {
 
-    private String type;      // "SEND_MESSAGE"
     private Payload payload;
 
     @Getter

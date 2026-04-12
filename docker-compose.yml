@@ -7,8 +7,8 @@ services:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: local
-      DB_USERNAME: ${DB_USERNAME:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/myfave
       SPRING_DATA_REDIS_HOST: redis
       JWT_SECRET: ${JWT_SECRET:-myfave-dev-secret-key-minimum-32-characters-long}

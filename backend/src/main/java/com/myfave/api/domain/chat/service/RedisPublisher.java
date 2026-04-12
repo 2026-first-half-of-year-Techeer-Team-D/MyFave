@@ -12,9 +12,9 @@ public class RedisPublisher {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public void publish(Long roomId, String messageJson) {
+    public void publish(Long roomId, String message) {
         String channel = "chat:room:" + roomId;
-        redisTemplate.convertAndSend(channel, messageJson);
+        redisTemplate.convertAndSend(channel, message);
         log.debug("Redis 발행: channel={}", channel);
     }
 }
