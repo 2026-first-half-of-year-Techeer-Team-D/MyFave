@@ -6,7 +6,9 @@
       "Bash(curl -sL \"https://raw.githubusercontent.com/gradle/gradle/v8.11.0/gradlew.bat\" -o gradlew.bat)",
       "Bash(./gradlew build:*)",
       "Bash(gradlew test:*)",
-      "Bash(./gradlew test:*)"
+      "Bash(./gradlew test:*)",
+      "Bash(jar tf:*)",
+      "Bash(unzip -l /c/Users/whgkd/.gradle/caches/modules-2/files-2.1/org.springframework/spring-messaging/6.2.1/35335abbdd4b1a781e6ad47d6aaa2c294d62809f/spring-messaging-6.2.1.jar)"
     ]
   }
 }
