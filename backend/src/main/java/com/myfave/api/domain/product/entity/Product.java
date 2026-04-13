@@ -88,7 +88,7 @@ public class Product extends BaseEntity {
     public void softDelete() {
         this.deletedAt = ZonedDateTime.now();
     }
-    //order 도메인에서 삭제 여부 확인 처리하는 용도
+    //order 도메인에서 삭제 여부 확인 처리하는 용도 (OrderService에 삭제된 상품 주문 불가 검증)
     public boolean isDeleted() {
         return this.deletedAt != null;
     }
