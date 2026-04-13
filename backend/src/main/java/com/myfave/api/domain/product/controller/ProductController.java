@@ -75,4 +75,22 @@ public class ProductController {
         Long updatedId = productService.updateProduct(userId, productId, request, images);
         return ResponseEntity.ok(ApiResponse.ok(Map.of("id", updatedId)));
     }
+
+    // 3-5. 상품 삭제 (인플루언서 전용, Soft Delete)
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long productId) {
+        // TODO: JWT에서 userId 가져오기 (지금은 임시로 1L)
+        Long userId = 1L;
+        productService.deleteProduct(userId, productId);
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    // 3-6. 품절 처리 (인플루언서 전용)
+    @PatchMapping("/{productId}/soldout")
+    public ResponseEntity<ApiResponse<Void>> markAsSoldout(@PathVariable Long productId) {
+        // TODO: JWT에서 userId 가져오기 (지금은 임시로 1L)
+        Long userId = 1L;
+        productService.markAsSoldout(userId, productId);
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
 }

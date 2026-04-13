@@ -167,6 +167,29 @@ public class ProductService {
         return product.getProductId();
     }
 
+    // 3-5. 상품 삭제 (인플루언서 전용, Soft Delete)
+    @Transactional
+    public void deleteProduct(Long userId, Long productId) {
+        validateInfluencer(userId); //인플루언서 검증
+
+        Product product = productRepository.findByProductIdAndDeletedAtIsNull(productId)
+                //값이 없으면 예외처리, 있으면 값 꺼내서 soft delete
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        product.softDelete(); //deletedAt에 현재 시각 세팅
+    }
+
+    // 3-6. 품절 처리 (인플루언서 전용)
+    @Transactional
+    public void markAsSoldout(Long userId, Long productId) {
+        validateInfluencer(userId);
+
+        Product product = productRepository.findByProductIdAndDeletedAtIsNull(productId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_SOLD_OUT));
+
+        product.markAsSoldout(); //isSoldout = true로 변경
+    }
+
     // 인플루언서 권한 검증
     private void validateInfluencer(Long userId) {
         if (!influencerUserId.equals(userId)) {
