@@ -12,6 +12,7 @@ import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
+import com.myfave.api.domain.shipping.dto.request.ShippingAddressRequest;
 
 import java.util.List;
 
@@ -32,5 +33,27 @@ public class ShippingService {
         return shippingAddressRepository.findByUser(user).stream()
                 .map(ShippingAddressResponse::from)
                 .toList();
+    }
+
+    // 7-2. 배송지 추가
+    @Transactional
+    public ShippingAddressResponse addShippingAddress(Long userId, ShippingAddressRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        ShippingAddress shippingAddress = ShippingAddress.builder()
+                .user(user)
+                .receiverName(request.getReceiverName())
+                .receiverPhone(request.getReceiverPhone())
+                .address(request.getAddress())
+                .addressDetail(request.getAddressDetail())
+                .zipCode(request.getZipCode())
+                .deliveryRequest(request.getDeliveryRequest())
+                .isDefault(request.getIsDefault())
+                .build();
+
+        shippingAddressRepository.save(shippingAddress);
+        return ShippingAddressResponse.from(shippingAddress);
+
     }
 }
