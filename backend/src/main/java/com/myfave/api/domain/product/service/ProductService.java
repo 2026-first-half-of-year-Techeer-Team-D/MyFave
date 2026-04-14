@@ -13,6 +13,7 @@ import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
+import com.myfave.api.global.util.S3UploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -24,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +34,7 @@ public class ProductService {
     private final ProductRepository productRepository; //상품 데이터
     private final ProductImageRepository productImageRepository; //이미지 데이터
     private final UserRepository userRepository;
+    private final S3UploadService s3UploadService;
 
     //설정파일에서 읽어오는거라 인플루언서 아이디 application.yml 에서 변경 가능
     @Value("${influencer.user-id}")
@@ -97,8 +98,7 @@ public class ProductService {
         // 이미지 저장 (첫 번째 이미지가 메인)
         for (int i = 0; i < images.size(); i++) {
             MultipartFile image = images.get(i);
-            // TODO: Sprint 2에서 S3 업로드로 교체
-            String imageUrl = "/images/" + UUID.randomUUID() + "_" + image.getOriginalFilename();
+            String imageUrl = s3UploadService.upload(image, "products");
 
             ProductImage productImage = ProductImage.builder()
                     .product(product)
@@ -151,8 +151,7 @@ public class ProductService {
 
             for (int i = 0; i < newImages.size(); i++) {
                 MultipartFile image = newImages.get(i);
-                // TODO: Sprint 2에서 S3 업로드로 교체
-                String imageUrl = "/images/" + UUID.randomUUID() + "_" + image.getOriginalFilename();
+                String imageUrl = s3UploadService.upload(image, "products");
 
                 ProductImage productImage = ProductImage.builder()
                         .product(product)
