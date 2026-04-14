@@ -2,16 +2,16 @@ package com.myfave.api.domain.chat.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.myfave.api.domain.chat.dto.ChatMessageType;
 import com.myfave.api.domain.chat.dto.request.ChatMessageRequest;
 import com.myfave.api.domain.chat.dto.response.ChatMessageResponse;
 import com.myfave.api.domain.chat.service.ChatMessageService;
 import com.myfave.api.domain.chat.service.RedisPublisher;
 import com.myfave.api.domain.user.entity.User;
-import com.myfave.api.domain.user.repository.UserRepository;
+import com.myfave.api.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -20,7 +20,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.util.HtmlUtils;
 
-import java.time.Duration;
 import java.util.UUID;
 
 @Slf4j
@@ -28,10 +27,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ChatMessageController {
 
-    private static final Duration RATE_LIMIT_TTL = Duration.ofSeconds(3);
-
-    private final RedisTemplate<String, Object> redisTemplate;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final ChatMessageService chatMessageService;
     private final RedisPublisher redisPublisher;
     private final SimpMessagingTemplate messagingTemplate;
@@ -46,15 +42,12 @@ public class ChatMessageController {
         // TODO: 테스트 후 제거 — JWT 인터셉터 활성화 시 아래 fallback 삭제
         if (userId == null) userId = 1L;
 
-        if (!"SEND_MESSAGE".equals(request.getType())) return;
-
-        // Rate Limiting
-        String rateLimitKey = "rate:chat:" + userId;
-        Long count = redisTemplate.opsForValue().increment(rateLimitKey);
-        if (count != null && count == 1) {
-            redisTemplate.expire(rateLimitKey, RATE_LIMIT_TTL);
+        if (request.getType() != ChatMessageType.SEND_MESSAGE) {
+            log.warn("지원하지 않는 메시지 타입: {}", request.getType());
+            return;
         }
-        if (count != null && count > 1) {
+
+        if (chatMessageService.isRateLimited(userId)) {
             messagingTemplate.convertAndSendToUser(
                     String.valueOf(userId),
                     "/queue/errors",
@@ -63,8 +56,7 @@ public class ChatMessageController {
             return;
         }
 
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) return;
+        User user = userService.findUserById(userId);
 
         // XSS 방어
         String safeContent = HtmlUtils.htmlEscape(request.getPayload().getContent());
@@ -91,7 +83,7 @@ public class ChatMessageController {
                 String.valueOf(userId),
                 "/queue/errors",
                 objectMapper.writeValueAsString(
-                        ChatMessageResponse.builder().type(com.myfave.api.domain.chat.dto.ChatMessageType.ERROR).build()
+                        ChatMessageResponse.builder().type(ChatMessageType.ERROR).build()
                 )
         );
     }

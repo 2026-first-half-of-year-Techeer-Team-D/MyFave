@@ -19,6 +19,7 @@ public class ChatMessageService {
     private static final String CHAT_HISTORY_KEY = "chat:history:";
     private static final long HISTORY_TTL_HOURS = 24;
     private static final int MAX_MESSAGES = 200;
+    private static final Duration RATE_LIMIT_TTL = Duration.ofSeconds(3);
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -38,5 +39,14 @@ public class ChatMessageService {
 
     public void deleteHistory(Long roomId) {
         redisTemplate.delete(CHAT_HISTORY_KEY + roomId);
+    }
+
+    public boolean isRateLimited(Long userId) {
+        String key = "rate:chat:" + userId;
+        Long count = redisTemplate.opsForValue().increment(key);
+        if (count != null && count == 1) {
+            redisTemplate.expire(key, RATE_LIMIT_TTL);
+        }
+        return count != null && count > 1;
     }
 }

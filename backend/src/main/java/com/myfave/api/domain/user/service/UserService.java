@@ -54,4 +54,9 @@ public class UserService {
 
         return UserResponse.from(user);
     }
+
+    public User findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    }
 }
