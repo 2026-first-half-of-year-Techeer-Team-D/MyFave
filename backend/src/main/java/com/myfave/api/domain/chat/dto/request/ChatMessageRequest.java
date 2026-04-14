@@ -1,5 +1,6 @@
 package com.myfave.api.domain.chat.dto.request;
 
+import com.myfave.api.domain.chat.dto.ChatMessageType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,8 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ChatMessageRequest {
 
-    @NotBlank
-    private String type;
+    @NotNull
+    private ChatMessageType type;
 
     @NotNull
     @Valid

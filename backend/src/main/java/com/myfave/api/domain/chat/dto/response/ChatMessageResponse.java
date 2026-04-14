@@ -1,12 +1,13 @@
 package com.myfave.api.domain.chat.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.myfave.api.domain.chat.dto.ChatMessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Getter
@@ -16,33 +17,33 @@ import java.time.format.DateTimeFormatter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChatMessageResponse {
 
-    private String type;
+    private ChatMessageType type;
     private Object payload;
 
     // NEW_MESSAGE 팩토리
     public static ChatMessageResponse newMessage(String messageId, Long userId, String nickname,
                                                   String content) {
         Payload p = new Payload(messageId, userId, nickname, content,
-                LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
-        return ChatMessageResponse.builder().type("NEW_MESSAGE").payload(p).build();
+                OffsetDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
+        return ChatMessageResponse.builder().type(ChatMessageType.NEW_MESSAGE).payload(p).build();
     }
 
     // 참가자 수 팩토리
     public static ChatMessageResponse participantCount(int count) {
         return ChatMessageResponse.builder()
-                .type("PARTICIPANT_COUNT")
+                .type(ChatMessageType.PARTICIPANT_COUNT)
                 .payload(java.util.Map.of("count", count))
                 .build();
     }
 
     // RATE_LIMIT 팩토리
     public static ChatMessageResponse rateLimitError() {
-        return ChatMessageResponse.builder().type("RATE_LIMIT").build();
+        return ChatMessageResponse.builder().type(ChatMessageType.RATE_LIMIT).build();
     }
 
     // ROOM_CLOSED 팩토리
     public static ChatMessageResponse roomClosed() {
-        return ChatMessageResponse.builder().type("ROOM_CLOSED").build();
+        return ChatMessageResponse.builder().type(ChatMessageType.ROOM_CLOSED).build();
     }
 
     @Getter

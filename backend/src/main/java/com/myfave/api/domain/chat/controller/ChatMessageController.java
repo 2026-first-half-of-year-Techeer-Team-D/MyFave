@@ -91,7 +91,7 @@ public class ChatMessageController {
                 String.valueOf(userId),
                 "/queue/errors",
                 objectMapper.writeValueAsString(
-                        ChatMessageResponse.builder().type("ERROR").build()
+                        ChatMessageResponse.builder().type(com.myfave.api.domain.chat.dto.ChatMessageType.ERROR).build()
                 )
         );
     }

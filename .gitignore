@@ -2,7 +2,7 @@
 .env
 document
 .obsidian
-
+.postman
 # Talk with AI (로컬 학습 및 내부 문서 — 커밋 금지)
 Talk with AI/
 
@@ -12,4 +12,5 @@ Talk with AI/
 # 개인 문서
 Sprint_계획서.md
 .claude\settings.local.json
+.claude
 docs
