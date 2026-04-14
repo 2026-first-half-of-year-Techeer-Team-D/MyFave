@@ -1,12 +1,15 @@
 package com.myfave.api.domain.chat.service;
 
-import com.myfave.api.domain.chat.dto.response.ChatMessageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -19,11 +22,21 @@ public class ChatMessageService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public void save(Long roomId, ChatMessageResponse response) {
+    public void save(Long roomId, String json) {
         String key = CHAT_HISTORY_KEY + roomId;
-        redisTemplate.opsForList().rightPush(key, response.toString());
+        redisTemplate.opsForList().rightPush(key, json);
         redisTemplate.opsForList().trim(key, -MAX_MESSAGES, -1);
         redisTemplate.expire(key, Duration.ofHours(HISTORY_TTL_HOURS));
         log.debug("메시지 저장: roomId={}", roomId);
+    }
+
+    public List<String> getHistory(Long roomId) {
+        List<Object> raw = redisTemplate.opsForList().range(CHAT_HISTORY_KEY + roomId, 0, -1);
+        if (raw == null || raw.isEmpty()) return Collections.emptyList();
+        return raw.stream().map(Objects::toString).collect(Collectors.toList());
+    }
+
+    public void deleteHistory(Long roomId) {
+        redisTemplate.delete(CHAT_HISTORY_KEY + roomId);
     }
 }
