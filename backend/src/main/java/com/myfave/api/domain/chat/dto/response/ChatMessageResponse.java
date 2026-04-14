@@ -7,8 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.ZonedDateTime;
 
 @Getter
 @Builder
@@ -24,7 +23,7 @@ public class ChatMessageResponse {
     public static ChatMessageResponse newMessage(String messageId, Long userId, String nickname,
                                                   String content) {
         Payload p = new Payload(messageId, userId, nickname, content,
-                OffsetDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
+                ZonedDateTime.now());
         return ChatMessageResponse.builder().type(ChatMessageType.NEW_MESSAGE).payload(p).build();
     }
 
@@ -54,6 +53,6 @@ public class ChatMessageResponse {
         private Long userId;
         private String nickname;
         private String content;
-        private String sentAt;
+        private ZonedDateTime sentAt;
     }
 }
