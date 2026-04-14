@@ -126,6 +126,11 @@ public class OrderService {
             Product product = productRepository.findById(request.getProductId())
                     .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
+            // 삭제된 상품 확인: deletedAt이 세팅된 상품은 주문 불가
+            if (product.isDeleted()) {
+                throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
+            }
+
             // 품절 확인: isSoldout이 true이면 주문 불가
             if (product.getIsSoldout()) {
                 throw new CustomException(ErrorCode.PRODUCT_SOLD_OUT);
@@ -167,6 +172,11 @@ public class OrderService {
                 }
 
                 Product product = cartItem.getProduct();
+
+                // 삭제된 상품 확인: deletedAt이 세팅된 상품은 주문 불가
+                if (product.isDeleted()) {
+                    throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
+                }
 
                 // 각 상품 품절 확인
                 if (product.getIsSoldout()) {
