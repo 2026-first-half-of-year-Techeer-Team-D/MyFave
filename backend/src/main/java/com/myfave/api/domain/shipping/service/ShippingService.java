@@ -16,6 +16,8 @@ import com.myfave.api.domain.shipping.dto.request.ShippingAddressRequest;
 
 import java.util.List;
 
+import com.myfave.api.domain.shipping.dto.response.DefaultAddressResponse;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -70,5 +72,27 @@ public class ShippingService {
 
         // 3) db에서 삭제
         shippingAddressRepository.delete(shippingAddress);
+    }
+
+    // 7-4. 기본 배송지 설정
+    @Transactional
+    public DefaultAddressResponse setDefaultAddress(Long userId, Long addressId) {
+        ShippingAddress shippingAddress = shippingAddressRepository.findById(addressId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SHIPPING_ADDRESS_NOT_FOUND));
+
+        if (!shippingAddress.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        User user = shippingAddress.getUser();
+
+        // 기존 기본 배송지 해제
+        shippingAddressRepository.findByUserAndIsDefaultTrue(user)
+                .ifPresent(existing -> existing.unsetDefault());
+
+        // 새 기본 배송지 설정
+        shippingAddress.setAsDefault();
+
+        return DefaultAddressResponse.from(shippingAddress);
     }
 }

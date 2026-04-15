@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
+import com.myfave.api.domain.shipping.dto.response.DefaultAddressResponse;
+import org.springframework.web.bind.annotation.PatchMapping;
+
 @RestController
 @RequestMapping("/shipping")
 @RequiredArgsConstructor
@@ -51,5 +54,14 @@ public class ShippingController {
         Long userId = 1L;
         shippingService.deleteShippingAddress(userId, addressId);
         return ResponseEntity.ok(ApiResponse.ok("배송지가 삭제되었습니다."));
+    }
+
+    // 7-4. 기본 배송지 설정
+    @PatchMapping("/{addressId}/default")
+    public ResponseEntity<ApiResponse<DefaultAddressResponse>> setDefaultAddress(
+            @PathVariable Long addressId) {
+        Long userId = 1L;
+        DefaultAddressResponse response = shippingService.setDefaultAddress(userId, addressId);
+        return ResponseEntity.ok(ApiResponse.ok(response));
     }
 }
