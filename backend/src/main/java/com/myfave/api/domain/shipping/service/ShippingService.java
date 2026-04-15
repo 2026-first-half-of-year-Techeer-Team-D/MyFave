@@ -51,7 +51,7 @@ public class ShippingService {
                 .addressDetail(request.getAddressDetail())
                 .zipCode(request.getZipCode())
                 .deliveryRequest(request.getDeliveryRequest())
-                .isDefault(request.getIsDefault())
+                .isDefault(false)
                 .build();
 
         shippingAddressRepository.save(shippingAddress);
