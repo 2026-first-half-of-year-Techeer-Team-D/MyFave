@@ -33,4 +33,20 @@ public class ShippingService {
                 .map(ShippingAddressResponse::from)
                 .toList();
     }
+
+    // 7-3. 배송지 삭제
+    @Transactional
+    public void deleteShippingAddress(Long userId, Long addressId) {
+        // 1) 배송지가 존재하는지 확인
+        ShippingAddress shippingAddress = shippingAddressRepository.findById(addressId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SHIPPING_ADDRESS_NOT_FOUND));
+
+        // 2) 본인 배송지인지 확인
+        if (!shippingAddress.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        // 3) db에서 삭제
+        shippingAddressRepository.delete(shippingAddress);
+    }
 }
