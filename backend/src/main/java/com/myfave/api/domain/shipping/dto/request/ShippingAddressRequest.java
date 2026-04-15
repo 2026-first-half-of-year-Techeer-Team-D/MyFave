@@ -28,10 +28,4 @@ public class ShippingAddressRequest {
 
     @Size(max = 100, message = "배송 요청사항은 100자 이내여야 합니다.")
     private String deliveryRequest;
-
-    private Boolean isDefault;
-
-    public Boolean getIsDefault() {
-        return isDefault != null ? isDefault : false;
-    }
 }
