@@ -30,4 +30,8 @@ public class ShippingAddressRequest {
     private String deliveryRequest;
 
     private Boolean isDefault;
+
+    public Boolean getIsDefault() {
+        return isDefault != null ? isDefault : false;
+    }
 }
