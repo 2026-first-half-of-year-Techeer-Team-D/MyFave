@@ -35,7 +35,7 @@ public class ShippingController {
             @PathVariable Long addressId) {
         Long userId = 1L;
         shippingService.deleteShippingAddress(userId, addressId);
-        return ResponseEntity.ok(new ApiResponse<>(200, "배송지가 삭제되었습니다.", null));
+        return ResponseEntity.ok(ApiResponse.ok("배송지가 삭제되었습니다."));
     }
 }
 
