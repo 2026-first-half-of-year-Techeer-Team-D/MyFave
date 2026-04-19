@@ -1,0 +1,93 @@
+/** @import must precede all other statements */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 15 19% 17%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 15 19% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 15 19% 17%;
+
+    --primary: 340 100% 79%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 330 100% 97%;
+    --secondary-foreground: 15 19% 17%;
+
+    --muted: 30 33% 95%;
+    --muted-foreground: 25 18% 53%;
+
+    --accent: 330 100% 97%;
+    --accent-foreground: 15 19% 17%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 22% 93%;
+    --input: 30 22% 93%;
+    --ring: 340 100% 79%;
+
+    --radius: 0.75rem;
+
+    /* Brand colors */
+    --point-color: 340 100% 79%;
+    --main-color: 330 100% 97%;
+    --sub-color1: 278 22% 88%;
+    --sub-color2: 28 14% 88%;
+    --chat-color: 330 100% 97%;
+    --chat-font-color: 340 35% 67%;
+    --chat-color2: 340 100% 99%;
+    --chat-font-color2: 0 0% 11%;
+    --footer-color: 60 11% 97%;
+    --separator-color: 30 17% 93%;
+    --text-dark: 15 19% 17%;
+    --text-muted: 25 18% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Noto Sans KR', -apple-system, sans-serif;
+    margin: 0;
+  }
+
+  :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label, td, th) {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  pre,
+  code {
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  #root {
+    min-height: 100svh;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #ff95b3;
+  border-radius: 2px;
+}
