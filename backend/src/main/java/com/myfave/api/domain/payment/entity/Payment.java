@@ -9,8 +9,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.ZonedDateTime;
+
 @Entity
-@Table(name = "payments")
+@Table(name = "payments",
+        uniqueConstraints = @UniqueConstraint(name = "uk_payments_idempotency_key", columnNames = "idempotency_key"))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment extends BaseEntity {
@@ -25,8 +28,21 @@ public class Payment extends BaseEntity {
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "coupon_id")
-    private Coupon coupon;   // NULL = 쿠폰 미사용
+    @JoinColumn(name = "discount_coupon_id")
+    private Coupon discountCoupon;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shipping_coupon_id")
+    private Coupon shippingCoupon;
+
+    @Column(name = "idempotency_key", nullable = false, length = 100)
+    private String idempotencyKey;
+
+    @Column(name = "pg_provider", nullable = false, length = 50)
+    private String pgProvider;
+
+    @Column(name = "pg_transaction_id", length = 255)
+    private String pgTransactionId;
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
@@ -43,33 +59,73 @@ public class Payment extends BaseEntity {
     @Column(nullable = false)
     private Integer totalPaymentPrice = 0;
 
+    @Column(nullable = false)
+    private Integer refundedAmount = 0;
+
+    @Column(nullable = false)
+    private Integer pgFee = 0;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
+    @Column(columnDefinition = "TEXT")
+    private String failReason;
+
+    @Column(columnDefinition = "TEXT")
+    private String receiptUrl;
+
+    @Column(name = "paid_at")
+    private ZonedDateTime paidAt;
+
     @Builder
-    private Payment(Order order, Coupon coupon, PaymentMethod paymentMethod,
+    private Payment(Order order, Coupon discountCoupon, Coupon shippingCoupon,
+                    String idempotencyKey, String pgProvider,
+                    PaymentMethod paymentMethod,
                     Integer totalProductPrice, Integer deliveryFee,
                     Integer discountPrice, Integer totalPaymentPrice) {
         this.order = order;
-        this.coupon = coupon;
+        this.discountCoupon = discountCoupon;
+        this.shippingCoupon = shippingCoupon;
+        this.idempotencyKey = idempotencyKey;
+        this.pgProvider = pgProvider;
         this.paymentMethod = paymentMethod;
         this.totalProductPrice = totalProductPrice != null ? totalProductPrice : 0;
         this.deliveryFee = deliveryFee != null ? deliveryFee : 0;
         this.discountPrice = discountPrice != null ? discountPrice : 0;
         this.totalPaymentPrice = totalPaymentPrice != null ? totalPaymentPrice : 0;
+        this.refundedAmount = 0;
+        this.pgFee = 0;
         this.paymentStatus = PaymentStatus.PENDING;
     }
 
-    public void complete() {
-        this.paymentStatus = PaymentStatus.COMPLETE;
+    // PENDING → AUTHORIZED
+    public void authorize(String pgTransactionId) {
+        this.pgTransactionId = pgTransactionId;
+        this.paymentStatus = PaymentStatus.AUTHORIZED;
     }
 
-    public void fail() {
+    // AUTHORIZED → COMPLETED
+    public void complete(String receiptUrl, ZonedDateTime paidAt) {
+        this.receiptUrl = receiptUrl;
+        this.paidAt = paidAt;
+        this.paymentStatus = PaymentStatus.COMPLETED;
+    }
+
+    // → FAILED
+    public void fail(String failReason) {
+        this.failReason = failReason;
         this.paymentStatus = PaymentStatus.FAILED;
     }
 
+    // COMPLETED → CANCELLED
     public void cancel() {
         this.paymentStatus = PaymentStatus.CANCELLED;
+    }
+
+    // COMPLETED → PARTIAL_CANCELLED
+    public void partialCancel(int refundAmount) {
+        this.refundedAmount += refundAmount;
+        this.paymentStatus = PaymentStatus.PARTIAL_CANCELLED;
     }
 }
