@@ -25,3 +25,9 @@ jwt:
   secret: ${JWT_SECRET:local-dev-jwt-secret-key-must-be-at-least-256-bits-long-here}
   access-token-expiry: 1800000      # 30분 (ms)
   refresh-token-expiry: 1209600000  # 14일 (ms)
+
+# 포트원 결제 설정
+portone:
+  api-url: ${PORTONE_API_URL:https://api.portone.io}
+  api-secret: ${PORTONE_API_SECRET}
+  channel-key: ${PORTONE_CHANNEL_KEY}
