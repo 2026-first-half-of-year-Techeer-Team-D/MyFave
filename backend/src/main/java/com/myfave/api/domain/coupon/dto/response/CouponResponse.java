@@ -12,7 +12,7 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 public class CouponResponse {
 
-    private Long id;
+    private Long couponId;
     private String couponName;
     private CouponType couponType;
     private Integer discountPrice;
