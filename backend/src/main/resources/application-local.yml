@@ -60,3 +60,9 @@ springdoc:
   swagger-ui:
     path: /swagger-ui
     enabled: true
+
+# 포트원 샌드박스 로컬 개발 설정
+portone:
+  api-url: https://api.portone.io
+  api-secret: ${PORTONE_API_SECRET:local-portone-api-secret}
+  channel-key: ${PORTONE_CHANNEL_KEY:local-portone-channel-key}
