@@ -81,6 +81,11 @@ public enum ErrorCode {
     PAYMENT_CANCELLED(409, "취소된 결제"),
     PAYMENT_AMOUNT_MISMATCH(400, "결제 금액 불일치"),
     PAYMENT_FAILED(502, "외부 결제 서비스 오류"),
+    PAYMENT_IDEMPOTENCY_CONFLICT(409, "동일한 멱등성 키로 이미 처리된 결제"),
+    PAYMENT_LOCK_CONFLICT(409, "동일한 주문에 대한 결제가 이미 진행 중"),
+    PAYMENT_WEBHOOK_INVALID_SIGNATURE(401, "웹훅 서명 검증 실패"),
+    PAYMENT_COUPON_TYPE_MISMATCH(400, "쿠폰 타입이 적용 위치와 불일치"),
+    PAYMENT_INVALID_STATUS(409, "현재 결제 상태에서 허용되지 않는 작업"),
     ;
 
     private final int httpStatus;
