@@ -28,9 +28,13 @@ public class CouponService {
     private final UserRepository userRepository;
 
     // 8-1. 보유 쿠폰 목록 조회
+    @Transactional
     public List<CouponResponse> getMyCoupons(Long userId, CouponStatus status) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // Lazy 만료 전환: 조회 전에 만료된 AVAILABLE 쿠폰을 EXPIRED로 일괄 처리
+        couponRepository.expireAvailableCouponsBefore(user, ZonedDateTime.now());
 
         List<Coupon> coupons = (status == null)
                 ? couponRepository.findByUser(user)

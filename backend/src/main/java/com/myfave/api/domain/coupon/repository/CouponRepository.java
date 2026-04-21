@@ -4,7 +4,11 @@ import com.myfave.api.domain.coupon.entity.Coupon;
 import com.myfave.api.domain.coupon.entity.CouponStatus;
 import com.myfave.api.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface CouponRepository extends JpaRepository<Coupon, Long> {
@@ -14,4 +18,12 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
 
     // 사용 가능한 쿠폰만
     List<Coupon> findByUserAndStatus(User user, CouponStatus status);
+
+    // Lazy 만료 전환: 해당 사용자의 AVAILABLE 쿠폰 중 만료된 것을 EXPIRED로 일괄 전환
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Coupon c SET c.status = com.myfave.api.domain.coupon.entity.CouponStatus.EXPIRED " +
+            "WHERE c.user = :user " +
+            "AND c.status = com.myfave.api.domain.coupon.entity.CouponStatus.AVAILABLE " +
+            "AND c.expiredAt < :now")
+    int expireAvailableCouponsBefore(@Param("user") User user, @Param("now") ZonedDateTime now);
 }
