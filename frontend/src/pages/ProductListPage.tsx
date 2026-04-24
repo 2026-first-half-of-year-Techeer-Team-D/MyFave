@@ -82,15 +82,15 @@ export function ProductListPage() {
         </div>
       </div>
 
-      {/* 2. Product count - 카테고리 탭 바로 아래 위치 */}
-      <div className="mx-auto max-w-[376.04px] bg-white h-[52.47px] px-[19.99px] flex items-center">
+      {/* 2. Product count - 카테고리 탭 바로 아래 위치 (간격 축소) */}
+      <div className="mx-auto max-w-[376.04px] bg-white h-[40px] px-[19.99px] flex items-center">
         <p className="font-noto text-[12px] font-normal text-dark-text">
           상품 <span className="font-medium text-black">{PRODUCTS.length}</span>개
         </p>
       </div>
 
-      {/* 3. Products grid - 하단 상품 카드 리스트 */}
-      <div className="mx-auto max-w-[376.04px] px-[21.32px] py-[32px] bg-white">
+      {/* 3. Products grid - 하단 상품 카드 리스트 (각진 모서리 반영) */}
+      <div className="mx-auto max-w-[376.04px] px-[21.32px] pt-[12px] pb-[32px] bg-white">
         <div className="grid grid-cols-2 gap-x-[11.36px] gap-y-[21px]">
           {PRODUCTS.map((product) => (
             <Link
@@ -98,8 +98,8 @@ export function ProductListPage() {
               to={`/product/${product.id}`}
               className="group flex flex-col w-full"
             >
-              {/* Product Image */}
-              <div className="relative mb-[9px] h-[200px] overflow-hidden rounded-[12px] bg-gray-50 border border-separator/10">
+              {/* Product Image - 각진 모서리(rounded-none) */}
+              <div className="relative mb-[9px] h-[200px] overflow-hidden bg-gray-50 border border-separator/10">
                 <img
                   src={product.image}
                   alt={product.title}
