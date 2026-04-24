@@ -70,6 +70,26 @@
     line-height: 1.5;
     letter-spacing: -0.01em;
   }
+
+  /* Additional Figma Precise Styles (100% Match) */
+  .text-figma-15-reg {
+    /* style_16Z5J9 */
+    font-size: 15px;
+    line-height: 24px;
+    font-weight: 400;
+  }
+  .text-figma-12-med {
+    /* style_6M37UV */
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 500;
+  }
+  .text-figma-12-reg {
+    /* style_0XQGKV */
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 400;
+  }
 }
 
 @layer base {
