@@ -126,7 +126,7 @@ export function MainPage() {
               to={`/product/${product.id}`}
               className="group flex w-[calc(50%-6px)] flex-col"
             >
-              <div className="relative mb-3 h-[288px] overflow-hidden rounded-lg bg-gray-50 shadow-sm border border-separator/20">
+              <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-gray-50 shadow-sm border border-separator/20">
                 <img
                   src={product.image}
                   alt={product.title}
@@ -138,10 +138,10 @@ export function MainPage() {
                 </div>
               </div>
               <div className="px-0.5">
-                <h3 className="mb-1 h-9 font-noto text-figma-small font-bold text-dark-text line-clamp-2 leading-snug group-hover:text-point transition-colors tracking-tight">
+                <h3 className="mb-0.5 h-9 font-noto text-[10px] font-normal text-dark-text line-clamp-2 leading-[18px] group-hover:text-point transition-colors tracking-tight">
                   {product.title}
                 </h3>
-                <p className="font-noto text-[14px] font-black text-point">{product.price}</p>
+                <p className="font-noto text-[12px] font-medium text-point leading-[18px]">{product.price}</p>
               </div>
             </Link>
           ))}
