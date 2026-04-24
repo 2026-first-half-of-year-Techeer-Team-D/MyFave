@@ -51,6 +51,22 @@
     --text-dark: 0 0% 11%;
     --text-muted: 25 10% 50%;
   }
+
+  /* Figma precise typography */
+  .text-figma-heading {
+    font-size: 18px;
+    line-height: 27px;
+    font-weight: 500;
+  }
+  .text-figma-body {
+    font-size: 16px;
+    line-height: 25.2px;
+    font-weight: 500;
+  }
+  .text-figma-small {
+    font-size: 13px;
+    line-height: 1.5;
+  }
 }
 
 @layer base {
