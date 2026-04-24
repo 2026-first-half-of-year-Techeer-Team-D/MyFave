@@ -13,164 +13,163 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
   return (
     <>
       {/* Overlay */}
-      {isOpen && <div className="fixed inset-0 z-50 bg-black/30" onClick={onClose} />}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300" 
+          onClick={onClose} 
+        />
+      )}
 
       {/* Side menu drawer */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 flex w-[251px] flex-col bg-white transition-transform duration-300 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col bg-white shadow-2xl transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#F2EDEB] px-5 py-3">
-          <Link to="/" onClick={onClose}>
+        <div className="flex h-16 items-center justify-between border-b border-separator px-5">
+          <Link to="/" onClick={onClose} className="flex items-center">
             <img
-              src="https://api.builder.io/api/v1/image/assets/TEMP/4365f9105d58ff126ad032631f85a3a4610ef3f2?width=110"
+              src="https://api.builder.io/api/v1/image/assets/TEMP/4365f9105d58ff126ad032631f85a3a4610ef3f2?width=100"
               alt="My Fave"
-              className="h-9 w-auto"
+              className="h-8 w-auto"
             />
           </Link>
           <button
             onClick={onClose}
-            className="flex h-11 w-11 items-center justify-center"
+            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-footer-bg active:scale-90 transition-all"
             aria-label="메뉴 닫기"
           >
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-              <path
-                d="M16.4963 5.49878L5.49878 16.4963"
-                stroke="#322927"
-                strokeWidth="1.83293"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M5.49878 5.49878L16.4963 16.4963"
-                stroke="#322927"
-                strokeWidth="1.83293"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-dark-text" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
 
         {/* Menu items */}
-        <div className="flex-1 overflow-y-auto">
-          {/* HOME */}
-          <Link
-            to="/"
-            onClick={onClose}
-            className="block border-b border-[#F2EDEB] px-5 py-[11px]"
-          >
-            <span className="font-noto text-lg font-medium text-[#322927]">HOME</span>
-          </Link>
-
-          {/* SHOP */}
-          <div className="border-b border-[#F2EDEB]">
-            <button
-              className="flex w-full items-center justify-between px-5 py-[11px]"
-              onClick={() => setShopOpen(!shopOpen)}
+        <div className="flex-1 overflow-y-auto pt-4">
+          <div className="space-y-1">
+            {/* HOME */}
+            <Link
+              to="/"
+              onClick={onClose}
+              className="flex items-center px-6 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
             >
-              <span className="font-noto text-lg font-medium text-[#322927]">SHOP</span>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                className={`transition-transform ${shopOpen ? 'rotate-0' : 'rotate-180'}`}
+              <span className="font-lexend text-base font-black tracking-wider text-dark-text">HOME</span>
+            </Link>
+
+            {/* SHOP */}
+            <div className="space-y-1">
+              <button
+                className="flex w-full items-center justify-between px-6 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
+                onClick={() => setShopOpen(!shopOpen)}
               >
-                <path
-                  d="M14.9933 12.4943L9.99553 7.49658L4.9978 12.4943"
-                  stroke="#322927"
-                  strokeWidth="1.66591"
+                <span className="font-lexend text-base font-black tracking-wider text-dark-text">SHOP</span>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  className={`text-muted-text transition-transform duration-300 ${shopOpen ? 'rotate-180' : ''}`}
+                  strokeWidth="3"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            {shopOpen && (
-              <div className="pb-2">
-                {[
-                  { label: '전체', path: '/shop' },
-                  { label: '상의', path: '/shop?category=top' },
-                  { label: '하의', path: '/shop?category=bottom' },
-                  { label: '아우터', path: '/shop?category=outer' },
-                  { label: '악세사리', path: '/shop?category=accessory' },
-                ].map((item) => (
-                  <Link
-                    key={item.label}
-                    to={item.path}
-                    onClick={onClose}
-                    className="block px-8 py-2 font-noto text-sm font-medium text-[#322927] hover:bg-[#FFF7F8]"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              {shopOpen && (
+                <div className="bg-footer-bg/50 py-2">
+                  {[
+                    { label: '전체', path: '/shop' },
+                    { label: '상의', path: '/shop?category=top' },
+                    { label: '하의', path: '/shop?category=bottom' },
+                    { label: '아우터', path: '/shop?category=outer' },
+                    { label: '악세사리', path: '/shop?category=accessory' },
+                  ].map((item) => (
+                    <Link
+                      key={item.label}
+                      to={item.path}
+                      onClick={onClose}
+                      className="block px-10 py-2.5 font-noto text-sm font-bold text-dark-text/70 transition-colors hover:text-point active:scale-95"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          {/* COMMUNITY */}
-          <div className="border-b border-[#F2EDEB]">
-            <button
-              className="flex w-full items-center justify-between px-5 py-[11px]"
-              onClick={() => setCommunityOpen(!communityOpen)}
-            >
-              <span className="font-noto text-lg font-medium text-[#322927]">COMMUNITY</span>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                className={`transition-transform ${communityOpen ? 'rotate-0' : 'rotate-180'}`}
+            {/* COMMUNITY */}
+            <div className="space-y-1">
+              <button
+                className="flex w-full items-center justify-between px-6 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
+                onClick={() => setCommunityOpen(!communityOpen)}
               >
-                <path
-                  d="M14.9933 12.4943L9.99553 7.49658L4.9978 12.4943"
-                  stroke="#322927"
-                  strokeWidth="1.66591"
+                <span className="font-lexend text-base font-black tracking-wider text-dark-text">COMMUNITY</span>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  className={`text-muted-text transition-transform duration-300 ${communityOpen ? 'rotate-180' : ''}`}
+                  strokeWidth="3"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            {communityOpen && (
-              <div className="pb-2">
-                {[
-                  { label: '마이 페이브 소개', path: '/about' },
-                  { label: '공지사항', path: '/notice' },
-                  { label: '자주 묻는 질문', path: '/faq' },
-                  { label: '1:1 문의', path: '/inquiry' },
-                ].map((item) => (
-                  <Link
-                    key={item.label}
-                    to={item.path}
-                    onClick={onClose}
-                    className="block px-8 py-2 font-noto text-sm font-medium text-[#322927] hover:bg-[#FFF7F8]"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              {communityOpen && (
+                <div className="bg-footer-bg/50 py-2">
+                  {[
+                    { label: '마이 페이브 소개', path: '/about' },
+                    { label: '공지사항', path: '/notice' },
+                    { label: '자주 묻는 질문', path: '/faq' },
+                    { label: '1:1 문의', path: '/inquiry' },
+                  ].map((item) => (
+                    <Link
+                      key={item.label}
+                      to={item.path}
+                      onClick={onClose}
+                      className="block px-10 py-2.5 font-noto text-sm font-bold text-dark-text/70 transition-colors hover:text-point active:scale-95"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* MY PAGE */}
+            <Link
+              to="/mypage"
+              onClick={onClose}
+              className="flex items-center px-6 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
+            >
+              <span className="font-lexend text-base font-black tracking-wider text-dark-text">MY PAGE</span>
+            </Link>
+
+            {/* ORDER */}
+            <Link
+              to="/orders"
+              onClick={onClose}
+              className="flex items-center px-6 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
+            >
+              <span className="font-lexend text-base font-black tracking-wider text-dark-text">ORDER</span>
+            </Link>
           </div>
+        </div>
 
-          {/* MY PAGE */}
-          <Link
-            to="/mypage"
-            onClick={onClose}
-            className="block border-b border-[#F2EDEB] px-5 py-[11px]"
-          >
-            <span className="font-noto text-lg font-medium text-[#322927]">MY PAGE</span>
-          </Link>
-
-          {/* ORDER */}
-          <Link
-            to="/orders"
-            onClick={onClose}
-            className="block border-b border-[#F2EDEB] px-5 py-[11px]"
-          >
-            <span className="font-noto text-lg font-medium text-[#322927]">ORDER</span>
-          </Link>
+        {/* Footer in SideMenu */}
+        <div className="border-t border-separator p-6 bg-footer-bg/30">
+          <p className="font-noto text-[10px] text-muted-text leading-relaxed">
+            고객센터 1544-0000<br/>
+            평일 11:00 ~ 18:00 (토/일/공휴일 휴무)
+          </p>
         </div>
       </div>
     </>
