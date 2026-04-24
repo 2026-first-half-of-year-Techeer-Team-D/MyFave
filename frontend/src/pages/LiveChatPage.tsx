@@ -77,16 +77,16 @@ export function LiveChatPage() {
 
   return (
     <div className="relative flex flex-1 flex-col bg-white overflow-hidden min-h-0">
-      {/* 0. Subtle Background Logo Watermark - 디자인 원본 감성 재현 */}
-      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-[0.05]">
+      {/* 0. Subtle Background Logo Watermark - Figma 디자인 명세 100% 동기화 */}
+      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-[0.03]">
         <img
-          src="https://api.builder.io/api/v1/image/assets/TEMP/e7df4be5ec275bc11639573f94373e14d54c4a9e?width=300"
+          src="https://api.builder.io/api/v1/image/assets/TEMP/e7df4be5ec275bc11639573f94373e14d54c4a9e?width=240"
           alt="My Fave Watermark"
-          className="w-[60%] h-auto grayscale"
+          className="w-[50%] h-auto grayscale"
         />
       </div>
 
-      {/* 1. Header Notice Card - Figma Sub color1 (#E4DFE7) 명세 100% 동기화 */}
+      {/* 1. Header Notice Card - Figma Node 99:267 (#E4DFE7, 24px) */}
       <div className="relative z-20 px-[20px] pt-[32px] pb-[16px]">
         <div className="rounded-[24px] bg-sub1 p-[24px] shadow-sm border border-black/5">
           <p className="text-center font-noto text-[12px] font-bold leading-[18.2px] text-[#000000] tracking-tight">
@@ -97,17 +97,17 @@ export function LiveChatPage() {
         </div>
       </div>
 
-      {/* 2. Participant Badge - Figma Node 99:540 명세 100% 동기화 */}
+      {/* 2. Participant Badge - Figma Node 99:540 (#E4DFE7, #FF6B6B) */}
       <div className="relative z-20 flex justify-center pb-[24px]">
         <div className="inline-flex items-center justify-center rounded-[10px] bg-sub1 px-[12px] py-[4px] border border-black/5 shadow-inner">
           <span className="font-noto text-[11px] font-medium text-[#FF6B6B]">5,123명이 참여중입니다</span>
         </div>
       </div>
 
-      {/* 3. Chat Messages Area - Spacing 17px & Dynamic Alignment (Official: Right, Others: Left) */}
+      {/* 3. Chat Messages Area - Spacing 17px & Bubble Colors 100% Match */}
       <div 
         ref={scrollRef}
-        className="relative z-10 flex-1 overflow-y-auto px-[19.99px] pb-[120px] scrollbar-hide"
+        className="relative z-10 flex-1 overflow-y-auto px-[19.99px] pb-[100px] scrollbar-hide"
       >
         <div className="flex flex-col gap-[17px]">
           {messages.map((msg) => (
@@ -120,7 +120,7 @@ export function LiveChatPage() {
               />
               <div className={`flex flex-col gap-[4.5px] ${msg.isOfficial ? 'items-end' : ''}`}>
                 <div className="flex items-center gap-[6px] px-[2px]">
-                  <span className="font-noto text-[12px] font-normal leading-[18px] text-dark-text">{msg.user}</span>
+                  <span className="font-noto text-[12px] font-normal leading-[18px] text-[#000000]">{msg.user}</span>
                   {msg.isOfficial && (
                     <span className="rounded-[2px] bg-point px-[4px] py-[1px] text-[8px] font-black text-white uppercase tracking-tighter">My Fave 공식</span>
                   )}
@@ -129,8 +129,8 @@ export function LiveChatPage() {
                   <div 
                     className={`rounded-[15.5px] px-[16px] py-[9.5px] shadow-sm border border-separator/5 ${
                       msg.isOfficial
-                        ? 'rounded-tr-none bg-main-bg text-dark-text font-medium' // 공식: 오른쪽, Main color
-                        : 'rounded-tl-none bg-chat-bg2 text-chat-font2 font-medium' // 일반/나: 왼쪽, Chat color2
+                        ? 'rounded-tr-none bg-main-bg text-[#000000] font-medium shadow-md shadow-main-bg/10' 
+                        : 'rounded-tl-none bg-main-bg text-[rgba(0,0,0,0.9)] font-medium shadow-md shadow-main-bg/10' // 모든 상대 메시지는 Main color (#FFECF2)
                     }`}
                   >
                     <p className={`font-noto text-[12px] font-normal tracking-tight ${msg.isOfficial ? 'leading-[12.1px]' : 'leading-[18.2px]'}`}>
@@ -147,22 +147,24 @@ export function LiveChatPage() {
         </div>
       </div>
 
-      {/* 4. Bottom Sticky Input Bar - Figma Footer color (#FAFAF8) 기반 100% 동기화 */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 bg-footer-bg border-t border-separator px-[20px] py-[16px] pb-[32px]">
-        <form onSubmit={handleSend} className="flex items-center gap-[12px]">
-          <div className="relative flex-1">
+      {/* 4. Floating Input & Send Button - Figma Rectangle 8 & 9 (x:14, y:766) 명세 100% 동기화 */}
+      <div className="absolute bottom-[47px] left-0 right-0 z-30 px-[14px]">
+        <form onSubmit={handleSend} className="flex items-center gap-[8px]">
+          {/* Input Box - Figma Rectangle 8 */}
+          <div className="flex-1 h-[39px]">
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="무엇이든 물어보세요!"
-              className="w-full rounded-[21px] border border-separator bg-white px-5 py-[11px] font-noto text-[12px] text-[#000000] placeholder:text-muted-text/40 focus:border-point focus:outline-none transition-colors shadow-inner"
+              className="w-full h-full rounded-[21px] border border-separator bg-[#FAFAF8] px-[23px] font-noto text-[12px] text-[#000000] placeholder:text-[#B8B8B8] focus:border-point focus:outline-none transition-colors shadow-inner"
             />
           </div>
+          {/* Send Button - Figma Rectangle 9 */}
           <button
             type="submit"
             disabled={!inputText.trim()}
-            className="flex h-[40px] items-center justify-center rounded-[21px] bg-point px-[24px] font-noto text-[12px] font-bold text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-95 disabled:opacity-50"
+            className="flex h-[39px] w-[73px] items-center justify-center rounded-[21px] bg-point font-noto text-[12px] font-bold text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-95 disabled:opacity-50"
           >
             보내기
           </button>
