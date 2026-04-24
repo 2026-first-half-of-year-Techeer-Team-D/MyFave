@@ -61,8 +61,8 @@ export function ProductListPage() {
 
   return (
     <div className="flex-1 bg-white">
-      {/* 1. Category tabs - Figma Node 37:3365 (h:44.18px, border-b:1.096px) */}
-      <div className="sticky top-[86px] z-30 h-[44.18px] border-b-[1.096px] border-separator bg-white">
+      {/* 1. Category tabs - 상단 네비게이션바 바로 아래 고정 (top-0) */}
+      <div className="sticky top-0 z-30 h-[44.18px] border-b-[1.096px] border-separator bg-white">
         <div className="mx-auto max-w-[376.04px] px-[19.99px] h-full flex items-center">
           <div className="flex gap-[16px] whitespace-nowrap overflow-x-auto scrollbar-hide h-full items-center">
             {CATEGORIES.map((cat) => (
@@ -72,7 +72,7 @@ export function ProductListPage() {
                 className={`h-full font-noto text-[12px] font-medium transition-all ${
                   selectedCategory === cat.value
                     ? 'text-dark-text border-b-[1.096px] border-dark-text'
-                    : 'text-muted-text'
+                    : 'text-muted-text hover:text-dark-text/70'
                 }`}
               >
                 {cat.label}
@@ -82,24 +82,24 @@ export function ProductListPage() {
         </div>
       </div>
 
-      {/* 2. Product count - Figma Node 37:3377 (h:52.47px) */}
-      <div className="mx-auto max-w-[376.04px] bg-white h-[52.47px] px-[19.99px] flex items-center">
+      {/* 2. Product count - 카테고리 탭 바로 아래 위치 */}
+      <div className="mx-auto max-w-[376.04px] bg-white h-[52.47px] px-[19.99px] flex items-center border-b border-separator/5">
         <p className="font-noto text-[12px] font-normal text-dark-text">
-          상품 <span className="font-medium text-dark-text">{PRODUCTS.length}</span>개
+          상품 <span className="font-medium text-black">{PRODUCTS.length}</span>개
         </p>
       </div>
 
-      {/* 3. Products grid - Figma Node 99:615 기반 (gap:21px, width:162.03px) */}
+      {/* 3. Products grid - 하단 상품 카드 리스트 */}
       <div className="mx-auto max-w-[376.04px] px-[21.32px] py-[32px] bg-white">
         <div className="grid grid-cols-2 gap-x-[11.36px] gap-y-[21px]">
           {PRODUCTS.map((product) => (
             <Link
               key={product.id}
               to={`/product/${product.id}`}
-              className="group flex flex-col w-[162.03px]"
+              className="group flex flex-col w-full"
             >
-              {/* Product Image - Figma Node 99:543 (h:200px) */}
-              <div className="relative mb-[9px] h-[200px] overflow-hidden rounded-[12px] bg-white border border-separator/10">
+              {/* Product Image */}
+              <div className="relative mb-[9px] h-[200px] overflow-hidden rounded-[12px] bg-gray-50 border border-separator/10">
                 <img
                   src={product.image}
                   alt={product.title}
@@ -107,12 +107,12 @@ export function ProductListPage() {
                 />
               </div>
               
-              {/* Product Info - Figma layout_HHWRP7 기반 */}
+              {/* Product Info */}
               <div className="px-[1.98px] flex flex-col gap-[3.99px]">
                 <h3 className="min-h-[40px] font-noto text-[12px] font-normal leading-[20px] text-dark-text line-clamp-2 tracking-tight">
                   {product.title}
                 </h3>
-                <p className="font-noto text-[14px] font-bold text-dark-text leading-[18px]">
+                <p className="font-noto text-[14px] font-bold text-black leading-[18px]">
                   {product.price}
                 </p>
               </div>
