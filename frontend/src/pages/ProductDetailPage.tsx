@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 
 interface ProductFeature {
   title: string
@@ -41,6 +41,7 @@ const PRODUCT_DETAILS: Record<number, ProductDetail> = {
 
 export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [isShippingOpen, setIsShippingOpen] = useState(false)
   const [isRefundOpen, setIsRefundOpen] = useState(false)
 
@@ -146,6 +147,7 @@ export function ProductDetailPage() {
         {/* 장바구니 버튼 - Figma Frame 60 기반 */}
         <button
           type="button"
+          onClick={() => navigate('/cart')}
           className="flex-1 flex h-[49.15px] items-center justify-center gap-[8px] bg-white text-[#322927] border-r border-separator active:bg-gray-50 transition-all"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -159,6 +161,7 @@ export function ProductDetailPage() {
         {/* 구매하기 버튼 - Figma Frame 59 기반 */}
         <button
           type="button"
+          onClick={() => navigate('/payment')}
           className="flex-1 flex h-[49.15px] items-center justify-center bg-point text-white active:bg-[#ff7fa3] transition-all"
         >
           <span className="font-noto text-[14px] font-bold">구매하기</span>

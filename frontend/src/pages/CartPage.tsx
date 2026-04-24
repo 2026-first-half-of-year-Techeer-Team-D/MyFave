@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 interface CartItem {
   id: number
@@ -25,6 +25,7 @@ const INITIAL_CART_ITEMS: CartItem[] = [
 
 export function CartPage() {
   const [items, setItems] = useState<CartItem[]>(INITIAL_CART_ITEMS)
+  const navigate = useNavigate()
 
   const removeItem = (id: number) => {
     setItems(items.filter((item) => item.id !== id))
@@ -112,6 +113,7 @@ export function CartPage() {
       <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[376.04px] -translate-x-1/2 bg-white p-[19.99px] border-t border-separator shadow-figma-popup">
         <button
           type="button"
+          onClick={() => navigate('/payment')}
           className="flex h-[51.99px] w-full items-center justify-center rounded-[8px] bg-point font-noto text-[16px] font-bold text-white shadow-lg shadow-point/20 active:scale-[0.98] transition-all"
         >
           결제하기
