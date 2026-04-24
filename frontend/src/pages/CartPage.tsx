@@ -133,24 +133,24 @@ export function CartPage() {
           </div>
 
           {/* Order summary */}
-          <div className="mx-5 rounded-2xl border border-separator bg-white p-6 shadow-sm">
+          <div className="mx-5 rounded-[15px] border border-separator bg-white p-6 shadow-sm">
             <h2 className="mb-6 font-noto text-base font-bold text-dark-text">주문 금액</h2>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="font-noto text-sm text-muted-text font-medium">상품 금액</span>
-                <span className="font-noto text-sm text-dark-text font-bold">
+                <span className="font-noto text-figma-small text-muted-text font-medium tracking-tight">상품 금액</span>
+                <span className="font-noto text-figma-small text-dark-text font-bold">
                   {subtotal.toLocaleString()}원
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="font-noto text-sm text-muted-text font-medium">배송비</span>
-                <span className="font-noto text-sm text-dark-text font-bold">
+                <span className="font-noto text-figma-small text-muted-text font-medium tracking-tight">배송비</span>
+                <span className="font-noto text-figma-small text-dark-text font-bold">
                   +{shipping.toLocaleString()}원
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="font-noto text-sm text-muted-text font-medium">할인 금액</span>
-                <span className="font-noto text-sm text-point font-bold">
+                <span className="font-noto text-figma-small text-muted-text font-medium tracking-tight">할인 금액</span>
+                <span className="font-noto text-figma-small text-point font-bold">
                   -{discount.toLocaleString()}원
                 </span>
               </div>
