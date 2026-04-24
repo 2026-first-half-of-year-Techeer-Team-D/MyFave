@@ -33,18 +33,13 @@ export function CartPage() {
 
   const subtotal = items.reduce((sum, item) => sum + item.price, 0)
   const shipping = 3000
-  const discount = 3000
+  const discount = 0
   const total = subtotal + shipping - discount
 
   return (
     <div className="flex-1 bg-white min-h-0 pb-32">
-      {/* 1. Header Title - Figma Node 37:4143 (20px Bold) */}
-      <div className="px-[19.99px] pt-[19.99px] pb-[12px]">
-        <h1 className="font-noto text-[20px] font-bold leading-[30px] text-[#322927]">장바구니</h1>
-      </div>
-
       {/* 2. Cart Items Container - Figma Node 37:4145 (gap: 11.99px) */}
-      <div className="px-[19.99px] space-y-[11.99px]">
+      <div className="px-[19.99px] pt-8 space-y-[11.99px]">
         {items.map((item) => (
           <div
             key={item.id}
