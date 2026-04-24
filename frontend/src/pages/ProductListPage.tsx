@@ -83,7 +83,7 @@ export function ProductListPage() {
       </div>
 
       {/* 2. Product count - 카테고리 탭 바로 아래 위치 */}
-      <div className="mx-auto max-w-[376.04px] bg-white h-[52.47px] px-[19.99px] flex items-center border-b border-separator/5">
+      <div className="mx-auto max-w-[376.04px] bg-white h-[52.47px] px-[19.99px] flex items-center">
         <p className="font-noto text-[12px] font-normal text-dark-text">
           상품 <span className="font-medium text-black">{PRODUCTS.length}</span>개
         </p>
