@@ -42,7 +42,7 @@ export function MainPage() {
   return (
     <div className="flex-1 bg-white">
       {/* Instagram Reels Banner */}
-      <div className="mx-auto max-w-md px-5 py-6">
+      <div className="mx-auto max-w-md px-[19.99px] pt-[18.01px] pb-[41.28px]">
         <div className="relative overflow-hidden rounded-[16px] border-figma border-main-bg bg-black shadow-figma-card h-[635.72px]">
           {/* Browser-like Header */}
           <div className="flex h-[40px] items-center gap-[8px] bg-main-bg px-[12px]">
@@ -101,17 +101,26 @@ export function MainPage() {
         </div>
       </div>
 
-      {/* Live Chat Section */}
-      <div className="mx-auto max-w-md px-5 py-4">
+      {/* Live Chat Section - Figma Node 251:236 기반 */}
+      <div className="mx-auto max-w-md px-[20px] pb-[63px]">
         <LiveChatPreview />
       </div>
 
-      {/* Featured Image - Figma Node 37:3653 기반 */}
-      <div className="mx-auto max-w-md px-[19.99px] pt-[23.99px]">
+      {/* Featured Image 1 - Figma Node 44:4817 기반 */}
+      <div className="mx-auto max-w-md px-[20px] pb-[16px]">
         <img
           src="https://api.builder.io/api/v1/image/assets/TEMP/1285c363993a468a3c04bccbc8d85e5f18c31722?width=668"
-          alt="Featured"
-          className="w-full h-auto rounded-2xl shadow-sm"
+          alt="Featured 1"
+          className="w-full h-[200px] object-cover rounded-2xl shadow-sm"
+        />
+      </div>
+
+      {/* Featured Image 2 - Figma Node 37:3653 기반 */}
+      <div className="mx-auto max-w-md px-[20px] pb-[24px]">
+        <img
+          src="https://api.builder.io/api/v1/image/assets/TEMP/809c8119427d69f5d98a6fd8fc600888b6444d6521?width=668"
+          alt="Featured 2"
+          className="w-full h-[224px] object-cover rounded-2xl shadow-sm"
         />
       </div>
 
