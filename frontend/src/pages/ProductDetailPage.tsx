@@ -235,10 +235,10 @@ export function ProductDetailPage() {
       </div>
 
       {/* Action buttons (Fixed Bottom) */}
-      <div className="fixed bottom-0 left-1/2 z-40 flex w-full max-w-md -translate-x-1/2 gap-3 border-t border-separator bg-white p-4 shadow-[0_-8px_20px_rgba(0,0,0,0.05)]">
+      <div className="fixed bottom-0 left-1/2 z-40 flex w-full max-w-md -translate-x-1/2 gap-3 border-t-figma border-separator bg-white p-4 shadow-figma-app">
         <button
           type="button"
-          className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-separator bg-white text-dark-text transition-all hover:bg-gray-50 active:scale-95"
+          className="flex h-14 w-14 items-center justify-center rounded-2xl border-figma border-separator bg-white text-dark-text transition-all hover:bg-gray-50 active:scale-95 shadow-sm"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path
