@@ -1,14 +1,23 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Modal } from '@/shared/components/Modal'
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [autoLogin, setAutoLogin] = useState(false)
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   // TODO: useLogin 훅으로 대체 - auth API 연동
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
+    // 임시 에러 처리 시뮬레이션 - Figma Node 245:76 기준
+    if (!email || !password) {
+      setErrorMessage('비밀번호가 일치하지 않습니다')
+      setIsErrorModalOpen(true)
+      return
+    }
   }
 
   return (
@@ -48,7 +57,7 @@ export function LoginPage() {
           {/* Login button */}
           <button
             type="submit"
-            className="w-full rounded-[5px] bg-point py-3.5 font-noto text-base font-bold text-white shadow-sm transition-all hover:bg-[#ff7fa3] active:scale-[0.98]"
+            className="w-full rounded-[5px] bg-point py-3.5 font-noto text-base font-bold text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-[0.98]"
           >
             로그인
           </button>
@@ -76,28 +85,28 @@ export function LoginPage() {
             <div className="flex items-center justify-center gap-6">
               <Link
                 to="/find-id"
-                className="font-noto text-xs font-medium text-muted-text hover:underline"
+                className="font-noto text-xs font-medium text-muted-text hover:underline underline-offset-2"
               >
                 아이디찾기
               </Link>
               <span className="h-2.5 w-px bg-[#EEE]" />
               <Link
                 to="/find-password"
-                className="font-noto text-xs font-medium text-muted-text hover:underline"
+                className="font-noto text-xs font-medium text-muted-text hover:underline underline-offset-2"
               >
                 비밀번호찾기
               </Link>
             </div>
 
             {/* Sign up */}
-            <div className="flex items-center justify-end gap-1 pt-2">
+            <div className="flex items-center justify-end gap-1 pt-2 group">
               <Link
                 to="/signup"
-                className="font-noto text-sm font-bold text-chat-font hover:underline"
+                className="font-noto text-sm font-bold text-chat-font group-hover:underline underline-offset-2"
               >
                 회원가입
               </Link>
-              <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
+              <svg width="6" height="10" viewBox="0 0 6 10" fill="none" className="group-hover:translate-x-0.5 transition-transform">
                 <path
                   d="M1 1L5 5L1 9"
                   stroke="currentColor"
@@ -111,6 +120,14 @@ export function LoginPage() {
           </div>
         </form>
       </div>
+
+      <Modal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        buttonText="확인"
+      >
+        {errorMessage}
+      </Modal>
     </div>
   )
 }
