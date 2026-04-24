@@ -55,7 +55,10 @@ export function LiveChatPage() {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth',
+      })
     }
   }, [messages])
 
@@ -78,12 +81,13 @@ export function LiveChatPage() {
 
   return (
     <div className="relative flex flex-1 flex-col bg-white overflow-hidden min-h-0">
-      {/* 0. Subtle Background Logo Watermark - Figma 디자인 명세 100% 동기화 */}
+      {/* 0. Subtle Background Logo Watermark - 고해상도 로고 이미지 적용 */}
       <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-[0.20]">
         <img
-          src="https://api.builder.io/api/v1/image/assets/TEMP/e7df4be5ec275bc11639573f94373e14d54c4a9e?width=240"
+          src="https://api.builder.io/api/v1/image/assets/TEMP/e7df4be5ec275bc11639573f94373e14d54c4a9e?width=600"
           alt="My Fave Watermark"
           className="w-[50%] h-auto grayscale"
+          style={{ imageRendering: 'auto' }}
         />
       </div>
 
