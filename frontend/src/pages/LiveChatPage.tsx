@@ -37,6 +37,14 @@ const INITIAL_MESSAGES: Message[] = [
     isOfficial: true,
     timestamp: '오후 5:36',
   },
+  {
+    id: 4,
+    user: '라벤더무드',
+    text: '10분 전에 알림 한번 더 와주면 좋겠다!',
+    avatarType: 'bear',
+    avatarVariant: 7,
+    timestamp: '오후 5:38',
+  },
 ]
 
 export function LiveChatPage() {
@@ -68,21 +76,8 @@ export function LiveChatPage() {
   }
 
   return (
-    <div className="relative flex flex-1 flex-col bg-main-bg overflow-hidden min-h-0">
-      {/* Background Shop Content Layer - Opacity adjusted for design system match */}
-      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none overflow-hidden pt-5">
-        <div className="mx-auto max-w-md px-5 grid grid-cols-2 gap-x-[15px] gap-y-8">
-          {[1, 2, 3, 4].map((p) => (
-            <div key={p} className="flex flex-col">
-              <div className="h-[200px] bg-white rounded-xl mb-3 shadow-sm border border-separator/10" />
-              <div className="h-4 bg-dark-text/10 w-full mb-1 rounded-sm" />
-              <div className="h-4 bg-point/20 w-1/2 rounded-sm" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 1. Header Notice Card - Figma Sub color1 반영 */}
+    <div className="relative flex flex-1 flex-col bg-[#FFF9F0] overflow-hidden min-h-0">
+      {/* 1. Header Notice Card - Figma Node 99:267 & style_RT3LZX 기반 */}
       <div className="relative z-20 px-[20px] pt-[32px] pb-[16px]">
         <div className="rounded-[24px] bg-sub1 p-[24px] shadow-sm border border-black/5">
           <p className="text-center font-noto text-[12px] font-bold leading-[18.2px] text-dark-text tracking-tight">
@@ -93,14 +88,14 @@ export function LiveChatPage() {
         </div>
       </div>
 
-      {/* 2. Participant Badge - Figma Sub color1 반영 */}
+      {/* 2. Participant Badge - Figma Node 99:540 기반 */}
       <div className="relative z-20 flex justify-center pb-[24px]">
-        <div className="inline-flex items-center justify-center rounded-[10px] bg-sub1 px-[12px] py-[4px] border border-black/5">
+        <div className="inline-flex items-center justify-center rounded-[10px] bg-sub1 px-[12px] py-[4px] border border-black/5 shadow-inner">
           <span className="font-noto text-[11px] font-medium text-dark-text/60">5,123명이 참여중입니다</span>
         </div>
       </div>
 
-      {/* 3. Chat Messages Area - Figma layout_Q6ETGY 간격 반영 */}
+      {/* 3. Chat Messages Area - Figma layout_Q6ETGY 간격 (17px) 반영 */}
       <div 
         ref={scrollRef}
         className="relative z-10 flex-1 overflow-y-auto px-[19.99px] pb-[120px] scrollbar-hide"
@@ -123,12 +118,12 @@ export function LiveChatPage() {
                 </div>
                 <div className="flex items-end gap-[8px] max-w-[240px]">
                   <div 
-                    className={`rounded-[15.5px] px-4 py-2.5 shadow-sm border border-separator/5 ${
+                    className={`rounded-[15.5px] px-[16px] py-[9.5px] shadow-sm border border-separator/5 ${
                       msg.user === '나' 
                         ? 'rounded-tr-none bg-point text-white font-medium' 
                         : msg.isOfficial
-                          ? 'rounded-tl-none bg-chat-bg text-dark-text font-medium' // 공식 메시지는 Chat color (Main color)
-                          : 'rounded-tl-none bg-chat-bg2 text-dark-text font-medium' // 일반 메시지는 Chat color2
+                          ? 'rounded-tl-none bg-main-bg text-dark-text font-medium' // 공식 계정: Main color (#FFECF2)
+                          : 'rounded-tl-none bg-chat-bg2 text-chat-font2 font-medium' // 일반 계정: Chat color2 (#FFF7F8)
                     }`}
                   >
                     <p className={`font-noto text-[12px] font-normal tracking-tight ${msg.isOfficial ? 'leading-[12.1px]' : 'leading-[18.2px]'}`}>
@@ -143,7 +138,7 @@ export function LiveChatPage() {
         </div>
       </div>
 
-      {/* 4. Bottom Sticky Input Bar - Figma Footer color 및 Separator 반영 */}
+      {/* 4. Bottom Sticky Input Bar - Figma Rectangle 8 & 9 (21px 라운딩) 명세 100% 동기화 */}
       <div className="absolute bottom-0 left-0 right-0 z-20 bg-footer-bg border-t border-separator px-[20px] py-[16px] pb-[32px]">
         <form onSubmit={handleSend} className="flex items-center gap-[12px]">
           <div className="relative flex-1">
@@ -152,13 +147,13 @@ export function LiveChatPage() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="무엇이든 물어보세요!"
-              className="w-full rounded-[21px] border border-separator bg-white px-5 py-[11px] font-noto text-[12px] text-dark-text placeholder:text-muted-text/40 focus:border-point focus:outline-none transition-colors"
+              className="w-full rounded-[21px] border border-separator bg-white px-[20px] py-[11px] font-noto text-[12px] text-dark-text placeholder:text-muted-text/40 focus:border-point focus:outline-none transition-colors shadow-inner"
             />
           </div>
           <button
             type="submit"
             disabled={!inputText.trim()}
-            className="flex h-[40px] items-center justify-center rounded-[21px] bg-point px-[24px] font-noto text-[12px] font-black text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-95 disabled:opacity-50"
+            className="flex h-[40px] items-center justify-center rounded-[21px] bg-point px-[24px] font-noto text-[12px] font-bold text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-95 disabled:opacity-50"
           >
             보내기
           </button>
