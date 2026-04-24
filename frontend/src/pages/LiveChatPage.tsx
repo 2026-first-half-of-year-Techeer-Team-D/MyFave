@@ -104,23 +104,23 @@ export function LiveChatPage() {
         </div>
       </div>
 
-      {/* 3. Chat Messages Area - Spacing & Bubble Colors 100% Match */}
+      {/* 3. Chat Messages Area - Spacing 17px & Dynamic Alignment (Official: Right, Others: Left) */}
       <div 
         ref={scrollRef}
         className="relative z-10 flex-1 overflow-y-auto px-[19.99px] pb-[120px] scrollbar-hide"
       >
         <div className="flex flex-col gap-[17px]">
           {messages.map((msg) => (
-            <div key={msg.id} className={`flex items-start gap-[8.5px] ${msg.user === '나' ? 'flex-row-reverse' : ''}`}>
+            <div key={msg.id} className={`flex items-start gap-[8.5px] ${msg.isOfficial ? 'flex-row-reverse' : ''}`}>
               <UserIcon 
                 type={msg.avatarType} 
                 variant={msg.avatarVariant as any} 
                 size={23.17} 
                 className="flex-shrink-0 mt-[1px]" 
               />
-              <div className={`flex flex-col gap-[4.5px] ${msg.user === '나' ? 'items-end' : ''}`}>
+              <div className={`flex flex-col gap-[4.5px] ${msg.isOfficial ? 'items-end' : ''}`}>
                 <div className="flex items-center gap-[6px] px-[2px]">
-                  <span className="font-noto text-[12px] font-bold leading-[18px] text-[#000000]">{msg.user}</span>
+                  <span className="font-noto text-[12px] font-normal leading-[18px] text-dark-text">{msg.user}</span>
                   {msg.isOfficial && (
                     <span className="rounded-[2px] bg-point px-[4px] py-[1px] text-[8px] font-black text-white uppercase tracking-tighter">My Fave 공식</span>
                   )}
@@ -128,16 +128,18 @@ export function LiveChatPage() {
                 <div className="flex items-end gap-[8px] max-w-[240px]">
                   <div 
                     className={`rounded-[15.5px] px-[16px] py-[9.5px] shadow-sm border border-separator/5 ${
-                      msg.user === '나' 
-                        ? 'rounded-tr-none bg-point text-white font-medium shadow-md shadow-point/10' 
-                        : 'rounded-tl-none bg-main-bg text-[#000000] font-medium' // 상대방/공식 메시지는 Main color (#FFECF2)
+                      msg.isOfficial
+                        ? 'rounded-tr-none bg-main-bg text-dark-text font-medium' // 공식: 오른쪽, Main color
+                        : 'rounded-tl-none bg-chat-bg2 text-chat-font2 font-medium' // 일반/나: 왼쪽, Chat color2
                     }`}
                   >
                     <p className={`font-noto text-[12px] font-normal tracking-tight ${msg.isOfficial ? 'leading-[12.1px]' : 'leading-[18.2px]'}`}>
                       {msg.text}
                     </p>
                   </div>
-                  <span className="font-noto text-[9px] text-muted-text/50 mb-[2px] flex-shrink-0">{msg.timestamp}</span>
+                  <span className={`font-noto text-[9px] text-muted-text/50 mb-[2px] flex-shrink-0 ${msg.isOfficial ? 'order-first' : ''}`}>
+                    {msg.timestamp}
+                  </span>
                 </div>
               </div>
             </div>
