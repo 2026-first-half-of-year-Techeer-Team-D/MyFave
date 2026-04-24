@@ -121,14 +121,14 @@ export function ProductDetailPage() {
 
       {/* Product info */}
       <div className="mx-auto max-w-md px-5 py-8">
-        <div className="space-y-2.5">
-          <h1 className="font-noto text-xl font-bold leading-tight text-dark-text">
+        <div className="space-y-[1.5px]">
+          <h1 className="font-noto text-figma-15-reg leading-tight text-dark-text tracking-tight">
             {product.title}
           </h1>
           <p className="font-noto text-sm font-medium text-chat-font">
             {product.subtitle}
           </p>
-          <div className="pt-2">
+          <div className="pt-2.5">
             <span className="font-noto text-2xl font-black text-dark-text">
               {product.price}
             </span>
@@ -136,12 +136,12 @@ export function ProductDetailPage() {
         </div>
 
         {/* Divider */}
-        <div className="my-8 h-px w-full bg-separator" />
+        <div className="my-[25px] h-figma w-full bg-separator" />
 
         {/* Options Section */}
         <div className="space-y-6">
           <div className="space-y-3">
-            <label className="block font-noto text-[13px] font-bold text-dark-text">
+            <label className="block font-noto text-figma-small font-bold text-dark-text">
               상품 옵션
             </label>
             <div className="relative">
