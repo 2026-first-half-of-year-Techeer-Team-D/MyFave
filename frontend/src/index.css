@@ -38,18 +38,18 @@
     --radius: 0.75rem;
 
     /* Brand colors */
-    --point-color: 340 100% 79%;
-    --main-color: 330 100% 97%;
-    --sub-color1: 278 22% 88%;
-    --sub-color2: 28 14% 88%;
-    --chat-color: 330 100% 97%;
-    --chat-font-color: 340 35% 67%;
-    --chat-color2: 340 100% 99%;
+    --point-color: 343 100% 79%;
+    --main-color: 340 100% 96%;
+    --sub-color1: 277 12% 89%;
+    --sub-color2: 15 12% 89%;
+    --chat-color: 340 100% 96%;
+    --chat-font-color: 343 44% 67%;
+    --chat-color2: 350 100% 98%;
     --chat-font-color2: 0 0% 11%;
     --footer-color: 60 11% 97%;
-    --separator-color: 30 17% 93%;
-    --text-dark: 15 19% 17%;
-    --text-muted: 25 18% 53%;
+    --separator-color: 15 17% 93%;
+    --text-dark: 0 0% 11%;
+    --text-muted: 25 10% 50%;
   }
 }
 
