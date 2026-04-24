@@ -58,44 +58,67 @@ export function LiveChatPage() {
   const stompClient = useRef<Client | null>(null)
 
   useEffect(() => {
-    // WebSocket 연결 설정
-    const socket = new SockJS(import.meta.env.VITE_WS_BASE_URL.replace('ws://', 'http://'))
-    const client = new Client({
-      webSocketFactory: () => socket,
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-    })
-
-    client.onConnect = () => {
-      // 채팅방 구독 (roomId: 1 가정)
-      client.subscribe('/topic/chat/1', (message) => {
-        const data = JSON.parse(message.body)
-        
-        // 참여자 수 실시간 업데이트
-        if (data.type === 'PARTICIPANT_COUNT') {
-          setParticipantCount(data.payload.count)
-        }
-        
-        // 실시간 메시지 수신
-        if (data.type === 'NEW_MESSAGE') {
-          const payload = data.payload
-          const newMessage: Message = {
-            id: Date.now(),
-            user: payload.nickname,
-            text: payload.content,
-            avatarType: payload.nickname.includes('공식') ? 'seller' : 'bear',
-            avatarVariant: 1,
-            isOfficial: payload.nickname.includes('공식'),
-            timestamp: new Date(payload.sentAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
-          }
-          setMessages((prev) => [...prev, newMessage])
-        }
-      })
+    // WebSocket 연결 설정 - VITE_WS_BASE_URL이 정의되어 있는지 확인
+    const wsUrl = import.meta.env.VITE_WS_BASE_URL
+    if (!wsUrl) {
+      console.error('VITE_WS_BASE_URL is not defined')
+      return
     }
 
-    client.activate()
-    stompClient.current = client
+    // SockJS는 http/https를 기대하므로 ws/wss를 변환
+    const httpUrl = wsUrl.replace('ws://', 'http://').replace('wss://', 'https://')
+    
+    let client: Client | null = null
+    
+    try {
+      client = new Client({
+        webSocketFactory: () => new SockJS(httpUrl),
+        reconnectDelay: 5000,
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+      })
+
+      client.onConnect = () => {
+        console.log('WebSocket Connected')
+        // 채팅방 구독 (roomId: 1 가정)
+        client?.subscribe('/topic/chat/1', (message) => {
+          try {
+            const data = JSON.parse(message.body)
+            
+            // 참여자 수 실시간 업데이트
+            if (data.type === 'PARTICIPANT_COUNT') {
+              setParticipantCount(data.payload.count)
+            }
+            
+            // 실시간 메시지 수신
+            if (data.type === 'NEW_MESSAGE') {
+              const payload = data.payload
+              const newMessage: Message = {
+                id: Date.now(),
+                user: payload.nickname,
+                text: payload.content,
+                avatarType: payload.nickname.includes('공식') ? 'seller' : 'bear',
+                avatarVariant: 1,
+                isOfficial: payload.nickname.includes('공식'),
+                timestamp: new Date(payload.sentAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+              }
+              setMessages((prev) => [...prev, newMessage])
+            }
+          } catch (e) {
+            console.error('Failed to parse message body', e)
+          }
+        })
+      }
+
+      client.onStompError = (frame) => {
+        console.error('STOMP Error', frame)
+      }
+
+      client.activate()
+      stompClient.current = client
+    } catch (e) {
+      console.error('WebSocket activation failed', e)
+    }
 
     return () => {
       if (stompClient.current) {
