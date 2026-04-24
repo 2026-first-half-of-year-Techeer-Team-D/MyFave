@@ -29,22 +29,42 @@ const NOTICES: NoticeItem[] = [
 
 export function NoticePage() {
   return (
-    <div className="flex-1">
-      <div className="border-b border-separator px-5 py-6">
-        <h1 className="font-noto text-xl font-bold text-dark-text">공지사항</h1>
+    <div className="flex-1 bg-white pb-10">
+      <div className="border-b border-separator px-5 py-8">
+        <h1 className="font-noto text-xl font-bold text-dark-text tracking-tight">공지사항</h1>
+        <p className="mt-1 font-noto text-xs text-muted-text">마이페이브의 새로운 소식을 알려드립니다.</p>
       </div>
 
-      <div className="divide-y divide-separator">
+      <div className="mx-auto max-w-md divide-y divide-separator/50">
         {NOTICES.map((notice) => (
           <div
             key={notice.id}
-            className="cursor-pointer border-b border-separator px-5 py-4 transition-colors hover:bg-footer-bg"
+            className="group cursor-pointer px-5 py-6 transition-all hover:bg-gray-50 active:bg-gray-100"
           >
-            <h3 className="mb-2 font-noto font-bold text-dark-text">{notice.title}</h3>
-            <p className="mb-2 font-noto text-xs text-muted-text">{notice.date}</p>
-            <p className="font-noto text-sm text-dark-text">{notice.content}</p>
+            <div className="mb-2 flex items-center gap-2">
+              {notice.id === 1 && (
+                <span className="rounded bg-main-bg px-1.5 py-0.5 font-noto text-[10px] font-black text-point">NEW</span>
+              )}
+              <span className="font-lexend text-[11px] font-bold text-muted-text/50">
+                NO. {notice.id.toString().padStart(2, '0')}
+              </span>
+            </div>
+            <h3 className="mb-2 font-noto text-base font-bold text-dark-text leading-snug group-hover:text-point transition-colors">
+              {notice.title}
+            </h3>
+            <p className="mb-3 font-lexend text-[11px] font-bold text-muted-text/60">{notice.date}</p>
+            <p className="font-noto text-[13px] leading-relaxed text-dark-text/70 line-clamp-2">
+              {notice.content}
+            </p>
           </div>
         ))}
+      </div>
+
+      {/* Pagination Placeholder */}
+      <div className="mx-auto max-w-md px-5 py-12 flex justify-center gap-2">
+        <button className="h-8 w-8 rounded-lg border border-separator bg-white font-lexend text-xs font-bold text-dark-text shadow-sm active:scale-90 transition-transform">1</button>
+        <button className="h-8 w-8 rounded-lg border border-separator bg-white font-lexend text-xs font-bold text-muted-text hover:border-point/30 transition-colors">2</button>
+        <button className="h-8 w-8 rounded-lg border border-separator bg-white font-lexend text-xs font-bold text-muted-text hover:border-point/30 transition-colors">3</button>
       </div>
     </div>
   )
