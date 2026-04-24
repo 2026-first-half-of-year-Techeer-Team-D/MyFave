@@ -4,6 +4,7 @@ import { AboutPage } from '@/pages/AboutPage'
 import { CartPage } from '@/pages/CartPage'
 import { FAQPage } from '@/pages/FAQPage'
 import { InquiryPage } from '@/pages/InquiryPage'
+import { LiveChatPage } from '@/pages/LiveChatPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { MainPage } from '@/pages/MainPage'
 import { MyPage } from '@/pages/MyPage'
@@ -43,6 +44,7 @@ const router = createBrowserRouter([
           { path: '/checkout', element: <PaymentPage /> },
           { path: '/mypage', element: <MyPage /> },
           { path: '/orders', element: <OrdersPage /> },
+          { path: '/live-chat', element: <LiveChatPage /> },
         ],
       },
     ],
