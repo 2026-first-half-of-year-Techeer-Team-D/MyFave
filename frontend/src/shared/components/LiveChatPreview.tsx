@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 interface ChatMessage {
   user: string
   text: string
@@ -79,9 +81,12 @@ export function LiveChatPreview() {
         ))}
       </div>
 
-      <button className="mt-5 w-full rounded-[12px] bg-point py-3.5 font-noto text-sm font-black text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-[0.98]">
+      <Link 
+        to="/live-chat"
+        className="mt-5 flex w-full items-center justify-center rounded-[12px] bg-point py-3.5 font-noto text-sm font-black text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-[0.98]"
+      >
         라이브 채팅 참여하기
-      </button>
+      </Link>
     </div>
   )
 }
