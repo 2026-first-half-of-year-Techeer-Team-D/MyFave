@@ -78,29 +78,30 @@ export function ProductDetailPage() {
       {/* 2. Divider - Figma Node 37:3939 (h:8px) */}
       <div className="h-[8px] w-full bg-separator" />
 
-      {/* 3. Features Section - "상품 설명" 제목 추가 및 100% 동기화 */}
-      <div className="px-[19.99px] pt-[23.99px] pb-[40px]">
-        <h2 className="font-noto text-[14px] font-bold text-[#322927] mb-[20px]">상품 설명</h2>
-        <div className="space-y-[15.99px]">
-          {product.features.map((feature, idx) => (
-            <div key={idx} className="rounded-[12px] bg-footer-bg p-[19.99px] space-y-[4px]">
-              <h3 className="font-noto text-[13px] font-medium leading-[24px] text-[#322927]">
-                {feature.title}
-              </h3>
-              <p className="font-noto text-[13px] font-normal leading-[24px] text-[#322927] opacity-90">
-                {feature.description}
-              </p>
-            </div>
-          ))}
-        </div>
+      {/* 3. Product Description Header - Centered with Border (Figma layout_3VDCXG) */}
+      <div className="h-[49.1px] flex items-center justify-center border-b-[1.096px] border-separator bg-white">
+        <h2 className="font-noto text-[13px] font-bold text-[#322927] tracking-tight">상품 설명</h2>
       </div>
 
-      {/* 4. Divider - Figma Node 37:3953 (h:8px) */}
+      {/* 4. Features Section - Figma Node 37:3940 명세 100% 동기화 */}
+      <div className="px-[19.99px] pt-[23.99px] pb-[40px] space-y-[15.99px]">
+        {product.features.map((feature, idx) => (
+          <div key={idx} className="rounded-[12px] bg-footer-bg p-[19.99px] space-y-[4px]">
+            <h3 className="font-noto text-[13px] font-medium leading-[24px] text-[#322927]">
+              {feature.title}
+            </h3>
+            <p className="font-noto text-[13px] font-normal leading-[24px] text-[#322927] opacity-90">
+              {feature.description}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* 5. Divider - Figma Node 37:3953 (h:8px) */}
       <div className="h-[8px] w-full bg-separator" />
 
-      {/* 5. Informational Accordions - Figma Node 251:2832 기반 */}
+      {/* 6. Informational Accordions - Figma Node 251:2832 기반 */}
       <div className="border-b border-separator/50">
-        {/* Shipping Info */}
         <button 
           onClick={() => setIsShippingOpen(!isShippingOpen)}
           className="flex w-full items-center justify-between px-[19.99px] py-[16px] border-b border-separator/30 active:bg-gray-50 transition-colors"
@@ -121,7 +122,6 @@ export function ProductDetailPage() {
           </div>
         )}
 
-        {/* Refund Info */}
         <button 
           onClick={() => setIsRefundOpen(!isRefundOpen)}
           className="flex w-full items-center justify-between px-[19.99px] py-[16px] border-b border-separator/30 active:bg-gray-50 transition-colors"
@@ -141,24 +141,27 @@ export function ProductDetailPage() {
         )}
       </div>
 
-      {/* 6. Action Bar (Fixed Bottom) - 하트 대신 장바구니 버튼 적용 */}
-      <div className="fixed bottom-0 left-1/2 z-40 flex w-full max-w-[376.04px] -translate-x-1/2 gap-[10px] border-t border-separator bg-white p-[14px] shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+      {/* 7. Action Bar (Fixed Bottom) - Figma Node 140:206 명세 100% 동기화 */}
+      <div className="fixed bottom-0 left-1/2 z-40 flex w-full max-w-[376.04px] -translate-x-1/2 border-t border-separator bg-white shadow-figma-popup">
+        {/* 장바구니 버튼 - Figma Frame 60 기반 */}
         <button
           type="button"
-          aria-label="장바구니 담기"
-          className="flex h-[49px] w-[49px] items-center justify-center rounded-[5px] border border-[#D9D9D9] bg-white text-[#322927] active:scale-95 transition-all shadow-sm group"
+          className="flex-1 flex h-[49.15px] items-center justify-center gap-[8px] bg-white text-[#322927] border-r border-separator active:bg-gray-50 transition-all"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="group-hover:text-point transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
             <line x1="3" y1="6" x2="21" y2="6" />
             <path d="M16 10a4 4 0 0 1-8 0" />
           </svg>
+          <span className="font-noto text-[14px] font-bold">장바구니</span>
         </button>
+        
+        {/* 구매하기 버튼 - Figma Frame 59 기반 */}
         <button
           type="button"
-          className="flex-1 h-[49px] rounded-[5px] bg-point font-noto text-[14px] font-bold text-white shadow-lg shadow-point/30 transition-all hover:bg-[#ff7fa3] active:scale-[0.98]"
+          className="flex-1 flex h-[49.15px] items-center justify-center bg-point text-white active:bg-[#ff7fa3] transition-all"
         >
-          구매하기
+          <span className="font-noto text-[14px] font-bold">구매하기</span>
         </button>
       </div>
     </div>
