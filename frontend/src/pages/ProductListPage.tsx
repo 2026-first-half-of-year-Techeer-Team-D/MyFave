@@ -99,7 +99,7 @@ export function ProductListPage() {
       </div>
 
       {/* Products grid */}
-      <div className="bg-[#FFF9F0] px-5 py-8">
+      <div className="bg-white px-5 py-8">
         <div className="mx-auto max-w-md">
           <div className="grid grid-cols-2 gap-x-[15px] gap-y-8">
             {PRODUCTS.map((product) => (
