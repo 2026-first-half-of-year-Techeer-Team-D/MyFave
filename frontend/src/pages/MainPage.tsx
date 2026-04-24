@@ -106,18 +106,18 @@ export function MainPage() {
         <LiveChatPreview />
       </div>
 
-      {/* Featured Image */}
-      <div className="mx-auto max-w-md px-5 py-6">
+      {/* Featured Image - Figma Node 37:3653 기반 */}
+      <div className="mx-auto max-w-md px-[19.99px] pt-[23.99px]">
         <img
           src="https://api.builder.io/api/v1/image/assets/TEMP/1285c363993a468a3c04bccbc8d85e5f18c31722?width=668"
           alt="Featured"
-          className="w-full rounded-2xl shadow-sm"
+          className="w-full h-auto rounded-2xl shadow-sm"
         />
       </div>
 
-      {/* Influencer's PICK Section - Figma Node 140:136 기반 */}
-      <div className="mx-auto max-w-md px-5 py-10 pb-20">
-        <h2 className="mb-6 font-noto text-figma-heading font-black text-dark-text tracking-tight uppercase">Influencer's PICK</h2>
+      {/* Influencer's PICK Section - Figma Node 140:136 & 37:3785 기반 */}
+      <div className="mx-auto max-w-md px-[19.99px] pt-[23.99px] pb-20">
+        <h2 className="mb-[15.99px] font-noto text-figma-heading font-black text-dark-text tracking-tight uppercase">Influencer's PICK</h2>
 
         <div className="flex flex-wrap gap-[12px]">
           {influencerProducts.map((product) => (
