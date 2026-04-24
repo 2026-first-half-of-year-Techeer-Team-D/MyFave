@@ -50,6 +50,7 @@ const INITIAL_MESSAGES: Message[] = [
 export function LiveChatPage() {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES)
   const [inputText, setInputText] = useState('')
+  const [isNoticeOpen, setIsNoticeOpen] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -78,7 +79,7 @@ export function LiveChatPage() {
   return (
     <div className="relative flex flex-1 flex-col bg-white overflow-hidden min-h-0">
       {/* 0. Subtle Background Logo Watermark - Figma 디자인 명세 100% 동기화 */}
-      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-[0.10]">
+      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-[0.20]">
         <img
           src="https://api.builder.io/api/v1/image/assets/TEMP/e7df4be5ec275bc11639573f94373e14d54c4a9e?width=240"
           alt="My Fave Watermark"
@@ -88,12 +89,33 @@ export function LiveChatPage() {
 
       {/* 1. Header Notice Card - Figma Node 99:267 (#E4DFE7, 24px) */}
       <div className="relative z-20 px-[20px] pt-[32px] pb-[16px]">
-        <div className="rounded-[24px] bg-sub1 p-[24px] shadow-sm border border-black/5">
-          <p className="text-center font-noto text-[12px] font-bold leading-[18.2px] text-[#000000] tracking-tight">
-            My Fave 판매 시작 30분전 라이브 채팅<br />
-            <span className="font-normal opacity-90">오픈 30분 전, 지금이 찬스!<br />
-            셀러에게 직접 물어보고 쇼핑 준비 완료하세요🎀</span>
-          </p>
+        <div className={`relative rounded-[24px] bg-sub1 transition-all duration-300 ${isNoticeOpen ? 'p-[24px]' : 'py-[14px] px-[24px]'}`}>
+          <div className={`overflow-hidden transition-all duration-300 ${isNoticeOpen ? 'max-h-[100px] opacity-100' : 'max-h-[20px] opacity-100'}`}>
+            <p className={`text-center font-noto text-[12px] font-bold leading-[18.2px] text-[#000000] tracking-tight ${!isNoticeOpen && 'truncate px-4'}`}>
+              My Fave 판매 시작 30분전 라이브 채팅
+              {isNoticeOpen && (
+                <>
+                  <br />
+                  <span className="font-normal opacity-90">오픈 30분 전, 지금이 찬스!<br />
+                  셀러에게 직접 물어보고 쇼핑 준비 완료하세요🎀</span>
+                </>
+              )}
+            </p>
+          </div>
+          
+          {/* Toggle Button */}
+          <button 
+            onClick={() => setIsNoticeOpen(!isNoticeOpen)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full hover:bg-black/5 active:scale-90 transition-all"
+            aria-label={isNoticeOpen ? "공지 접기" : "공지 펴기"}
+          >
+            <svg 
+              width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+              className={`transition-transform duration-300 ${isNoticeOpen ? 'rotate-180' : 'rotate-0'}`}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
         </div>
       </div>
 
