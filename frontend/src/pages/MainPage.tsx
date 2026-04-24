@@ -115,32 +115,34 @@ export function MainPage() {
         />
       </div>
 
-      {/* Influencer's PICK Section */}
-      <div className="mx-auto max-w-md px-5 py-8 pb-16">
-        <h2 className="mb-6 font-noto text-lg font-bold text-dark-text">Influencer's PICK</h2>
+      {/* Influencer's PICK Section - Figma Node 140:136 기반 */}
+      <div className="mx-auto max-w-md px-5 py-10 pb-20">
+        <h2 className="mb-6 font-noto text-figma-heading font-black text-dark-text tracking-tight">Influencer's PICK</h2>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-wrap gap-[12px]">
           {influencerProducts.map((product) => (
             <Link
               key={product.id}
               to={`/product/${product.id}`}
-              className="group overflow-hidden rounded-xl"
+              className="group flex w-[calc(50%-6px)] flex-col"
             >
-              <div className="relative mb-3 overflow-hidden rounded-xl bg-gray-100 shadow-sm">
+              <div className="relative mb-3 overflow-hidden rounded-lg bg-gray-50 shadow-sm border border-separator/20">
                 <img
                   src={product.image}
                   alt={product.title}
-                  className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="aspect-[162/288] w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
-                <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 backdrop-blur-[2px]">
-                  <span className="font-noto text-[10px] font-medium text-white">❤️ {product.rating}</span>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
+                <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 backdrop-blur-[2px]">
+                  <span className="font-noto text-[9px] font-black text-white">❤️ {product.rating}</span>
                 </div>
               </div>
-              <h3 className="mb-1 h-8 font-noto text-xs font-bold text-dark-text line-clamp-2 leading-snug">
-                {product.title}
-              </h3>
-              <p className="font-noto text-sm font-black text-point">{product.price}</p>
+              <div className="px-0.5">
+                <h3 className="mb-1 h-9 font-noto text-[13px] font-bold text-dark-text line-clamp-2 leading-snug group-hover:text-point transition-colors">
+                  {product.title}
+                </h3>
+                <p className="font-noto text-[14px] font-black text-point">{product.price}</p>
+              </div>
             </Link>
           ))}
         </div>
