@@ -1,20 +1,27 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { PopUp } from '@/shared/components/PopUp'
 
 export function SignUpPage() {
   const [email, setEmail] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
   const [codeVerified, setCodeVerified] = useState(false)
+  const [isPopUpOpen, setIsPopUpOpen] = useState(false)
+  const [popUpMessage, setPopUpMessage] = useState('')
 
   // TODO: 이메일 인증번호 발송 API 연동
   const handleSendCode = (e: React.FormEvent) => {
     e.preventDefault()
+    setPopUpMessage('인증번호가 발송되었습니다 🎁')
+    setIsPopUpOpen(true)
   }
 
   // TODO: 인증번호 확인 API 연동
   const handleVerifyCode = () => {
     if (verificationCode) {
       setCodeVerified(true)
+      setPopUpMessage('인증이 완료되었습니다 ✨')
+      setIsPopUpOpen(true)
     }
   }
 
@@ -66,12 +73,12 @@ export function SignUpPage() {
                 type="button"
                 onClick={handleSendCode}
                 disabled={!email}
-                className="w-full rounded-[5px] bg-point py-3.5 font-noto text-sm font-bold text-white shadow-sm transition-all hover:bg-[#ff7fa3] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98]"
+                className="w-full rounded-[5px] bg-point py-3.5 font-noto text-sm font-bold text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98]"
               >
                 인증번호 발송하기
               </button>
             ) : (
-              <div className="rounded-[5px] bg-main-bg py-3.5 text-center font-noto text-sm font-bold text-point border border-point/20">
+              <div className="rounded-[5px] bg-main-bg py-3.5 text-center font-noto text-sm font-bold text-point border border-point/20 shadow-inner">
                 인증이 완료되었습니다
               </div>
             )}
@@ -91,7 +98,7 @@ export function SignUpPage() {
             <button
               type="submit"
               disabled={!codeVerified}
-              className="w-full rounded-[5px] bg-point py-3.5 font-noto text-base font-bold text-white shadow-md transition-all hover:bg-[#ff7fa3] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98]"
+              className="w-full rounded-[5px] bg-point py-3.5 font-noto text-base font-bold text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98]"
             >
               회원가입 완료
             </button>
@@ -102,12 +109,18 @@ export function SignUpPage() {
           <span className="font-noto text-xs text-muted-text font-medium">이미 계정이 있으신가요? </span>
           <Link
             to="/login"
-            className="font-noto text-xs font-bold text-chat-font hover:underline ml-1"
+            className="font-noto text-xs font-bold text-chat-font hover:underline underline-offset-2 ml-1"
           >
             로그인
           </Link>
         </div>
       </div>
+
+      <PopUp
+        isOpen={isPopUpOpen}
+        message={popUpMessage}
+        onClose={() => setIsPopUpOpen(false)}
+      />
     </div>
   )
 }
