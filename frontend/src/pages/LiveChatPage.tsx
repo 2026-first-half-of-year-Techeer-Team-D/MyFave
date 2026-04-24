@@ -77,30 +77,39 @@ export function LiveChatPage() {
 
   return (
     <div className="relative flex flex-1 flex-col bg-[#FFF9F0] overflow-hidden min-h-0">
-      {/* Background Shop Content Layer (Figma Node 251:1486) */}
-      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none overflow-hidden">
-        {/* Category Tabs Mock - 정밀 수치 반영 */}
-        <div className="flex gap-[24px] px-[20px] py-[16px] border-b-[1.096px] border-separator bg-white">
-          <div className="h-[18px] bg-dark-text/10 w-[40px] rounded-[2px]" />
-          <div className="h-[18px] bg-dark-text/5 w-[40px] rounded-[2px]" />
-          <div className="h-[18px] bg-dark-text/5 w-[40px] rounded-[2px]" />
-          <div className="h-[18px] bg-dark-text/5 w-[40px] rounded-[2px]" />
-        </div>
-        <div className="mx-auto max-w-md px-[20px] grid grid-cols-2 gap-x-[15.15px] gap-y-[32px] pt-[32px]">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex flex-col">
-              <div className="h-[200.25px] bg-white rounded-[12px] mb-[12px] shadow-sm border border-separator/10" />
-              <div className="h-[16px] bg-dark-text/10 w-full mb-[4px] rounded-[2px]" />
-              <div className="h-[16px] bg-point/20 w-[60%] rounded-[2px]" />
+      {/* Background Shop Content Layer */}
+      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none overflow-hidden pt-5">
+        <div className="mx-auto max-w-md px-5 grid grid-cols-2 gap-x-[15px] gap-y-8">
+          {[1, 2, 3, 4].map((p) => (
+            <div key={p} className="flex flex-col">
+              <div className="h-[200px] bg-white rounded-xl mb-3 shadow-sm border border-separator/10" />
+              <div className="h-4 bg-gray-300 w-full mb-1 rounded-sm" />
+              <div className="h-4 bg-point/30 w-1/2 rounded-sm" />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Chat Messages Layer (Figma Node 245:193 & 251:1469) */}
+      {/* 1. Notice Area - Figma Node 99:537 기반 */}
+      <div className="relative z-20 flex flex-col items-center pt-8 pb-4 px-10">
+        <div className="text-center">
+          <p className="font-noto text-[12px] leading-[18.2px] text-dark-text">
+            <span className="font-bold">My Fave 판매 시작 30분전 라이브 채팅</span><br />
+            오픈 30분 전, 지금이 찬스!<br />
+            셀러에게 직접 물어보고 쇼핑 준비 완료하세요🎀
+          </p>
+        </div>
+        
+        {/* 2. Participants Badge - Figma Node 99:540 기반 */}
+        <div className="mt-4 flex items-center justify-center rounded-[10px] bg-sub1 px-[12px] py-[4px] shadow-sm">
+          <span className="font-noto text-[11px] font-bold text-dark-text/60">5,123명이 참여중입니다</span>
+        </div>
+      </div>
+
+      {/* 3. Chat Messages Layer */}
       <div 
         ref={scrollRef}
-        className="relative z-10 flex-1 overflow-y-auto px-[19.99px] pt-[32px] pb-[120px] scrollbar-hide"
+        className="relative z-10 flex-1 overflow-y-auto px-[19.99px] pt-4 pb-[120px] scrollbar-hide"
       >
         <div className="flex flex-col gap-[17px]">
           {messages.map((msg) => (
@@ -138,7 +147,7 @@ export function LiveChatPage() {
         </div>
       </div>
 
-      {/* Floating Action FAB (Figma Group 30) */}
+      {/* Floating Action FAB */}
       <button className="absolute bottom-[115px] right-[20px] z-30 h-[48.17px] w-[48.17px] rounded-full bg-white shadow-figma-popup flex items-center justify-center border border-separator/20 active:scale-95 transition-all">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-point">
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor" />
@@ -153,19 +162,16 @@ export function LiveChatPage() {
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="메시지를 입력하세요..."
+              placeholder="무엇이든 물어보세요!"
               className="w-full rounded-full border border-separator bg-footer-bg px-[20px] py-[11px] font-noto text-[14px] text-dark-text placeholder:text-muted-text/40 focus:border-point focus:outline-none transition-colors"
             />
           </div>
           <button
             type="submit"
             disabled={!inputText.trim()}
-            className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-point text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-90 disabled:opacity-50"
+            className="flex h-[42px] px-5 items-center justify-center rounded-full bg-point text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-90 disabled:opacity-50"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
+            <span className="font-noto text-[14px] font-black">보내기</span>
           </button>
         </form>
       </div>
