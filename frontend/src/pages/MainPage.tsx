@@ -117,7 +117,7 @@ export function MainPage() {
 
       {/* Influencer's PICK Section - Figma Node 140:136 & 37:3785 기반 */}
       <div className="mx-auto max-w-md px-[19.99px] pt-[23.99px] pb-20">
-        <h2 className="mb-[15.99px] font-noto text-figma-heading font-black text-dark-text tracking-tight uppercase">Influencer's PICK</h2>
+        <h2 className="mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">Influencer's PICK</h2>
 
         <div className="flex flex-wrap gap-[12px]">
           {influencerProducts.map((product) => (
