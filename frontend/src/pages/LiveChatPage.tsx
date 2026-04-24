@@ -82,7 +82,7 @@ export function LiveChatPage() {
         <img
           src="https://api.builder.io/api/v1/image/assets/TEMP/e7df4be5ec275bc11639573f94373e14d54c4a9e?width=300"
           alt="My Fave Watermark"
-          className="w-[80%] h-auto grayscale"
+          className="w-[60%] h-auto grayscale"
         />
       </div>
 
