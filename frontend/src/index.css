@@ -37,19 +37,19 @@
 
     --radius: 0.75rem;
 
-    /* Brand colors */
-    --point-color: 343 100% 79%;
-    --main-color: 340 100% 96%;
-    --sub-color1: 277 12% 89%;
-    --sub-color2: 15 12% 89%;
-    --chat-color: 340 100% 96%;
-    --chat-font-color: 343 44% 67%;
-    --chat-color2: 350 100% 98%;
-    --chat-font-color2: 0 0% 11%;
-    --footer-color: 60 11% 97%;
-    --separator-color: 15 17% 93%;
-    --text-dark: 0 0% 11%;
-    --text-muted: 25 10% 50%;
+    /* Brand colors (Exact Figma HEX) */
+    --point-color: #FF95B3;
+    --main-color: #FFECF2;
+    --sub-color1: #E4DFE7;
+    --sub-color2: #E8E2E0;
+    --chat-color: #FFECF2;
+    --chat-font-color: #CF879B;
+    --chat-color2: #FFF7F8;
+    --chat-font-color2: #1B1B1B;
+    --footer-color: #FAFAF8;
+    --separator-color: #F2EDEB;
+    --text-dark: #322927;
+    --text-muted: #8B7E74;
   }
 
   /* Figma precise typography */
@@ -107,6 +107,6 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #ff95b3;
+  background: var(--point-color);
   border-radius: 2px;
 }
