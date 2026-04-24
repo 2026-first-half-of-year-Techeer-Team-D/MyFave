@@ -59,32 +59,36 @@ export function PaymentPage() {
   }
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 bg-white pb-24">
       {/* Progress Steps */}
-      <div className="border-b border-separator px-5 py-6">
-        <h1 className="mb-6 font-noto text-xl font-bold text-dark-text">주문하기</h1>
-        <div className="flex items-center justify-between">
-          {CHECKOUT_STEPS.map((s, idx) => (
-            <div key={s.step} className="flex items-center">
+      <div className="border-b border-separator px-5 py-8">
+        <h1 className="mb-8 font-noto text-xl font-bold text-dark-text">주문하기</h1>
+        <div className="relative flex items-center justify-between px-2">
+          {/* Progress Line */}
+          <div className="absolute left-0 top-[15px] h-0.5 w-full bg-separator" />
+          <div 
+            className="absolute left-0 top-[15px] h-0.5 bg-point transition-all duration-300" 
+            style={{ width: `${((currentStep - 1) / (CHECKOUT_STEPS.length - 1)) * 100}%` }}
+          />
+          
+          {CHECKOUT_STEPS.map((s) => (
+            <div key={s.step} className="relative z-10 flex flex-col items-center gap-2">
               <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full font-noto text-sm font-bold ${
-                  s.step <= currentStep ? 'bg-point text-white' : 'bg-separator text-muted-text'
+                className={`flex h-8 w-8 items-center justify-center rounded-full border-2 font-lexend text-sm font-bold transition-all duration-300 ${
+                  s.step <= currentStep 
+                    ? 'border-point bg-point text-white shadow-md shadow-point/20' 
+                    : 'border-separator bg-white text-muted-text'
                 }`}
               >
                 {s.step}
               </div>
               <span
-                className={`ml-2 font-noto text-xs font-medium ${
+                className={`font-noto text-[11px] font-bold transition-colors duration-300 ${
                   s.step <= currentStep ? 'text-dark-text' : 'text-muted-text'
                 }`}
               >
                 {s.label}
               </span>
-              {idx < CHECKOUT_STEPS.length - 1 && (
-                <div
-                  className={`mx-3 h-1 w-6 ${s.step < currentStep ? 'bg-point' : 'bg-separator'}`}
-                />
-              )}
             </div>
           ))}
         </div>
@@ -92,68 +96,81 @@ export function PaymentPage() {
 
       {/* Step 1: Shipping Info */}
       {currentStep === 1 && (
-        <div className="space-y-5 px-5 py-8">
-          <h2 className="font-noto text-lg font-bold text-dark-text">배송 정보</h2>
-          <div>
-            <label className="mb-2 block font-noto text-sm font-medium text-dark-text">이름</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-separator bg-white px-4 py-3 font-noto text-sm text-dark-text placeholder:text-muted-text focus:border-point focus:outline-none"
-              placeholder="이름을 입력해주세요"
-            />
+        <div className="mx-auto max-w-md space-y-8 px-5 py-10">
+          <div className="flex items-center justify-between">
+            <h2 className="font-noto text-lg font-bold text-dark-text">배송 정보</h2>
+            <span className="font-noto text-xs font-bold text-point underline cursor-pointer">최근 배송지</span>
           </div>
-          <div>
-            <label className="mb-2 block font-noto text-sm font-medium text-dark-text">
-              전화번호
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-separator bg-white px-4 py-3 font-noto text-sm text-dark-text placeholder:text-muted-text focus:border-point focus:outline-none"
-              placeholder="010-0000-0000"
-            />
-          </div>
-          <div>
-            <label className="mb-2 block font-noto text-sm font-medium text-dark-text">주소</label>
-            <input
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-separator bg-white px-4 py-3 font-noto text-sm text-dark-text placeholder:text-muted-text focus:border-point focus:outline-none"
-              placeholder="도로명 주소를 입력해주세요"
-            />
-          </div>
-          <div>
-            <label className="mb-2 block font-noto text-sm font-medium text-dark-text">
-              상세주소
-            </label>
-            <input
-              type="text"
-              name="detailAddress"
-              value={formData.detailAddress}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-separator bg-white px-4 py-3 font-noto text-sm text-dark-text placeholder:text-muted-text focus:border-point focus:outline-none"
-              placeholder="아파트 호수, 건물명 등을 입력해주세요"
-            />
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="block font-noto text-[13px] font-bold text-dark-text">받는 분</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-separator bg-white px-4 py-3.5 font-noto text-sm text-dark-text placeholder:text-[#999] focus:border-point focus:outline-none transition-colors"
+                placeholder="이름을 입력해주세요"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block font-noto text-[13px] font-bold text-dark-text">휴대폰 번호</label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-separator bg-white px-4 py-3.5 font-noto text-sm text-dark-text placeholder:text-[#999] focus:border-point focus:outline-none transition-colors"
+                placeholder="010-0000-0000"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block font-noto text-[13px] font-bold text-dark-text">주소</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  className="flex-1 rounded-xl border border-separator bg-gray-50 px-4 py-3.5 font-noto text-sm text-dark-text focus:outline-none cursor-default"
+                  placeholder="우편번호"
+                  readOnly
+                />
+                <button className="rounded-xl border border-point px-4 py-3.5 font-noto text-sm font-bold text-point hover:bg-main-bg active:scale-95 transition-all">
+                  주소 찾기
+                </button>
+              </div>
+              <input
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-separator bg-white px-4 py-3.5 font-noto text-sm text-dark-text placeholder:text-[#999] focus:border-point focus:outline-none transition-colors"
+                placeholder="기본 주소"
+              />
+              <input
+                type="text"
+                name="detailAddress"
+                value={formData.detailAddress}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-separator bg-white px-4 py-3.5 font-noto text-sm text-dark-text placeholder:text-[#999] focus:border-point focus:outline-none transition-colors"
+                placeholder="상세 주소를 입력해주세요"
+              />
+            </div>
           </div>
         </div>
       )}
 
       {/* Step 2: Payment Method */}
       {currentStep === 2 && (
-        <div className="space-y-5 px-5 py-8">
+        <div className="mx-auto max-w-md space-y-8 px-5 py-10">
           <h2 className="font-noto text-lg font-bold text-dark-text">결제 수단 선택</h2>
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             {Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => (
               <label
                 key={value}
-                className="flex cursor-pointer items-center rounded-lg border border-separator p-4 transition-colors hover:bg-footer-bg"
+                className={`flex cursor-pointer items-center justify-center rounded-xl border-2 p-4 transition-all active:scale-[0.98] ${
+                  formData.paymentMethod === value
+                    ? 'border-point bg-main-bg shadow-sm'
+                    : 'border-separator bg-white hover:border-separator/70'
+                }`}
               >
                 <input
                   type="radio"
@@ -161,9 +178,13 @@ export function PaymentPage() {
                   value={value}
                   checked={formData.paymentMethod === value}
                   onChange={handleChange}
-                  className="h-4 w-4"
+                  className="hidden"
                 />
-                <span className="ml-3 font-noto text-sm font-medium text-dark-text">{label}</span>
+                <span className={`font-noto text-sm font-bold ${
+                  formData.paymentMethod === value ? 'text-point' : 'text-dark-text'
+                }`}>
+                  {label}
+                </span>
               </label>
             ))}
           </div>
@@ -172,48 +193,57 @@ export function PaymentPage() {
 
       {/* Step 3: Order Confirmation */}
       {currentStep === 3 && (
-        <div className="space-y-6 px-5 py-8">
+        <div className="mx-auto max-w-md space-y-8 px-5 py-10">
           <h2 className="font-noto text-lg font-bold text-dark-text">주문 확인</h2>
-          <div className="space-y-4 rounded-lg border border-separator p-5">
-            <div className="flex justify-between">
-              <span className="font-noto text-sm text-muted-text">배송정보</span>
-              <span className="font-noto text-sm text-dark-text">
-                {formData.name} / {formData.phone}
-              </span>
+          <div className="space-y-6 overflow-hidden rounded-2xl border border-separator bg-white shadow-sm">
+            <div className="bg-footer-bg px-5 py-4">
+              <span className="font-noto text-[13px] font-bold text-dark-text">최종 결제 정보</span>
             </div>
-            <div className="flex justify-between border-t border-separator pt-4">
-              <span className="font-noto text-sm text-muted-text">배송주소</span>
-              <span className="font-noto text-right text-sm text-dark-text">
-                {formData.address} {formData.detailAddress}
-              </span>
-            </div>
-            <div className="flex justify-between border-t border-separator pt-4">
-              <span className="font-noto text-sm text-muted-text">결제수단</span>
-              <span className="font-noto text-sm text-dark-text">
-                {PAYMENT_METHOD_LABELS[formData.paymentMethod]}
-              </span>
-            </div>
-            <div className="flex justify-between border-t border-separator pt-4">
-              <span className="font-noto text-sm text-muted-text">주문금액</span>
-              <span className="font-noto text-lg font-bold text-chat-font">134,000원</span>
+            <div className="space-y-4 px-5 pb-6">
+              <div className="flex justify-between items-center">
+                <span className="font-noto text-sm text-muted-text font-medium">배송정보</span>
+                <span className="font-noto text-sm text-dark-text font-bold">
+                  {formData.name} ({formData.phone})
+                </span>
+              </div>
+              <div className="flex justify-between items-start gap-4">
+                <span className="font-noto text-sm text-muted-text font-medium flex-shrink-0">배송주소</span>
+                <span className="font-noto text-right text-sm text-dark-text font-bold leading-snug">
+                  {formData.address} {formData.detailAddress}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-noto text-sm text-muted-text font-medium">결제수단</span>
+                <span className="font-noto text-sm text-dark-text font-bold">
+                  {PAYMENT_METHOD_LABELS[formData.paymentMethod]}
+                </span>
+              </div>
+              <div className="pt-4 border-t border-separator">
+                <div className="flex justify-between items-center">
+                  <span className="font-noto text-base font-bold text-dark-text">총 결제 금액</span>
+                  <span className="font-noto text-xl font-black text-point">134,000원</span>
+                </div>
+              </div>
             </div>
           </div>
-          <label className="flex cursor-pointer items-center rounded-lg border border-separator p-4">
-            <input type="checkbox" defaultChecked className="h-4 w-4" />
-            <span className="ml-3 font-noto text-xs text-dark-text">
-              주문 조건을 확인하였으며, 결제에 동의합니다.
+          
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-footer-bg p-4 transition-all active:scale-[0.99]">
+            <input type="checkbox" defaultChecked className="mt-1 h-4 w-4 rounded text-point focus:ring-point" />
+            <span className="font-noto text-[11px] leading-relaxed text-dark-text/70">
+              구매 조건 확인 및 결제 진행에 동의합니다. (필수)<br/>
+              개인정보 제3자 제공 동의에 동의합니다. (필수)
             </span>
           </label>
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="sticky bottom-0 flex gap-3 border-t border-separator bg-white px-5 py-4">
+      {/* Action Buttons (Fixed Bottom) */}
+      <div className="fixed bottom-0 left-1/2 z-40 flex w-full max-w-md -translate-x-1/2 gap-3 border-t border-separator bg-white p-4 shadow-[0_-8px_20px_rgba(0,0,0,0.05)]">
         {currentStep > 1 && (
           <button
             type="button"
             onClick={handlePrevStep}
-            className="flex-1 rounded-lg border-2 border-point bg-white py-3 font-noto font-bold text-point transition-colors hover:bg-point hover:text-white"
+            className="flex h-14 w-20 items-center justify-center rounded-2xl border-2 border-separator bg-white font-noto text-sm font-bold text-muted-text transition-all hover:bg-gray-50 active:scale-95"
           >
             이전
           </button>
@@ -222,17 +252,17 @@ export function PaymentPage() {
           <button
             type="button"
             onClick={handleNextStep}
-            className="flex-1 rounded-lg bg-point py-3 font-noto font-bold text-white transition-colors hover:bg-[#ff7fa3]"
+            className="flex-1 rounded-2xl bg-point py-4 font-noto text-base font-bold text-white shadow-lg shadow-point/30 transition-all hover:bg-[#ff7fa3] active:scale-[0.98]"
           >
-            다음
+            다음 단계로
           </button>
         ) : (
           <Link
             to="/orders"
             onClick={handleComplete}
-            className="flex-1 rounded-lg bg-point py-3 text-center font-noto font-bold text-white transition-colors hover:bg-[#ff7fa3]"
+            className="flex-1 rounded-2xl bg-point py-4 text-center font-noto text-base font-black text-white shadow-lg shadow-point/30 transition-all hover:bg-[#ff7fa3] active:scale-[0.98]"
           >
-            주문하기
+            결제하기
           </Link>
         )}
       </div>
