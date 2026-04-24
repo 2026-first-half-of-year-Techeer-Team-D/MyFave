@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
+import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 import { UserIcon } from '@/shared/components/UserIcon'
 
 interface Message {
@@ -51,7 +53,56 @@ export function LiveChatPage() {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES)
   const [inputText, setInputText] = useState('')
   const [isNoticeOpen, setIsNoticeOpen] = useState(true)
+  const [participantCount, setParticipantCount] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const stompClient = useRef<Client | null>(null)
+
+  useEffect(() => {
+    // WebSocket 연결 설정
+    const socket = new SockJS(import.meta.env.VITE_WS_BASE_URL.replace('ws://', 'http://'))
+    const client = new Client({
+      webSocketFactory: () => socket,
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+    })
+
+    client.onConnect = () => {
+      // 채팅방 구독 (roomId: 1 가정)
+      client.subscribe('/topic/chat/1', (message) => {
+        const data = JSON.parse(message.body)
+        
+        // 참여자 수 실시간 업데이트
+        if (data.type === 'PARTICIPANT_COUNT') {
+          setParticipantCount(data.payload.count)
+        }
+        
+        // 실시간 메시지 수신
+        if (data.type === 'NEW_MESSAGE') {
+          const payload = data.payload
+          const newMessage: Message = {
+            id: Date.now(),
+            user: payload.nickname,
+            text: payload.content,
+            avatarType: payload.nickname.includes('공식') ? 'seller' : 'bear',
+            avatarVariant: 1,
+            isOfficial: payload.nickname.includes('공식'),
+            timestamp: new Date(payload.sentAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+          }
+          setMessages((prev) => [...prev, newMessage])
+        }
+      })
+    }
+
+    client.activate()
+    stompClient.current = client
+
+    return () => {
+      if (stompClient.current) {
+        stompClient.current.deactivate()
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -64,18 +115,16 @@ export function LiveChatPage() {
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!inputText.trim()) return
+    if (!inputText.trim() || !stompClient.current?.connected) return
 
-    const newMessage: Message = {
-      id: messages.length + 1,
-      user: '나',
-      text: inputText,
-      avatarType: 'human',
-      avatarVariant: 1,
-      timestamp: '오후 5:40',
-    }
+    stompClient.current.publish({
+      destination: '/app/chat/1',
+      body: JSON.stringify({
+        type: 'SEND_MESSAGE',
+        payload: { content: inputText },
+      }),
+    })
 
-    setMessages([...messages, newMessage])
     setInputText('')
   }
 
@@ -107,7 +156,6 @@ export function LiveChatPage() {
             </p>
           </div>
           
-          {/* Toggle Button */}
           <button 
             onClick={() => setIsNoticeOpen(!isNoticeOpen)}
             className="absolute right-4 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full hover:bg-black/5 active:scale-90 transition-all"
@@ -123,10 +171,12 @@ export function LiveChatPage() {
         </div>
       </div>
 
-      {/* 2. Participant Badge - Figma Node 99:540 (#E4DFE7, #FF6B6B) */}
+      {/* 2. Participant Badge - 백엔드 실시간 정보 반영 */}
       <div className="relative z-20 flex justify-center pb-[24px]">
         <div className="inline-flex items-center justify-center rounded-[10px] bg-sub1 px-[12px] py-[4px] border border-black/5 shadow-inner">
-          <span className="font-noto text-[11px] font-medium text-[#FF6B6B]">5,123명이 참여중입니다</span>
+          <span className="font-noto text-[11px] font-medium text-[#FF6B6B]">
+            {participantCount.toLocaleString()}명이 참여중입니다
+          </span>
         </div>
       </div>
 
@@ -155,7 +205,7 @@ export function LiveChatPage() {
                     className={`rounded-[15.5px] px-[16px] py-[9.5px] shadow-sm border border-separator/5 ${
                       msg.isOfficial
                         ? 'rounded-tr-none bg-main-bg text-[#000000] font-medium shadow-md shadow-main-bg/10' 
-                        : 'rounded-tl-none bg-main-bg text-[rgba(0,0,0,0.9)] font-medium shadow-md shadow-main-bg/10' // 모든 상대 메시지는 Main color (#FFECF2)
+                        : 'rounded-tl-none bg-main-bg text-[rgba(0,0,0,0.9)] font-medium shadow-md shadow-main-bg/10'
                     }`}
                   >
                     <p className={`font-noto text-[12px] font-normal tracking-tight ${msg.isOfficial ? 'leading-[12.1px]' : 'leading-[18.2px]'}`}>
@@ -172,10 +222,9 @@ export function LiveChatPage() {
         </div>
       </div>
 
-      {/* 4. Floating Input & Send Button - Figma Rectangle 8 & 9 (x:14, y:766) 명세 100% 동기화 */}
+      {/* 4. Floating Input & Send Button - Figma 명세 100% 동기화 */}
       <div className="absolute bottom-[47px] left-0 right-0 z-30 px-[14px]">
         <form onSubmit={handleSend} className="flex items-center gap-[8px]">
-          {/* Input Box - Figma Rectangle 8 */}
           <div className="flex-1 h-[39px]">
             <input
               type="text"
@@ -185,7 +234,6 @@ export function LiveChatPage() {
               className="w-full h-full rounded-[21px] border border-separator bg-[#FAFAF8] px-[23px] font-noto text-[12px] text-[#000000] placeholder:text-[#B8B8B8] focus:border-point focus:outline-none transition-colors shadow-inner"
             />
           </div>
-          {/* Send Button - Figma Rectangle 9 */}
           <button
             type="submit"
             disabled={!inputText.trim()}
