@@ -62,7 +62,7 @@ export function ProductListPage() {
   return (
     <div className="flex-1 bg-white">
       {/* 1. Category tabs - Figma Node 37:3365 (h:44.18px, border-b:1.096px) */}
-      <div className="sticky top-[85.99px] z-30 h-[44.18px] border-b-[1.096px] border-separator bg-white">
+      <div className="sticky top-[86px] z-30 h-[44.18px] border-b-[1.096px] border-separator bg-white">
         <div className="mx-auto max-w-[376.04px] px-[19.99px] h-full flex items-center">
           <div className="flex gap-[16px] whitespace-nowrap overflow-x-auto scrollbar-hide h-full items-center">
             {CATEGORIES.map((cat) => (
@@ -85,7 +85,7 @@ export function ProductListPage() {
       {/* 2. Product count - Figma Node 37:3377 (h:52.47px) */}
       <div className="mx-auto max-w-[376.04px] bg-white h-[52.47px] px-[19.99px] flex items-center">
         <p className="font-noto text-[12px] font-normal text-dark-text">
-          상품 <span className="font-medium text-point">{PRODUCTS.length}</span>개
+          상품 <span className="font-medium text-dark-text">{PRODUCTS.length}</span>개
         </p>
       </div>
 
@@ -99,7 +99,7 @@ export function ProductListPage() {
               className="group flex flex-col w-[162.03px]"
             >
               {/* Product Image - Figma Node 99:543 (h:200px) */}
-              <div className="relative mb-[9px] h-[200px] overflow-hidden rounded-[12px] bg-gray-50 border border-separator/10">
+              <div className="relative mb-[9px] h-[200px] overflow-hidden rounded-[12px] bg-white border border-separator/10">
                 <img
                   src={product.image}
                   alt={product.title}
