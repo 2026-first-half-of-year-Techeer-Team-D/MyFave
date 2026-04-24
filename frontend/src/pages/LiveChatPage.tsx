@@ -120,10 +120,9 @@ export function LiveChatPage() {
               />
               <div className={`flex flex-col gap-[4.5px] ${msg.isOfficial ? 'items-end' : ''}`}>
                 <div className="flex items-center gap-[6px] px-[2px]">
-                  <span className="font-noto text-[12px] font-normal leading-[18px] text-[#000000]">{msg.user}</span>
-                  {msg.isOfficial && (
-                    <span className="rounded-[2px] bg-point px-[4px] py-[1px] text-[8px] font-black text-white uppercase tracking-tighter">My Fave 공식</span>
-                  )}
+                  <span className={`font-noto text-[12px] leading-[18px] text-[#000000] ${msg.isOfficial ? 'font-bold' : 'font-normal'}`}>
+                    {msg.user}
+                  </span>
                 </div>
                 <div className="flex items-end gap-[8px] max-w-[240px]">
                   <div 
