@@ -37,7 +37,7 @@ const chatMessages: ChatMessage[] = [
 
 export function LiveChatPreview() {
   return (
-    <div className="rounded-3xl border border-main-bg bg-main-bg p-5 shadow-sm">
+    <div className="rounded-[5px] border border-main-bg bg-main-bg p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-noto text-sm font-bold text-dark-text">라이브 톡</h3>
         <span className="flex items-center gap-1 font-noto text-[10px] text-point">
@@ -66,20 +66,20 @@ export function LiveChatPreview() {
                 )}
               </span>
               <div
-                className={`max-w-[200px] rounded-2xl px-3 py-2 ${
+                className={`max-w-[200px] rounded-[15.5px] px-4 py-2.5 ${
                   msg.align === 'right'
                     ? 'rounded-tr-none bg-point text-white'
                     : 'rounded-tl-none bg-chat-bg2 text-dark-text shadow-sm'
                 }`}
               >
-                <p className="font-noto text-[11px] leading-relaxed">{msg.text}</p>
+                <p className="font-noto text-[11px] leading-relaxed font-medium">{msg.text}</p>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <button className="mt-5 w-full rounded-2xl bg-point py-3 font-noto text-sm font-bold text-white shadow-md transition-all hover:bg-[#ff7fa3] active:scale-[0.98]">
+      <button className="mt-5 w-full rounded-[12px] bg-point py-3.5 font-noto text-sm font-black text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-[0.98]">
         라이브 채팅 참여하기
       </button>
     </div>
