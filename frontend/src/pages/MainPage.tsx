@@ -43,10 +43,17 @@ export function MainPage() {
     <div className="flex-1 bg-white">
       {/* Instagram Reels Banner */}
       <div className="mx-auto max-w-md px-5 py-6">
-        <div className="relative overflow-hidden rounded-3xl border-4 border-[#FFECF2] bg-black p-6">
-          <div className="absolute inset-0">
-            <div className="flex h-full flex-col items-center justify-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-gradient-to-br from-[#F09433] via-[#E6683C] to-[#BC1888]">
+        <div className="relative overflow-hidden rounded-2xl border border-main-bg bg-black">
+          {/* Browser-like Header */}
+          <div className="flex items-center gap-1.5 bg-main-bg px-4 py-2">
+            <div className="h-2 w-2 rounded-full bg-[#FF5F57]" />
+            <div className="h-2 w-2 rounded-full bg-[#FFBD2E]" />
+            <div className="h-2 w-2 rounded-full bg-[#28C840]" />
+          </div>
+          
+          <div className="p-8 pb-10">
+            <div className="flex flex-col items-center justify-center gap-5">
+              <div className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-gradient-to-br from-[#F09433] via-[#E6683C] to-[#BC1888] shadow-lg">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                   <path
                     d="M22.666 2.66656H9.33299C5.65119 2.66656 2.6665 5.65125 2.6665 9.33305V22.666C2.6665 26.3478 5.65119 29.3325 9.33299 29.3325H22.666C26.3478 29.3325 29.3325 26.3478 29.3325 22.666V9.33305C29.3325 5.65125 26.3478 2.66656 22.666 2.66656Z"
@@ -64,12 +71,14 @@ export function MainPage() {
                   />
                 </svg>
               </div>
-              <h3 className="font-montserrat text-base font-bold text-white">Instagram Reels</h3>
-              <p className="font-montserrat text-center text-xs text-white/45">
-                동영상 URL을 입력하면 릴스가 자동 재생됩니다
-              </p>
-              <button className="flex items-center gap-2 rounded-full border border-white/25 px-5 py-2.5 text-white hover:bg-white/10">
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <div className="text-center">
+                <h3 className="mb-1 font-montserrat text-lg font-bold text-white">Instagram Reels</h3>
+                <p className="font-noto text-xs text-white/50">
+                  동영상 URL을 입력하면 릴스가 자동 재생됩니다
+                </p>
+              </div>
+              <button className="flex items-center gap-2 rounded-full border border-white/30 bg-white/5 px-6 py-2.5 text-white transition-all hover:bg-white/10 active:scale-95">
+                <svg width="14" height="14" viewBox="0 0 13 13" fill="none">
                   <path
                     d="M9.19744 1.08203H3.78717C2.29316 1.08203 1.08203 2.29316 1.08203 3.78717V9.19744C1.08203 10.6915 2.29316 11.9026 3.78717 11.9026H9.19744C10.6915 11.9026 11.9026 10.6915 11.9026 9.19744V3.78717C11.9026 2.29316 10.6915 1.08203 9.19744 1.08203Z"
                     stroke="white"
@@ -85,7 +94,7 @@ export function MainPage() {
                     fill="white"
                   />
                 </svg>
-                <span className="font-noto text-xs text-white/70">인스타그램으로 이동</span>
+                <span className="font-noto text-xs font-medium text-white/80">인스타그램으로 이동</span>
               </button>
             </div>
           </div>
@@ -93,7 +102,7 @@ export function MainPage() {
       </div>
 
       {/* Live Chat Section */}
-      <div className="mx-auto max-w-md px-5 py-6">
+      <div className="mx-auto max-w-md px-5 py-4">
         <LiveChatPreview />
       </div>
 
@@ -102,36 +111,36 @@ export function MainPage() {
         <img
           src="https://api.builder.io/api/v1/image/assets/TEMP/1285c363993a468a3c04bccbc8d85e5f18c31722?width=668"
           alt="Featured"
-          className="w-full rounded-lg"
+          className="w-full rounded-2xl shadow-sm"
         />
       </div>
 
       {/* Influencer's PICK Section */}
-      <div className="mx-auto max-w-md px-5 py-8">
-        <h2 className="mb-6 font-noto text-base font-medium text-[#322927]">Influencer's PICK</h2>
+      <div className="mx-auto max-w-md px-5 py-8 pb-16">
+        <h2 className="mb-6 font-noto text-lg font-bold text-dark-text">Influencer's PICK</h2>
 
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-4">
           {influencerProducts.map((product) => (
             <Link
               key={product.id}
               to={`/product/${product.id}`}
-              className="group overflow-hidden rounded-lg"
+              className="group overflow-hidden rounded-xl"
             >
-              <div className="relative mb-3 overflow-hidden rounded-lg bg-gray-200">
+              <div className="relative mb-3 overflow-hidden rounded-xl bg-gray-100 shadow-sm">
                 <img
                   src={product.image}
                   alt={product.title}
-                  className="aspect-[2/3] w-full object-cover transition-transform group-hover:scale-105"
+                  className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40" />
-                <div className="absolute bottom-2 right-2 rounded-full bg-black/50 px-2 py-1">
-                  <span className="font-noto text-[9px] text-white">❤️ {product.rating}</span>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
+                <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 backdrop-blur-[2px]">
+                  <span className="font-noto text-[10px] font-medium text-white">❤️ {product.rating}</span>
                 </div>
               </div>
-              <h3 className="mb-1 h-6 font-noto text-xs font-semibold text-[#322927] line-clamp-2">
+              <h3 className="mb-1 h-8 font-noto text-xs font-bold text-dark-text line-clamp-2 leading-snug">
                 {product.title}
               </h3>
-              <p className="font-noto text-sm font-bold text-[#CF879B]">{product.price}</p>
+              <p className="font-noto text-sm font-black text-point">{product.price}</p>
             </Link>
           ))}
         </div>
