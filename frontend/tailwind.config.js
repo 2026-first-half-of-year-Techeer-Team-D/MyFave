@@ -77,6 +77,20 @@ export default {
         montserrat: ['Montserrat', '-apple-system', 'sans-serif'],
         inter: ['Inter', '-apple-system', 'sans-serif'],
       },
+      boxShadow: {
+        'figma-popup': '0px 2px 2px 0px rgba(0, 0, 0, 0.25)',
+        'figma-app': '0px 0px 40px 0px rgba(0, 0, 0, 0.08)',
+        'figma-card': '0px 4px 10px 0px rgba(0, 0, 0, 0.05)',
+      },
+      borderWidth: {
+        DEFAULT: '1px',
+        '0': '0',
+        '2': '2px',
+        '3': '3px',
+        '4': '4px',
+        '8': '8px',
+        'figma': '1.096px',
+      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
