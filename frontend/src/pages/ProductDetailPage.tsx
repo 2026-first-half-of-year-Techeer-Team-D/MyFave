@@ -85,10 +85,10 @@ export function ProductDetailPage() {
   const product = PRODUCT_DETAILS[Number(id)] ?? PRODUCT_DETAILS[1]
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 bg-white pb-28">
       {/* Image carousel */}
-      <div className="relative bg-[#F8F8F8]">
-        <div className="mx-auto aspect-[32/39] max-w-md overflow-hidden">
+      <div className="relative bg-[#FFF9F0]">
+        <div className="mx-auto aspect-[1/1.2] max-w-md overflow-hidden shadow-sm">
           <img
             src={product.images[currentImageIndex]}
             alt={product.title}
@@ -97,14 +97,14 @@ export function ProductDetailPage() {
         </div>
 
         {/* Image dots */}
-        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+        <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
           {product.images.map((_, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => setCurrentImageIndex(idx)}
-              className={`h-2 rounded-full transition-colors ${
-                idx === currentImageIndex ? 'w-6 bg-[#FF9E8D]' : 'w-2 bg-white/60'
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                idx === currentImageIndex ? 'w-5 bg-point' : 'w-1.5 bg-white/70'
               }`}
               aria-label={`이미지 ${idx + 1}`}
             />
@@ -112,110 +112,147 @@ export function ProductDetailPage() {
         </div>
 
         {/* Image counter */}
-        <div className="absolute bottom-6 right-2 rounded-2xl bg-black/50 px-2 py-1">
-          <span className="font-noto text-[9px] text-white">
+        <div className="absolute bottom-8 right-5 rounded-full bg-black/40 px-2.5 py-0.5 backdrop-blur-[2px]">
+          <span className="font-noto text-[10px] font-medium text-white">
             {currentImageIndex + 1} / {product.images.length}
           </span>
         </div>
       </div>
 
       {/* Product info */}
-      <div className="border-b border-[#F2EDEB] px-5 py-4">
-        <h1 className="mb-3 font-noto text-[15px] font-normal text-[#322927]">{product.title}</h1>
-        <p className="mb-3 font-noto text-xs text-[#CF879B]">{product.subtitle}</p>
-        <p className="font-noto text-lg font-bold text-[#322927]">{product.price}</p>
-      </div>
-
-      {/* Options Section */}
-      <div className="border-b border-[#F2EDEB] px-5 py-5">
-        {/* Option Select */}
-        <div className="mb-5">
-          <label className="mb-3 block font-noto text-sm font-medium text-[#322927]">
-            상품 선택
-          </label>
-          <select
-            value={selectedOption}
-            onChange={(e) => setSelectedOption(e.target.value)}
-            className="w-full rounded-lg border border-[#D9D9D9] bg-white px-4 py-3 font-noto text-sm text-[#322927] focus:border-point focus:outline-none"
-          >
-            <option value="option1">상품 옵션 선택</option>
-            <option value="option2">색상: 핑크</option>
-            <option value="option3">색상: 빨강</option>
-            <option value="option4">색상: 주황</option>
-          </select>
+      <div className="mx-auto max-w-md px-5 py-8">
+        <div className="space-y-2.5">
+          <h1 className="font-noto text-xl font-bold leading-tight text-dark-text">
+            {product.title}
+          </h1>
+          <p className="font-noto text-sm font-medium text-chat-font">
+            {product.subtitle}
+          </p>
+          <div className="pt-2">
+            <span className="font-noto text-2xl font-black text-dark-text">
+              {product.price}
+            </span>
+          </div>
         </div>
 
-        {/* Quantity Select */}
-        <div>
-          <label className="mb-3 block font-noto text-sm font-medium text-[#322927]">수량</label>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#D9D9D9] bg-white font-noto font-bold text-[#322927] hover:bg-[#F2EDEB]"
-            >
-              −
-            </button>
-            <input
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-              className="flex-1 rounded-lg border border-[#D9D9D9] bg-white px-4 py-2 text-center font-noto text-sm text-[#322927] focus:border-point focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={() => setQuantity(quantity + 1)}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#D9D9D9] bg-white font-noto font-bold text-[#322927] hover:bg-[#F2EDEB]"
-            >
-              +
-            </button>
+        {/* Divider */}
+        <div className="my-8 h-px w-full bg-separator" />
+
+        {/* Options Section */}
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <label className="block font-noto text-[13px] font-bold text-dark-text">
+              상품 옵션
+            </label>
+            <div className="relative">
+              <select
+                value={selectedOption}
+                onChange={(e) => setSelectedOption(e.target.value)}
+                className="w-full appearance-none rounded-xl border border-separator bg-white px-4 py-3.5 font-noto text-sm text-dark-text focus:border-point focus:outline-none"
+              >
+                <option value="option1">상품 옵션을 선택해주세요</option>
+                <option value="option2">색상: 핑크 (재고 5개)</option>
+                <option value="option3">색상: 레드 (재고 12개)</option>
+                <option value="option4">색상: 오렌지 (재고 8개)</option>
+              </select>
+              <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                  <path d="M1 1L5 5L9 1" stroke="currentColor" className="text-muted-text" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="font-noto text-[13px] font-bold text-dark-text">수량</label>
+            <div className="flex items-center overflow-hidden rounded-lg border border-separator bg-white">
+              <button
+                type="button"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="flex h-9 w-9 items-center justify-center font-noto text-lg font-medium text-dark-text transition-colors hover:bg-gray-50 active:bg-gray-100"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                className="h-9 w-12 border-x border-separator text-center font-noto text-sm font-bold text-dark-text focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setQuantity(quantity + 1)}
+                className="flex h-9 w-9 items-center justify-center font-noto text-lg font-medium text-dark-text transition-colors hover:bg-gray-50 active:bg-gray-100"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Features Section */}
+        <div className="mt-10 space-y-3">
+          <label className="block font-noto text-[13px] font-bold text-dark-text">제품 특징</label>
+          <div className="space-y-3">
+            {product.features.map((feature, idx) => (
+              <div key={idx} className="overflow-hidden rounded-xl bg-footer-bg">
+                <button
+                  type="button"
+                  onClick={() => setExpandedFeature(expandedFeature === idx ? null : idx)}
+                  className="flex w-full items-center justify-between px-5 py-4 text-left"
+                >
+                  <h3 className="font-noto text-[13px] font-bold text-dark-text">{feature.title}</h3>
+                  <svg
+                    width="10"
+                    height="6"
+                    viewBox="0 0 10 6"
+                    fill="none"
+                    className={`text-muted-text transition-transform duration-300 ${expandedFeature === idx ? 'rotate-180' : ''}`}
+                  >
+                    <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                {expandedFeature === idx && (
+                  <div className="px-5 pb-5 pt-0">
+                    <p className="font-noto text-xs leading-relaxed text-dark-text/70">
+                      {feature.description}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Features */}
-      <div className="px-5 py-4">
-        <div className="space-y-3">
-          {product.features.map((feature, idx) => (
-            <div key={idx} className="overflow-hidden rounded-2xl bg-[#FAFAF8]">
-              <button
-                type="button"
-                onClick={() => setExpandedFeature(expandedFeature === idx ? null : idx)}
-                className="w-full px-5 py-4 text-left"
-              >
-                <h3 className="font-noto text-sm font-medium text-[#322927]">{feature.title}</h3>
-              </button>
-              {expandedFeature === idx && (
-                <div className="border-t border-[#F2EDEB] px-5 py-3">
-                  <p className="font-noto text-xs leading-relaxed text-[#322927]">
-                    {feature.description}
-                  </p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="h-2 bg-[#F2EDEB]" />
+      <div className="h-2 w-full bg-footer-bg" />
 
       {/* Expandable sections */}
-      <div className="space-y-2 px-5 py-4">
+      <div className="mx-auto max-w-md divide-y divide-separator px-5">
         <ExpandableSection title="배송정보" />
         <ExpandableSection title="교환 및 환불안내" />
+        <ExpandableSection title="제품 리뷰 (1,240)" />
       </div>
 
-      {/* Action buttons */}
-      <div className="sticky bottom-0 flex gap-3 border-t border-[#F2EDEB] bg-white px-5 py-4 shadow-lg">
+      {/* Action buttons (Fixed Bottom) */}
+      <div className="fixed bottom-0 left-1/2 z-40 flex w-full max-w-md -translate-x-1/2 gap-3 border-t border-separator bg-white p-4 shadow-[0_-8px_20px_rgba(0,0,0,0.05)]">
         <button
           type="button"
-          className="flex-1 rounded-2xl border-2 border-[#D9D9D9] bg-white py-3 font-noto font-bold text-[#322927]"
+          className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-separator bg-white text-dark-text transition-all hover:bg-gray-50 active:scale-95"
         >
-          장바구니
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
         <button
           type="button"
-          className="flex-1 rounded-2xl bg-[#FF95B3] py-3 font-noto font-bold text-white hover:bg-[#ff7fa3]"
+          className="flex-1 rounded-2xl bg-point py-4 font-noto text-base font-black text-white shadow-lg shadow-point/30 transition-all hover:bg-[#ff7fa3] active:scale-[0.98]"
         >
           구매하기
         </button>
