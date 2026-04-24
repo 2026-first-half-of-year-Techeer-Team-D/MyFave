@@ -78,7 +78,7 @@ export function LiveChatPage() {
   return (
     <div className="relative flex flex-1 flex-col bg-white overflow-hidden min-h-0">
       {/* 0. Subtle Background Logo Watermark - Figma 디자인 명세 100% 동기화 */}
-      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-[0.03]">
+      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-[0.10]">
         <img
           src="https://api.builder.io/api/v1/image/assets/TEMP/e7df4be5ec275bc11639573f94373e14d54c4a9e?width=240"
           alt="My Fave Watermark"
