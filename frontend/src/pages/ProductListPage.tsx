@@ -112,7 +112,7 @@ export function ProductListPage() {
                 <h3 className="min-h-[40px] font-noto text-[12px] font-normal leading-[20px] text-dark-text line-clamp-2 tracking-tight">
                   {product.title}
                 </h3>
-                <p className="font-noto text-[14px] font-bold text-point leading-[18px]">
+                <p className="font-noto text-[14px] font-bold text-dark-text leading-[18px]">
                   {product.price}
                 </p>
               </div>
