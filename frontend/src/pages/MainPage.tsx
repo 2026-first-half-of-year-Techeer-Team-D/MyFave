@@ -43,12 +43,12 @@ export function MainPage() {
     <div className="flex-1 bg-white">
       {/* Instagram Reels Banner */}
       <div className="mx-auto max-w-md px-5 py-6">
-        <div className="relative overflow-hidden rounded-2xl border border-main-bg bg-black">
+        <div className="relative overflow-hidden rounded-2xl border-figma border-main-bg bg-black shadow-figma-card">
           {/* Browser-like Header */}
-          <div className="flex items-center gap-1.5 bg-main-bg px-4 py-2">
-            <div className="h-2 w-2 rounded-full bg-[#FF5F57]" />
-            <div className="h-2 w-2 rounded-full bg-[#FFBD2E]" />
-            <div className="h-2 w-2 rounded-full bg-[#28C840]" />
+          <div className="flex items-center gap-1.5 bg-main-bg px-4 py-2.5">
+            <div className="h-2 w-2 rounded-full bg-[#FF5F57] shadow-sm" />
+            <div className="h-2 w-2 rounded-full bg-[#FFBD2E] shadow-sm" />
+            <div className="h-2 w-2 rounded-full bg-[#28C840] shadow-sm" />
           </div>
           
           <div className="p-8 pb-10">
