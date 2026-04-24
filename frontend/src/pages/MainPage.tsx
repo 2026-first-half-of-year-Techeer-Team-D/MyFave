@@ -43,17 +43,17 @@ export function MainPage() {
     <div className="flex-1 bg-white">
       {/* Instagram Reels Banner */}
       <div className="mx-auto max-w-md px-5 py-6">
-        <div className="relative overflow-hidden rounded-2xl border-figma border-main-bg bg-black shadow-figma-card">
+        <div className="relative overflow-hidden rounded-[16px] border-figma border-main-bg bg-black shadow-figma-card h-[635.72px]">
           {/* Browser-like Header */}
-          <div className="flex items-center gap-1.5 bg-main-bg px-4 py-2.5">
-            <div className="h-2 w-2 rounded-full bg-[#FF5F57] shadow-sm" />
-            <div className="h-2 w-2 rounded-full bg-[#FFBD2E] shadow-sm" />
-            <div className="h-2 w-2 rounded-full bg-[#28C840] shadow-sm" />
+          <div className="flex h-[40px] items-center gap-[8px] bg-main-bg px-[12px]">
+            <div className="h-[12px] w-[12px] rounded-full bg-[#FF5F57] shadow-sm" />
+            <div className="h-[12px] w-[12px] rounded-full bg-[#FFBD2E] shadow-sm" />
+            <div className="h-[12px] w-[12px] rounded-full bg-[#28C840] shadow-sm" />
           </div>
           
-          <div className="p-8 pb-10">
-            <div className="flex flex-col items-center justify-center gap-5">
-              <div className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-gradient-to-br from-[#F09433] via-[#E6683C] to-[#BC1888] shadow-lg">
+          <div className="h-[593.53px] bg-[#111111] flex flex-col items-center justify-center p-8">
+            <div className="flex flex-col items-center justify-center gap-[16px]">
+              <div className="flex h-[64px] w-[64px] items-center justify-center rounded-[18px] bg-gradient-to-br from-[#F09433] via-[#E6683C] to-[#BC1888] shadow-lg">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                   <path
                     d="M22.666 2.66656H9.33299C5.65119 2.66656 2.6665 5.65125 2.6665 9.33305V22.666C2.6665 26.3478 5.65119 29.3325 9.33299 29.3325H22.666C26.3478 29.3325 29.3325 26.3478 29.3325 22.666V9.33305C29.3325 5.65125 26.3478 2.66656 22.666 2.66656Z"
@@ -72,12 +72,12 @@ export function MainPage() {
                 </svg>
               </div>
               <div className="text-center">
-                <h3 className="mb-1 font-montserrat text-lg font-bold text-white">Instagram Reels</h3>
-                <p className="font-noto text-xs text-white/50">
+                <h3 className="mb-1 font-noto text-[14px] font-bold text-white/85 leading-[21px]">Instagram Reels</h3>
+                <p className="font-noto text-[11px] text-white/45 leading-[17.6px]">
                   동영상 URL을 입력하면 릴스가 자동 재생됩니다
                 </p>
               </div>
-              <button className="flex items-center gap-2 rounded-full border border-white/30 bg-white/5 px-6 py-2.5 text-white transition-all hover:bg-white/10 active:scale-95">
+              <button className="mt-2 flex h-[40.17px] w-[163.15px] items-center justify-center gap-[6px] rounded-full border-[1.096px] border-white/25 bg-transparent text-white transition-all hover:bg-white/10 active:scale-95">
                 <svg width="14" height="14" viewBox="0 0 13 13" fill="none">
                   <path
                     d="M9.19744 1.08203H3.78717C2.29316 1.08203 1.08203 2.29316 1.08203 3.78717V9.19744C1.08203 10.6915 2.29316 11.9026 3.78717 11.9026H9.19744C10.6915 11.9026 11.9026 10.6915 11.9026 9.19744V3.78717C11.9026 2.29316 10.6915 1.08203 9.19744 1.08203Z"
@@ -94,7 +94,7 @@ export function MainPage() {
                     fill="white"
                   />
                 </svg>
-                <span className="font-noto text-xs font-medium text-white/80">인스타그램으로 이동</span>
+                <span className="font-noto text-[12px] font-medium text-white/85">인스타그램으로 이동</span>
               </button>
             </div>
           </div>
