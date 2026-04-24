@@ -37,8 +37,15 @@ const chatMessages: ChatMessage[] = [
 
 export function LiveChatPreview() {
   return (
-    <div className="rounded-2xl border border-[#FFECF2] bg-[#FFF9F0] p-4">
-      <div className="space-y-3">
+    <div className="rounded-3xl border border-main-bg bg-main-bg p-5 shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="font-noto text-sm font-bold text-dark-text">라이브 톡</h3>
+        <span className="flex items-center gap-1 font-noto text-[10px] text-point">
+          <span className="h-1.5 w-1.5 rounded-full bg-point animate-pulse" />
+          실시간
+        </span>
+      </div>
+      <div className="space-y-4">
         {chatMessages.map((msg, i) => (
           <div
             key={i}
@@ -47,31 +54,33 @@ export function LiveChatPreview() {
             <img
               src={msg.avatarSrc}
               alt={msg.user}
-              className="h-6 w-6 flex-shrink-0 rounded-full object-cover"
+              className="h-8 w-8 flex-shrink-0 rounded-full border border-white/50 object-cover"
             />
-            <div className={`flex flex-col gap-0.5 ${msg.align === 'right' ? 'items-end' : ''}`}>
-              <span className="font-noto text-[11px] font-medium text-[#322927]">
+            <div className={`flex flex-col gap-1 ${msg.align === 'right' ? 'items-end' : ''}`}>
+              <span className="font-noto text-[10px] font-semibold text-dark-text/70">
                 {msg.user}
                 {msg.isOfficial && (
-                  <span className="ml-1 rounded bg-[#FF95B3] px-1 text-[9px] text-white">
+                  <span className="ml-1 rounded bg-point px-1 text-[8px] text-white">
                     공식
                   </span>
                 )}
               </span>
               <div
-                className={`max-w-[220px] rounded-2xl px-3 py-1.5 ${
-                  msg.align === 'right' ? 'bg-[#FF95B3] text-white' : 'bg-[#FFF7F8] text-[#1B1B1B]'
+                className={`max-w-[200px] rounded-2xl px-3 py-2 ${
+                  msg.align === 'right'
+                    ? 'rounded-tr-none bg-point text-white'
+                    : 'rounded-tl-none bg-chat-bg2 text-dark-text shadow-sm'
                 }`}
               >
-                <p className="font-noto text-[11px] leading-[1.6]">{msg.text}</p>
+                <p className="font-noto text-[11px] leading-relaxed">{msg.text}</p>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <button className="mt-4 w-full rounded-full bg-[#FF95B3] py-2.5 font-noto text-sm font-medium text-white transition-colors hover:bg-[#ff7fa3]">
-        라이브 채팅 시작하기
+      <button className="mt-5 w-full rounded-2xl bg-point py-3 font-noto text-sm font-bold text-white shadow-md transition-all hover:bg-[#ff7fa3] active:scale-[0.98]">
+        라이브 채팅 참여하기
       </button>
     </div>
   )
