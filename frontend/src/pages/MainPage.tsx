@@ -125,15 +125,15 @@ export function MainPage() {
       </div>
 
       {/* Influencer's PICK Section - Figma Node 140:136 & 37:3785 기반 */}
-      <div className="mx-auto max-w-md px-[19.99px] pt-[23.99px] pb-20">
-        <h2 className="mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">Influencer's PICK</h2>
+      <div className="mx-auto max-w-md pt-[23.99px] pb-20">
+        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">Influencer’s PICK</h2>
 
-        <div className="flex flex-wrap gap-[12px]">
+        <div className="flex overflow-x-auto pb-4 gap-[12px] px-[19.99px] scrollbar-hide">
           {influencerProducts.map((product) => (
             <Link
               key={product.id}
               to={`/product/${product.id}`}
-              className="group flex w-[calc(50%-6px)] flex-col"
+              className="group flex flex-col flex-shrink-0 w-[162.03px]"
             >
               <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-gray-50 shadow-sm border border-separator/20">
                 <img
@@ -147,7 +147,7 @@ export function MainPage() {
                 </div>
               </div>
               <div className="px-0.5">
-                <h3 className="mb-0.5 h-9 font-noto text-[10px] font-normal text-dark-text line-clamp-2 leading-[18px] group-hover:text-point transition-colors tracking-tight">
+                <h3 className="mb-0.5 h-9 font-noto text-[10px] font-normal text-dark-text line-clamp-2 leading-[18px] group-hover:text-point transition-colors tracking-tight whitespace-normal">
                   {product.title}
                 </h3>
                 <p className="font-noto text-[12px] font-medium text-point leading-[18px]">{product.price}</p>
