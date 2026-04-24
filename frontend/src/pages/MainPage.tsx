@@ -117,7 +117,7 @@ export function MainPage() {
 
       {/* Influencer's PICK Section - Figma Node 140:136 기반 */}
       <div className="mx-auto max-w-md px-5 py-10 pb-20">
-        <h2 className="mb-6 font-noto text-figma-heading font-black text-dark-text tracking-tight">Influencer's PICK</h2>
+        <h2 className="mb-6 font-noto text-figma-heading font-black text-dark-text tracking-tight uppercase">Influencer's PICK</h2>
 
         <div className="flex flex-wrap gap-[12px]">
           {influencerProducts.map((product) => (
@@ -126,11 +126,11 @@ export function MainPage() {
               to={`/product/${product.id}`}
               className="group flex w-[calc(50%-6px)] flex-col"
             >
-              <div className="relative mb-3 overflow-hidden rounded-lg bg-gray-50 shadow-sm border border-separator/20">
+              <div className="relative mb-3 h-[288px] overflow-hidden rounded-lg bg-gray-50 shadow-sm border border-separator/20">
                 <img
                   src={product.image}
                   alt={product.title}
-                  className="aspect-[162/288] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
                 <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 backdrop-blur-[2px]">
@@ -138,7 +138,7 @@ export function MainPage() {
                 </div>
               </div>
               <div className="px-0.5">
-                <h3 className="mb-1 h-9 font-noto text-[13px] font-bold text-dark-text line-clamp-2 leading-snug group-hover:text-point transition-colors">
+                <h3 className="mb-1 h-9 font-noto text-figma-small font-bold text-dark-text line-clamp-2 leading-snug group-hover:text-point transition-colors tracking-tight">
                   {product.title}
                 </h3>
                 <p className="font-noto text-[14px] font-black text-point">{product.price}</p>
