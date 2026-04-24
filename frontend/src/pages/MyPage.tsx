@@ -1,13 +1,11 @@
 import { ChevronRight } from 'lucide-react'
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { UserIcon } from '@/shared/components/UserIcon'
 
 // TODO: Zustand에서 로그인 유저 정보 가져오기
 const USER = {
   nickname: '민트초코좋아님',
   email: 'lovelycasual@myfave.kr',
-  avatarSrc:
-    'https://api.builder.io/api/v1/image/assets/TEMP/78649d5e254091deb163e1ef979ed4a62c2d34a2?width=112',
 }
 
 // TODO: React Query로 대체 - 주문 현황 API 연동
@@ -31,19 +29,13 @@ export function MyPage() {
       <div className="px-5 py-10">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-main-bg p-1 shadow-inner">
-              <img
-                src={USER.avatarSrc}
-                alt="User Avatar"
-                className="h-full w-full rounded-full object-cover"
-              />
-            </div>
+            <UserIcon type="bear" variant={5} size={96} />
             <button className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md border border-separator text-muted-text active:scale-95 transition-transform">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             </button>
           </div>
           <div className="text-center">
-            <h2 className="font-noto text-lg font-black text-dark-text">{USER.nickname}</h2>
+            <h2 className="font-noto text-lg font-black text-dark-text tracking-tight">{USER.nickname}</h2>
             <p className="font-noto text-[13px] font-medium text-muted-text/80">{USER.email}</p>
           </div>
         </div>
