@@ -37,19 +37,58 @@
 
     --radius: 0.75rem;
 
-    /* Brand colors */
-    --point-color: 340 100% 79%;
-    --main-color: 330 100% 97%;
-    --sub-color1: 278 22% 88%;
-    --sub-color2: 28 14% 88%;
-    --chat-color: 330 100% 97%;
-    --chat-font-color: 340 35% 67%;
-    --chat-color2: 340 100% 99%;
-    --chat-font-color2: 0 0% 11%;
-    --footer-color: 60 11% 97%;
-    --separator-color: 30 17% 93%;
-    --text-dark: 15 19% 17%;
-    --text-muted: 25 18% 53%;
+    /* Brand colors (Exact Figma HEX) */
+    --point-color: #FF95B3;
+    --main-color: #FFECF2;
+    --sub-color1: #E4DFE7;
+    --sub-color2: #E8E2E0;
+    --chat-color: #FFECF2;
+    --chat-font-color: #CF879B;
+    --chat-color2: #FFF7F8;
+    --chat-font-color2: #1B1B1B;
+    --footer-color: #FAFAF8;
+    --separator-color: #F2EDEB;
+    --text-dark: #322927;
+    --text-muted: #8B7E74;
+  }
+
+  /* Figma precise typography */
+  .text-figma-heading {
+    font-size: 18px;
+    line-height: 27px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .text-figma-body {
+    font-size: 16px;
+    line-height: 25.2px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .text-figma-small {
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+  }
+
+  /* Additional Figma Precise Styles (100% Match) */
+  .text-figma-15-reg {
+    /* style_16Z5J9 */
+    font-size: 15px;
+    line-height: 24px;
+    font-weight: 400;
+  }
+  .text-figma-12-med {
+    /* style_6M37UV */
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 500;
+  }
+  .text-figma-12-reg {
+    /* style_0XQGKV */
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 400;
   }
 }
 
@@ -88,6 +127,15 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #ff95b3;
+  background: var(--point-color);
   border-radius: 2px;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }

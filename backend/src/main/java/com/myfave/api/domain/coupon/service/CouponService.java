@@ -2,8 +2,10 @@ package com.myfave.api.domain.coupon.service;
 
 import com.myfave.api.domain.coupon.dto.request.CouponIssueRequest;
 import com.myfave.api.domain.coupon.dto.response.CouponIssueResponse;
+import com.myfave.api.domain.coupon.dto.response.CouponResponse;
 import com.myfave.api.domain.coupon.entity.Coupon;
 import com.myfave.api.domain.coupon.entity.CouponMaster;
+import com.myfave.api.domain.coupon.entity.CouponStatus;
 import com.myfave.api.domain.coupon.repository.CouponMasterRepository;
 import com.myfave.api.domain.coupon.repository.CouponRepository;
 import com.myfave.api.domain.user.entity.User;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,20 @@ public class CouponService {
 
     @Value("${influencer.user-id}")
     private Long influencerUserId;
+
+    // 8-1. 보유 쿠폰 목록 조회
+    public List<CouponResponse> getMyCoupons(Long userId, CouponStatus status) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        List<Coupon> coupons = (status == null)
+                ? couponRepository.findByUser(user)
+                : couponRepository.findByUserAndStatus(user, status);
+
+        return coupons.stream()
+                .map(CouponResponse::from)
+                .toList();
+    }
 
     // 8-2. 사용자 쿠폰 지급 (인플루언서 전용)
     @Transactional
