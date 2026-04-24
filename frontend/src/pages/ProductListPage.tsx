@@ -66,22 +66,25 @@ export function ProductListPage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 bg-white">
       {/* Category tabs */}
-      <div className="border-b border-[#F2EDEB] bg-white">
-        <div className="mx-auto max-w-md overflow-x-auto px-5 pb-0">
-          <div className="flex gap-4 border-b-2 border-transparent">
+      <div className="sticky top-[86px] z-30 border-b border-separator bg-white">
+        <div className="mx-auto max-w-md overflow-x-auto px-5">
+          <div className="flex gap-6 whitespace-nowrap">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`whitespace-nowrap px-1 py-3 font-noto text-xs font-medium transition-colors ${
+                className={`relative py-4 font-noto text-sm font-medium transition-all ${
                   selectedCategory === cat.value
-                    ? 'border-b-2 border-[#322927] text-[#322927]'
-                    : 'text-[#8B7E74]'
+                    ? 'text-dark-text'
+                    : 'text-muted-text hover:text-dark-text/70'
                 }`}
               >
                 {cat.label}
+                {selectedCategory === cat.value && (
+                  <div className="absolute bottom-0 left-0 h-[2px] w-full bg-dark-text" />
+                )}
               </button>
             ))}
           </div>
@@ -89,33 +92,35 @@ export function ProductListPage() {
       </div>
 
       {/* Product count */}
-      <div className="mx-auto max-w-md border-b border-[#F2EDEB] bg-white px-5 py-3">
-        <p className="font-noto text-xs font-medium text-[#322927]">
-          상품 <span className="font-bold">{PRODUCTS.length}</span>개
+      <div className="mx-auto max-w-md border-b border-separator bg-white px-5 py-3.5">
+        <p className="font-noto text-[13px] font-medium text-dark-text">
+          상품 <span className="font-bold text-point">{PRODUCTS.length}</span>개
         </p>
       </div>
 
       {/* Products grid */}
-      <div className="bg-[#FFF9F0] px-5 py-6">
+      <div className="bg-[#FFF9F0] px-5 py-8">
         <div className="mx-auto max-w-md">
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8">
             {PRODUCTS.map((product) => (
               <Link
                 key={product.id}
                 to={`/product/${product.id}`}
-                className="group overflow-hidden rounded-lg"
+                className="group flex flex-col"
               >
-                <div className="relative mb-3 aspect-[167/100] overflow-hidden rounded-lg bg-gray-200">
+                <div className="relative mb-3 aspect-[3/4] overflow-hidden rounded-xl bg-white shadow-sm">
                   <img
                     src={product.image}
                     alt={product.title}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
-                <h3 className="mb-1 min-h-[22px] font-noto text-[11px] font-bold text-[#322927] line-clamp-2">
-                  {product.title}
-                </h3>
-                <p className="font-noto text-xs font-bold text-[#CF879B]">{product.price}</p>
+                <div className="px-0.5">
+                  <h3 className="mb-1 min-h-[36px] font-noto text-[12px] font-bold text-dark-text line-clamp-2 leading-snug">
+                    {product.title}
+                  </h3>
+                  <p className="font-noto text-sm font-black text-point">{product.price}</p>
+                </div>
               </Link>
             ))}
           </div>
