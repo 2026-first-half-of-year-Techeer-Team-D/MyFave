@@ -6,7 +6,6 @@ interface Coupon {
   benefit: string
   title: string
   expiry: string
-  type: 'pink' | 'white'
 }
 
 const AVAILABLE_COUPONS: Coupon[] = [
@@ -15,21 +14,18 @@ const AVAILABLE_COUPONS: Coupon[] = [
     benefit: '배송비 무료',
     title: '배송비 무료 쿠폰',
     expiry: '오늘 만료',
-    type: 'pink'
   },
   {
     id: 2,
     benefit: '3,000원',
     title: '라이브 채팅 특별 이벤트 쿠폰',
     expiry: '오늘 만료',
-    type: 'pink'
   },
   {
     id: 3,
     benefit: '10,000원',
     title: '라이브 채팅 특별 이벤트 쿠폰',
     expiry: '오늘 만료',
-    type: 'white'
   }
 ]
 
@@ -38,7 +34,7 @@ export function CouponPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null)
 
   const handleApply = () => {
-    // TODO: 쿠폰 적용 로직 연동
+    if (selectedId === null) return
     navigate('/payment')
   }
 
@@ -49,34 +45,34 @@ export function CouponPage() {
           사용 가능한 쿠폰 : <span className="text-point">{AVAILABLE_COUPONS.length}장</span>
         </p>
 
-        {/* Coupon Cards - Figma Node 251:1887, 1875, 1881 */}
+        {/* Coupon Cards - Figma 명세 100% 동기화 (클릭 시에만 핑크색 활성화) */}
         <div className="space-y-[16px]">
           {AVAILABLE_COUPONS.map((coupon) => (
             <div
               key={coupon.id}
               onClick={() => setSelectedId(coupon.id)}
               className={`relative h-[76px] w-full rounded-[10px] border cursor-pointer transition-all flex items-center px-[13px] ${
-                coupon.type === 'pink'
-                  ? 'bg-point border-separator text-white'
-                  : 'bg-white border-separator text-black'
-              } ${selectedId === coupon.id ? 'ring-2 ring-point ring-offset-2' : ''}`}
+                selectedId === coupon.id
+                  ? 'bg-point border-point text-white shadow-md' // 활성 상태: 핑크 배경
+                  : 'bg-white border-separator text-black hover:border-point/30' // 기본 상태: 화이트 배경
+              }`}
             >
               <div className="flex flex-col gap-[2px] flex-1">
-                <span className="font-noto text-[16px] font-bold leading-[15.13px]">
+                <span className={`font-noto text-[16px] font-bold leading-[15.13px] ${selectedId === coupon.id ? 'text-white' : 'text-black'}`}>
                   {coupon.benefit}
                 </span>
-                <span className="font-noto text-[11px] font-bold leading-[15.13px]">
+                <span className={`font-noto text-[11px] font-bold leading-[15.13px] ${selectedId === coupon.id ? 'text-white' : 'text-black'}`}>
                   {coupon.title}
                 </span>
-                <span className={`font-noto text-[11px] font-normal leading-[15.13px] ${coupon.type === 'pink' ? 'text-white' : 'text-muted-text'}`}>
+                <span className={`font-noto text-[11px] font-normal leading-[15.13px] ${selectedId === coupon.id ? 'text-white/80' : 'text-muted-text'}`}>
                   {coupon.expiry}
                 </span>
               </div>
               
-              {/* Divider line in card - Figma Node 251:1892 */}
-              <div className={`absolute right-[55px] top-[12px] bottom-[12px] w-[1px] border-r border-dashed ${coupon.type === 'pink' ? 'border-white/30' : 'border-separator'}`} />
+              {/* Divider line in card */}
+              <div className={`absolute right-[55px] top-[12px] bottom-[12px] w-[1px] border-r border-dashed ${selectedId === coupon.id ? 'border-white/30' : 'border-separator'}`} />
               
-              {/* Status or selection indicator */}
+              {/* Selection indicator */}
               {selectedId === coupon.id && (
                 <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center ml-2">
                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FF95B3" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
@@ -88,11 +84,14 @@ export function CouponPage() {
           ))}
         </div>
 
-        {/* Apply Button - Figma Node 251:1944 (h:32px) */}
+        {/* Apply Button */}
         <div className="mt-[28px] flex justify-center">
           <button
             onClick={handleApply}
-            className="w-[336px] h-[32px] rounded-[12px] bg-point font-noto text-[12px] font-bold text-white shadow-md active:scale-[0.98] transition-all"
+            disabled={selectedId === null}
+            className={`w-[336px] h-[32px] rounded-[12px] font-noto text-[12px] font-bold text-white shadow-md active:scale-[0.98] transition-all ${
+              selectedId !== null ? 'bg-point' : 'bg-gray-300 cursor-not-allowed'
+            }`}
           >
             쿠폰 적용하기
           </button>
