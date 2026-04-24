@@ -75,7 +75,7 @@ export function ProductListPage() {
               <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`relative py-4 font-noto text-sm font-medium transition-all ${
+                className={`relative py-4 font-noto text-figma-12-med transition-all ${
                   selectedCategory === cat.value
                     ? 'text-dark-text'
                     : 'text-muted-text hover:text-dark-text/70'
@@ -93,7 +93,7 @@ export function ProductListPage() {
 
       {/* Product count */}
       <div className="mx-auto max-w-md border-b border-separator bg-white px-5 py-3.5">
-        <p className="font-noto text-[13px] font-medium text-dark-text">
+        <p className="font-noto text-figma-small font-medium text-dark-text">
           상품 <span className="font-bold text-point">{PRODUCTS.length}</span>개
         </p>
       </div>
@@ -101,14 +101,14 @@ export function ProductListPage() {
       {/* Products grid */}
       <div className="bg-[#FFF9F0] px-5 py-8">
         <div className="mx-auto max-w-md">
-          <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+          <div className="grid grid-cols-2 gap-x-[15px] gap-y-8">
             {PRODUCTS.map((product) => (
               <Link
                 key={product.id}
                 to={`/product/${product.id}`}
                 className="group flex flex-col"
               >
-                <div className="relative mb-3 aspect-[3/4] overflow-hidden rounded-xl bg-white shadow-sm">
+                <div className="relative mb-3 h-[200px] overflow-hidden rounded-xl bg-white shadow-sm border border-separator/10">
                   <img
                     src={product.image}
                     alt={product.title}
@@ -116,7 +116,7 @@ export function ProductListPage() {
                   />
                 </div>
                 <div className="px-0.5">
-                  <h3 className="mb-1 min-h-[36px] font-noto text-[12px] font-bold text-dark-text line-clamp-2 leading-snug">
+                  <h3 className="mb-1 min-h-[40px] font-noto text-figma-12-reg text-dark-text line-clamp-2 leading-[20px]">
                     {product.title}
                   </h3>
                   <p className="font-noto text-sm font-black text-point">{product.price}</p>
