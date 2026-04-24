@@ -60,20 +60,20 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
             </Link>
 
             {/* SHOP */}
-            <div className="space-y-1">
+            <div className="border-b-[1.1px] border-separator">
               <button
-                className="flex w-full items-center justify-between px-6 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
+                className="flex w-full items-center justify-between px-5 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
                 onClick={() => setShopOpen(!shopOpen)}
               >
-                <span className="font-lexend text-base font-black tracking-wider text-dark-text">SHOP</span>
+                <span className="font-noto text-[18px] font-medium leading-[27px] text-dark-text">SHOP</span>
                 <svg
-                  width="12"
-                  height="12"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   className={`text-muted-text transition-transform duration-300 ${shopOpen ? 'rotate-180' : ''}`}
-                  strokeWidth="3"
+                  strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
@@ -81,7 +81,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
                 </svg>
               </button>
               {shopOpen && (
-                <div className="bg-footer-bg/50 py-2">
+                <div className="bg-footer-bg/40 pb-4 pt-1">
                   {[
                     { label: '전체', path: '/shop' },
                     { label: '상의', path: '/shop?category=top' },
@@ -93,7 +93,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
                       key={item.label}
                       to={item.path}
                       onClick={onClose}
-                      className="block px-10 py-2.5 font-noto text-sm font-bold text-dark-text/70 transition-colors hover:text-point active:scale-95"
+                      className="block px-10 py-3 font-noto text-[15px] font-medium text-dark-text/70 transition-colors hover:text-point active:translate-x-1"
                     >
                       {item.label}
                     </Link>
@@ -103,20 +103,20 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
             </div>
 
             {/* COMMUNITY */}
-            <div className="space-y-1">
+            <div className="border-b-[1.1px] border-separator">
               <button
-                className="flex w-full items-center justify-between px-6 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
+                className="flex w-full items-center justify-between px-5 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
                 onClick={() => setCommunityOpen(!communityOpen)}
               >
-                <span className="font-lexend text-base font-black tracking-wider text-dark-text">COMMUNITY</span>
+                <span className="font-noto text-[18px] font-medium leading-[27px] text-dark-text">COMMUNITY</span>
                 <svg
-                  width="12"
-                  height="12"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   className={`text-muted-text transition-transform duration-300 ${communityOpen ? 'rotate-180' : ''}`}
-                  strokeWidth="3"
+                  strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
@@ -124,7 +124,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
                 </svg>
               </button>
               {communityOpen && (
-                <div className="bg-footer-bg/50 py-2">
+                <div className="bg-footer-bg/40 pb-4 pt-1">
                   {[
                     { label: '마이 페이브 소개', path: '/about' },
                     { label: '공지사항', path: '/notice' },
@@ -135,7 +135,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
                       key={item.label}
                       to={item.path}
                       onClick={onClose}
-                      className="block px-10 py-2.5 font-noto text-sm font-bold text-dark-text/70 transition-colors hover:text-point active:scale-95"
+                      className="block px-10 py-3 font-noto text-[15px] font-medium text-dark-text/70 transition-colors hover:text-point active:translate-x-1"
                     >
                       {item.label}
                     </Link>
@@ -148,18 +148,18 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
             <Link
               to="/mypage"
               onClick={onClose}
-              className="flex items-center px-6 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
+              className="flex items-center border-b-[1.1px] border-separator px-5 py-4 transition-colors hover:bg-footer-bg"
             >
-              <span className="font-lexend text-base font-black tracking-wider text-dark-text">MY PAGE</span>
+              <span className="font-noto text-[18px] font-medium leading-[27px] text-dark-text">MY PAGE</span>
             </Link>
 
             {/* ORDER */}
             <Link
               to="/orders"
               onClick={onClose}
-              className="flex items-center px-6 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
+              className="flex items-center border-b-[1.1px] border-separator px-5 py-4 transition-colors hover:bg-footer-bg"
             >
-              <span className="font-lexend text-base font-black tracking-wider text-dark-text">ORDER</span>
+              <span className="font-noto text-[18px] font-medium leading-[27px] text-dark-text">ORDER</span>
             </Link>
           </div>
         </div>
