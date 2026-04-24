@@ -195,25 +195,25 @@ export function PaymentPage() {
       {currentStep === 3 && (
         <div className="mx-auto max-w-md space-y-8 px-5 py-10">
           <h2 className="font-noto text-lg font-bold text-dark-text">주문 확인</h2>
-          <div className="space-y-6 overflow-hidden rounded-2xl border border-separator bg-white shadow-sm">
+          <div className="space-y-6 overflow-hidden rounded-[15px] border border-separator bg-white shadow-sm">
             <div className="bg-footer-bg px-5 py-4">
               <span className="font-noto text-[13px] font-bold text-dark-text">최종 결제 정보</span>
             </div>
             <div className="space-y-4 px-5 pb-6">
               <div className="flex justify-between items-center">
-                <span className="font-noto text-sm text-muted-text font-medium">배송정보</span>
+                <span className="font-noto text-sm text-muted-text font-medium tracking-tight">배송정보</span>
                 <span className="font-noto text-sm text-dark-text font-bold">
                   {formData.name} ({formData.phone})
                 </span>
               </div>
               <div className="flex justify-between items-start gap-4">
-                <span className="font-noto text-sm text-muted-text font-medium flex-shrink-0">배송주소</span>
+                <span className="font-noto text-sm text-muted-text font-medium flex-shrink-0 tracking-tight">배송주소</span>
                 <span className="font-noto text-right text-sm text-dark-text font-bold leading-snug">
                   {formData.address} {formData.detailAddress}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="font-noto text-sm text-muted-text font-medium">결제수단</span>
+                <span className="font-noto text-sm text-muted-text font-medium tracking-tight">결제수단</span>
                 <span className="font-noto text-sm text-dark-text font-bold">
                   {PAYMENT_METHOD_LABELS[formData.paymentMethod]}
                 </span>
