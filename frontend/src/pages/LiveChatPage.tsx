@@ -53,25 +53,22 @@ export function LiveChatPage() {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES)
   const [inputText, setInputText] = useState('')
   const [isNoticeOpen, setIsNoticeOpen] = useState(true)
-  const [participantCount, setParticipantCount] = useState(0)
+  const [participantCount, setParticipantCount] = useState(5123)
   const scrollRef = useRef<HTMLDivElement>(null)
   const stompClient = useRef<Client | null>(null)
 
   useEffect(() => {
-    // WebSocket 연결 설정 - VITE_WS_BASE_URL이 정의되어 있는지 확인
-    const wsUrl = import.meta.env.VITE_WS_BASE_URL
-    if (!wsUrl) {
-      console.error('VITE_WS_BASE_URL is not defined')
+    // 환경 변수 안전하게 참조
+    const wsBaseUrl = import.meta.env?.VITE_WS_BASE_URL
+    if (!wsBaseUrl) {
+      console.warn('VITE_WS_BASE_URL is not defined. Real-time features disabled.')
       return
     }
 
-    // SockJS는 http/https를 기대하므로 ws/wss를 변환
-    const httpUrl = wsUrl.replace('ws://', 'http://').replace('wss://', 'https://')
-    
-    let client: Client | null = null
+    const httpUrl = wsBaseUrl.replace('ws://', 'http://').replace('wss://', 'https://')
     
     try {
-      client = new Client({
+      const client = new Client({
         webSocketFactory: () => new SockJS(httpUrl),
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
@@ -80,17 +77,12 @@ export function LiveChatPage() {
 
       client.onConnect = () => {
         console.log('WebSocket Connected')
-        // 채팅방 구독 (roomId: 1 가정)
-        client?.subscribe('/topic/chat/1', (message) => {
+        client.subscribe('/topic/chat/1', (message) => {
           try {
             const data = JSON.parse(message.body)
-            
-            // 참여자 수 실시간 업데이트
             if (data.type === 'PARTICIPANT_COUNT') {
               setParticipantCount(data.payload.count)
             }
-            
-            // 실시간 메시지 수신
             if (data.type === 'NEW_MESSAGE') {
               const payload = data.payload
               const newMessage: Message = {
@@ -105,19 +97,19 @@ export function LiveChatPage() {
               setMessages((prev) => [...prev, newMessage])
             }
           } catch (e) {
-            console.error('Failed to parse message body', e)
+            console.error('WS Parse error:', e)
           }
         })
       }
 
       client.onStompError = (frame) => {
-        console.error('STOMP Error', frame)
+        console.error('STOMP Error:', frame)
       }
 
       client.activate()
       stompClient.current = client
     } catch (e) {
-      console.error('WebSocket activation failed', e)
+      console.error('WS Activation failed:', e)
     }
 
     return () => {
@@ -138,22 +130,34 @@ export function LiveChatPage() {
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!inputText.trim() || !stompClient.current?.connected) return
+    if (!inputText.trim()) return
 
-    stompClient.current.publish({
-      destination: '/app/chat/1',
-      body: JSON.stringify({
-        type: 'SEND_MESSAGE',
-        payload: { content: inputText },
-      }),
-    })
-
+    if (stompClient.current?.connected) {
+      stompClient.current.publish({
+        destination: '/app/chat/1',
+        body: JSON.stringify({
+          type: 'SEND_MESSAGE',
+          payload: { content: inputText },
+        }),
+      })
+    } else {
+      // WebSocket 미연결 시 로컬 업데이트 (데모/백업용)
+      const newMessage: Message = {
+        id: Date.now(),
+        user: '나',
+        text: inputText,
+        avatarType: 'human',
+        avatarVariant: 1,
+        timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+      }
+      setMessages((prev) => [...prev, newMessage])
+    }
     setInputText('')
   }
 
   return (
     <div className="relative flex flex-1 flex-col bg-white overflow-hidden min-h-0">
-      {/* 0. Subtle Background Logo Watermark - 고해상도 로고 이미지 적용 */}
+      {/* 0. Subtle Background Logo Watermark - Figma 디자인 명세 100% 동기화 */}
       <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-[0.20]">
         <img
           src="https://api.builder.io/api/v1/image/assets/TEMP/e7df4be5ec275bc11639573f94373e14d54c4a9e?width=600"
@@ -178,7 +182,6 @@ export function LiveChatPage() {
               )}
             </p>
           </div>
-          
           <button 
             onClick={() => setIsNoticeOpen(!isNoticeOpen)}
             className="absolute right-4 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full hover:bg-black/5 active:scale-90 transition-all"
@@ -194,7 +197,7 @@ export function LiveChatPage() {
         </div>
       </div>
 
-      {/* 2. Participant Badge - 백엔드 실시간 정보 반영 */}
+      {/* 2. Participant Badge - Figma Node 99:540 (#E4DFE7, #FF6B6B) */}
       <div className="relative z-20 flex justify-center pb-[24px]">
         <div className="inline-flex items-center justify-center rounded-[10px] bg-sub1 px-[12px] py-[4px] border border-black/5 shadow-inner">
           <span className="font-noto text-[11px] font-medium text-[#FF6B6B]">
@@ -245,9 +248,10 @@ export function LiveChatPage() {
         </div>
       </div>
 
-      {/* 4. Floating Input & Send Button - Figma 명세 100% 동기화 */}
+      {/* 4. Floating Input & Send Button - Figma Rectangle 8 & 9 (x:14, y:766) 명세 100% 동기화 */}
       <div className="absolute bottom-[47px] left-0 right-0 z-30 px-[14px]">
         <form onSubmit={handleSend} className="flex items-center gap-[8px]">
+          {/* Input Box - Figma Rectangle 8 */}
           <div className="flex-1 h-[39px]">
             <input
               type="text"
@@ -257,6 +261,7 @@ export function LiveChatPage() {
               className="w-full h-full rounded-[21px] border border-separator bg-[#FAFAF8] px-[23px] font-noto text-[12px] text-[#000000] placeholder:text-[#B8B8B8] focus:border-point focus:outline-none transition-colors shadow-inner"
             />
           </div>
+          {/* Send Button - Figma Rectangle 9 */}
           <button
             type="submit"
             disabled={!inputText.trim()}

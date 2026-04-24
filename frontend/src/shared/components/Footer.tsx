@@ -45,9 +45,14 @@ export function Footer() {
           배송/주문 안내
         </Link>
         <span className="h-2 w-px bg-chat-font opacity-30" />
-        <Link to="/inquiry" className="font-noto text-xs text-chat-font hover:underline">
+        <a 
+          href="https://www.instagram.com/direct/inbox/" 
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-noto text-xs text-chat-font hover:underline"
+        >
           1:1 문의
-        </Link>
+        </a>
         <span className="h-2 w-px bg-chat-font opacity-30" />
         <Link to="/faq" className="font-noto text-xs text-chat-font hover:underline">
           FAQ

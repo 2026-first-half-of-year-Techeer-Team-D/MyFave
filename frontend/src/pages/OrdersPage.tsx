@@ -106,11 +106,7 @@ export function OrdersPage() {
                       NO. {order.id}
                     </span>
                     <span
-                      className={`rounded-lg px-2.5 py-1 font-noto text-[10px] font-black ${
-                        order.status === '배송완료' 
-                          ? 'bg-green-50 text-green-600' 
-                          : 'bg-main-bg text-point'
-                      }`}
+                      className={`rounded-lg px-2.5 py-1 font-noto text-[10px] font-black ${STATUS_BADGE_STYLES[order.status]}`}
                     >
                       {order.status}
                     </span>

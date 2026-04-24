@@ -71,7 +71,7 @@ export function LiveChatPreview() {
                 className={`max-w-[210px] rounded-[15.5px] px-[16px] py-[10px] ${
                   msg.align === 'right'
                     ? 'rounded-tr-none bg-point text-white shadow-sm'
-                    : 'rounded-tl-none bg-chat-bg2 text-dark-text shadow-sm'
+                    : 'rounded-tl-none bg-chat-bg2 text-chat-font2 shadow-sm'
                 }`}
               >
                 <p className="font-noto text-[12px] leading-[18.2px] font-normal tracking-tight">{msg.text}</p>
@@ -83,9 +83,9 @@ export function LiveChatPreview() {
 
       <Link 
         to="/live-chat"
-        className="mt-[20px] flex h-[46px] w-full items-center justify-center rounded-[5px] bg-point font-montserrat text-[14px] font-semibold text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-[0.98]"
+        className="mt-[20px] flex h-[46px] w-full items-center justify-center rounded-[5px] bg-point font-montserrat text-[14px] font-semibold text-chat-bg shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-[0.98]"
       >
-        라이브 채팅 참여하기
+        라이브 채팅 시작하기
       </Link>
     </div>
   )

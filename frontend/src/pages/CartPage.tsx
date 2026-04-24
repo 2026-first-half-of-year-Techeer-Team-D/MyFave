@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 interface CartItem {
   id: number
@@ -33,8 +33,7 @@ export function CartPage() {
 
   const subtotal = items.reduce((sum, item) => sum + item.price, 0)
   const shipping = 3000
-  const discount = 0
-  const total = subtotal + shipping - discount
+  const total = subtotal + shipping
 
   return (
     <div className="flex-1 bg-white min-h-0 pb-32">
@@ -80,7 +79,7 @@ export function CartPage() {
         ))}
       </div>
 
-      {/* 3. Order Summary - Figma Node 251:2420 명세 100% 동기화 */}
+      {/* 3. Order Summary - 할인 항목 제거 */}
       <div className="mt-[22px] px-[19.99px]">
         <div className="rounded-[12px] bg-white p-[21.08px] space-y-[13.99px] border border-separator/30 shadow-sm">
           <div className="flex justify-between items-center">
@@ -91,20 +90,16 @@ export function CartPage() {
             <span className="font-noto text-[14px] font-normal text-[#322927]">배송비</span>
             <span className="font-noto text-[14px] font-medium text-[#322927]">+{shipping.toLocaleString()}원</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="font-noto text-[14px] font-normal text-[#322927]">할인 금액</span>
-            <span className="font-noto text-[14px] font-medium text-[#322927]">-{discount.toLocaleString()}원</span>
-          </div>
           <div className="pt-[12px] border-t border-separator/30">
             <div className="flex justify-between items-center">
-              <span className="font-noto text-[18px] font-bold text-[#322927]">총 결제 금액</span>
+              <span className="font-noto text-[18px] font-bold text-[#322927]">총 결제 예정 금액</span>
               <span className="font-noto text-[18px] font-bold text-point">{total.toLocaleString()}원</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 4. Checkout Button - Figma Node 140:206 (h:51.99px) */}
+      {/* 4. Checkout Button */}
       <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[376.04px] -translate-x-1/2 bg-white p-[19.99px] border-t border-separator shadow-figma-popup">
         <button
           type="button"

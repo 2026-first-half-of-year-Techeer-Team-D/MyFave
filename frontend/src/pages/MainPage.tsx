@@ -32,7 +32,7 @@ const influencerProducts = [
     id: 4,
     title: '프리미엄 나일론 자켓',
     image:
-      'https://api.builder.io/api/v1/image/assets/TEMP/438182fa25c703088b338ac...?width=168',
+      'https://api.builder.io/api/v1/image/assets/TEMP/438182fa25c703088b338ac8e37d54c4a9e?width=324',
     price: '125,000원',
     rating: '2,594',
   },

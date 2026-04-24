@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface Coupon {
@@ -6,6 +6,7 @@ interface Coupon {
   benefit: string
   title: string
   expiry: string
+  discount: number
 }
 
 const AVAILABLE_COUPONS: Coupon[] = [
@@ -14,18 +15,21 @@ const AVAILABLE_COUPONS: Coupon[] = [
     benefit: '배송비 무료',
     title: '배송비 무료 쿠폰',
     expiry: '오늘 만료',
+    discount: 3000,
   },
   {
     id: 2,
     benefit: '3,000원',
     title: '라이브 채팅 특별 이벤트 쿠폰',
     expiry: '오늘 만료',
+    discount: 3000,
   },
   {
     id: 3,
     benefit: '10,000원',
     title: '라이브 채팅 특별 이벤트 쿠폰',
     expiry: '오늘 만료',
+    discount: 10000,
   }
 ]
 
@@ -33,8 +37,32 @@ export function CouponPage() {
   const navigate = useNavigate()
   const [selectedId, setSelectedId] = useState<number | null>(null)
 
+  // 페이지 진입 시 이미 적용된 쿠폰이 있다면 상태에 반영
+  useEffect(() => {
+    const saved = localStorage.getItem('appliedCoupon')
+    if (saved) {
+      const { id } = JSON.parse(saved)
+      setSelectedId(id)
+    }
+  }, [])
+
+  const toggleSelect = (id: number) => {
+    setSelectedId(prev => (prev === id ? null : id))
+  }
+
   const handleApply = () => {
-    if (selectedId === null) return
+    if (selectedId === null) {
+      localStorage.removeItem('appliedCoupon')
+    } else {
+      const selectedCoupon = AVAILABLE_COUPONS.find(c => c.id === selectedId)
+      if (selectedCoupon) {
+        localStorage.setItem('appliedCoupon', JSON.stringify({
+          id: selectedCoupon.id,
+          benefit: selectedCoupon.benefit,
+          discount: selectedCoupon.discount
+        }))
+      }
+    }
     navigate('/payment')
   }
 
@@ -45,16 +73,16 @@ export function CouponPage() {
           사용 가능한 쿠폰 : <span className="text-point">{AVAILABLE_COUPONS.length}장</span>
         </p>
 
-        {/* Coupon Cards - Figma 명세 100% 동기화 (클릭 시에만 핑크색 활성화) */}
+        {/* Coupon Cards - Toggle 활성화 (클릭 시 선택/해제) */}
         <div className="space-y-[16px]">
           {AVAILABLE_COUPONS.map((coupon) => (
             <div
               key={coupon.id}
-              onClick={() => setSelectedId(coupon.id)}
+              onClick={() => toggleSelect(coupon.id)}
               className={`relative h-[76px] w-full rounded-[10px] border cursor-pointer transition-all flex items-center px-[13px] ${
                 selectedId === coupon.id
-                  ? 'bg-point border-point text-white shadow-md' // 활성 상태: 핑크 배경
-                  : 'bg-white border-separator text-black hover:border-point/30' // 기본 상태: 화이트 배경
+                  ? 'bg-point border-point text-white shadow-md'
+                  : 'bg-white border-separator text-black hover:border-point/30'
               }`}
             >
               <div className="flex flex-col gap-[2px] flex-1">
@@ -69,10 +97,8 @@ export function CouponPage() {
                 </span>
               </div>
               
-              {/* Divider line in card */}
               <div className={`absolute right-[55px] top-[12px] bottom-[12px] w-[1px] border-r border-dashed ${selectedId === coupon.id ? 'border-white/30' : 'border-separator'}`} />
               
-              {/* Selection indicator */}
               {selectedId === coupon.id && (
                 <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center ml-2">
                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FF95B3" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
@@ -84,14 +110,10 @@ export function CouponPage() {
           ))}
         </div>
 
-        {/* Apply Button */}
         <div className="mt-[28px] flex justify-center">
           <button
             onClick={handleApply}
-            disabled={selectedId === null}
-            className={`w-[336px] h-[32px] rounded-[12px] font-noto text-[12px] font-bold text-white shadow-md active:scale-[0.98] transition-all ${
-              selectedId !== null ? 'bg-point' : 'bg-gray-300 cursor-not-allowed'
-            }`}
+            className="w-[336px] h-[32px] rounded-[12px] bg-point font-noto text-[12px] font-bold text-white shadow-md active:scale-[0.98] transition-all"
           >
             쿠폰 적용하기
           </button>
