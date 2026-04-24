@@ -41,7 +41,7 @@ const influencerProducts = [
 export function MainPage() {
   return (
     <div className="flex-1 bg-white">
-      {/* 1. Instagram Reels Banner - 상단 위치 */}
+      {/* 1. Instagram Reels Banner */}
       <div className="mx-auto max-w-md px-[19.99px] pt-[18.01px] pb-[41.28px]">
         <div className="relative overflow-hidden rounded-[16px] border-figma border-main-bg bg-black shadow-figma-card h-[635.72px]">
           {/* Browser-like Header */}
@@ -77,21 +77,40 @@ export function MainPage() {
         </div>
       </div>
 
-      {/* 2. Live Chat Section - 인스타그램 바로 밑 */}
+      {/* 2. Live Chat Section */}
       <div className="mx-auto max-w-md px-[19.99px] pb-[39.72px]">
         <LiveChatPreview />
       </div>
 
-      {/* 3. Influencer’s PICK Section (2*2 그리드) - 라이브 챗 바로 밑 */}
-      <div className="mx-auto max-w-md pt-[23.99px] pb-20">
-        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">Influencer’s PICK</h2>
-
-        <div className="grid grid-cols-2 gap-[12px] px-[19.99px]">
+      {/* 3. Photo Grid Section (2*2) - 라이브 채팅 밑 */}
+      <div className="mx-auto max-w-md px-[20px] pb-[40px]">
+        <div className="grid grid-cols-2 gap-[12px]">
           {influencerProducts.map((product) => (
             <Link
               key={product.id}
               to={`/product/${product.id}`}
-              className="group flex flex-col w-full"
+              className="relative aspect-square overflow-hidden rounded-[8px] bg-gray-50 border border-separator/10 active:scale-[0.98] transition-transform"
+            >
+              <img
+                src={product.image}
+                alt={product.title}
+                className="h-full w-full object-cover"
+              />
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* 4. Influencer’s PICK Section (Horizontal Scroll) */}
+      <div className="mx-auto max-w-md pt-[23.99px] pb-20">
+        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">Influencer’s PICK</h2>
+
+        <div className="flex overflow-x-auto pb-4 gap-[12px] px-[19.99px] scrollbar-hide">
+          {influencerProducts.map((product) => (
+            <Link
+              key={product.id}
+              to={`/product/${product.id}`}
+              className="group flex flex-col flex-shrink-0 w-[162.03px]"
             >
               <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-gray-50 shadow-sm border border-separator/20">
                 <img
@@ -105,7 +124,7 @@ export function MainPage() {
                 </div>
               </div>
               <div className="px-0.5">
-                <h3 className="mb-0.5 h-9 font-noto text-[10px] font-normal text-dark-text line-clamp-2 leading-[18px] group-hover:text-point transition-colors tracking-tight">
+                <h3 className="mb-0.5 h-9 font-noto text-[10px] font-normal text-dark-text line-clamp-2 leading-[18px] group-hover:text-point transition-colors tracking-tight whitespace-normal">
                   {product.title}
                 </h3>
                 <p className="font-noto text-[12px] font-medium text-point leading-[18px]">{product.price}</p>
