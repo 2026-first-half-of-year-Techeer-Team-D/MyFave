@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 interface OrderItem {
@@ -23,8 +24,23 @@ const ORDER_ITEMS: OrderItem[] = [
 ]
 
 export function OrderSuccessPage() {
+  const [appliedCoupon, setAppliedCoupon] = useState<{benefit: string, discount: number} | null>(null)
   const orderNumber = '2026032329760731'
   const orderDate = '2026.03.23. 23:05:00'
+
+  useEffect(() => {
+    const saved = localStorage.getItem('finalOrderCoupon')
+    if (saved) {
+      setAppliedCoupon(JSON.parse(saved))
+      // 한 번 표시한 후에는 초기화 (새로고침 시 등 데이터 혼선 방지)
+      localStorage.removeItem('finalOrderCoupon')
+    }
+  }, [])
+
+  const subtotal = 134000
+  const shippingFee = 3000
+  const discount = appliedCoupon ? appliedCoupon.discount : 0
+  const total = subtotal + shippingFee - discount
 
   return (
     <div className="flex-1 bg-white min-h-0 pb-32 overflow-y-auto">
@@ -47,17 +63,14 @@ export function OrderSuccessPage() {
         {/* Shipping Note */}
         <div className="w-full bg-footer-bg rounded-[12px] p-[16px] border border-separator/10">
           <p className="font-noto text-[12px] leading-[20px] text-muted-text opacity-80 text-center">
-            배송은 3~7일정도 걸리며{"\n"}
+            배송은 3~4일정도 걸리며<br />
             제주 및 도서 산간지역은 더 걸릴 수 있습니다.
           </p>
         </div>
       </div>
 
-      {/* 2. Divider (h:8px) */}
-      <div className="h-[8px] w-full bg-separator" />
-
-      {/* 3. Order Items Section */}
-      <section className="px-[19.99px] py-[32px] space-y-[16px]">
+      {/* 2. Order Items Section */}
+      <section className="px-[19.99px] py-[24px] space-y-[16px]">
         <h2 className="font-noto text-[15px] font-bold text-[#322927]">주문 상품 2개</h2>
         <div className="space-y-[12px]">
           {ORDER_ITEMS.map((item) => (
@@ -76,11 +89,37 @@ export function OrderSuccessPage() {
         </div>
       </section>
 
-      {/* 4. Divider (h:8px) */}
-      <div className="h-[8px] w-full bg-separator" />
+      {/* 3. Payment Detail Section - 동적 쿠폰 할인 반영 */}
+      <section className="px-[19.99px] py-[24px] space-y-[16px]">
+        <h2 className="font-noto text-[15px] font-bold text-[#322927]">결제 상세</h2>
+        <div className="rounded-[12px] border border-[#F2EDEB] p-[20px] space-y-[14px] bg-white shadow-sm">
+          <div className="flex justify-between items-center text-[14px]">
+            <span className="font-noto text-[#8B7E74]">결제 수단</span>
+            <span className="font-noto font-bold text-[#322927]">카드 결제</span>
+          </div>
+          <div className="pt-[14px] border-t border-separator/10 space-y-[10px]">
+            <div className="flex justify-between items-center text-[14px]">
+              <span className="font-noto text-[#8B7E74]">상품 금액</span>
+              <span className="font-noto font-bold text-[#322927]">{subtotal.toLocaleString()}원</span>
+            </div>
+            <div className="flex justify-between items-center text-[14px]">
+              <span className="font-noto text-[#8B7E74]">배송비</span>
+              <span className="font-noto font-bold text-[#322927]">{shippingFee.toLocaleString()}원</span>
+            </div>
+            <div className="flex justify-between items-center text-[14px]">
+              <span className="font-noto text-[#8B7E74]">쿠폰 할인</span>
+              <span className="font-noto font-bold text-point">-{discount.toLocaleString()}원</span>
+            </div>
+          </div>
+          <div className="pt-[14px] border-t-[1.096px] border-[#F2EDEB] flex justify-between items-center">
+            <span className="font-noto text-[18px] font-bold text-[#322927]">총 결제 금액</span>
+            <span className="font-noto text-[20px] font-bold text-point">{total.toLocaleString()}원</span>
+          </div>
+        </div>
+      </section>
 
-      {/* 5. Shipping Info Section */}
-      <section className="px-[19.99px] py-[32px] space-y-[16px]">
+      {/* 4. Shipping Info Section */}
+      <section className="px-[19.99px] py-[24px] space-y-[16px]">
         <h2 className="font-noto text-[15px] font-bold text-[#322927]">배송 정보</h2>
         <div className="rounded-[12px] border border-[#F2EDEB] p-[20px] space-y-[8px] bg-white shadow-sm">
           <p className="font-noto text-[14px] font-bold text-[#322927]">민트초코좋아 <span className="font-normal text-[12px] text-muted-text ml-2">010-1234-5678</span></p>
@@ -94,49 +133,11 @@ export function OrderSuccessPage() {
         </div>
       </section>
 
-      {/* 6. Divider (h:8px) */}
-      <div className="h-[8px] w-full bg-separator" />
-
-      {/* 7. Payment Detail Section */}
-      <section className="px-[19.99px] py-[32px] space-y-[16px]">
-        <h2 className="font-noto text-[15px] font-bold text-[#322927]">결제 상세</h2>
-        <div className="rounded-[12px] border border-[#F2EDEB] p-[20px] space-y-[14px] bg-white shadow-sm">
-          <div className="flex justify-between items-center text-[14px]">
-            <span className="font-noto text-[#8B7E74]">결제 수단</span>
-            <span className="font-noto font-bold text-[#322927]">카드 결제</span>
-          </div>
-          <div className="pt-[14px] border-t border-separator/10 space-y-[10px]">
-            <div className="flex justify-between items-center text-[14px]">
-              <span className="font-noto text-[#8B7E74]">상품 금액</span>
-              <span className="font-noto font-bold text-[#322927]">134,000원</span>
-            </div>
-            <div className="flex justify-between items-center text-[14px]">
-              <span className="font-noto text-[#8B7E74]">배송비</span>
-              <span className="font-noto font-bold text-[#322927]">3,000원</span>
-            </div>
-            <div className="flex justify-between items-center text-[14px]">
-              <span className="font-noto text-[#8B7E74]">쿠폰 할인</span>
-              <span className="font-noto font-bold text-point">-3,000원</span>
-            </div>
-          </div>
-          <div className="pt-[14px] border-t-[1.096px] border-[#F2EDEB] flex justify-between items-center">
-            <span className="font-noto text-[18px] font-bold text-[#322927]">총 결제 금액</span>
-            <span className="font-noto text-[20px] font-bold text-point">134,000원</span>
-          </div>
-        </div>
-      </section>
-
-      {/* 8. Bottom Action Buttons */}
-      <div className="px-[19.99px] py-[40px] space-y-[12px]">
-        <Link 
-          to="/orders"
-          className="flex h-[56px] w-full items-center justify-center rounded-[12px] bg-point font-noto text-[16px] font-bold text-white shadow-lg shadow-point/20 active:scale-[0.98] transition-all"
-        >
-          주문 내역 보기
-        </Link>
+      {/* 5. Bottom Action Button */}
+      <div className="px-[19.99px] py-[48px]">
         <Link 
           to="/"
-          className="flex h-[56px] w-full items-center justify-center rounded-[12px] border border-separator bg-white font-noto text-[16px] font-medium text-[#322927] active:bg-gray-50 transition-all shadow-sm text-center"
+          className="flex h-[56px] w-full items-center justify-center rounded-[12px] bg-point font-noto text-[16px] font-bold text-white shadow-lg shadow-point/20 active:scale-[0.98] transition-all text-center"
         >
           계속 쇼핑하기
         </Link>
