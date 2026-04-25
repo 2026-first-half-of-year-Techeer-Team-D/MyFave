@@ -220,15 +220,21 @@ export function PaymentPage() {
         </section>
       </div>
 
-      {/* 7. Action Button */}
+      {/* 7. Action Button - 동적 최종 금액 반영 (쿠폰 미적용 시 취소선 제거) */}
       <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[376.04px] -translate-x-1/2 bg-white p-[19.99px] border-t border-[#F2EDEB] shadow-figma-popup">
         <button
           onClick={handlePayment}
           disabled={!address}
           className={`w-full h-[56px] rounded-[12px] bg-point flex flex-col items-center justify-center shadow-lg shadow-point/20 active:scale-[0.98] transition-all`}
         >
-          <span className="font-noto text-[12px] text-white/60 line-through leading-none mb-[2px]">{(subtotal + shippingFee).toLocaleString()}원</span>
-          <span className="font-noto text-[16px] font-black text-white uppercase tracking-tight">{total.toLocaleString()}원 결제하기</span>
+          {appliedCoupon && (
+            <span className="font-noto text-[12px] text-white/60 line-through leading-none mb-[2px]">
+              {(subtotal + shippingFee).toLocaleString()}원
+            </span>
+          )}
+          <span className="font-noto text-[16px] font-black text-white uppercase tracking-tight">
+            {total.toLocaleString()}원 결제하기
+          </span>
         </button>
       </div>
     </div>
