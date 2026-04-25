@@ -148,7 +148,7 @@ export function PaymentPage() {
           ) : (
             <button
               onClick={() => navigate('/add-shipping')}
-              className="w-full h-[48px] rounded-[12px] bg-point font-noto text-[14px] font-bold text-white shadow-md active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+              className="w-full h-[32px] rounded-[12px] bg-point font-noto text-[12px] font-bold text-white shadow-md active:scale-[0.99] transition-all flex items-center justify-center gap-2"
             >
               배송지 등록하기
             </button>
