@@ -111,16 +111,16 @@ export function AddShippingPage() {
           </div>
         </div>
 
-        {/* 기본 배송지 설정 - Figma Node 100:338 */}
-        <div className="flex items-center gap-[4px] pt-[5px]">
+        {/* 기본 배송지 설정 - Figma Node 100:338 (정렬 및 간격 보정) */}
+        <div className="flex items-center gap-[6px] mt-[-32px]">
           <input
             type="checkbox"
             id="default-address"
-            className="w-[13px] h-[13px] rounded-[2px] border-separator text-point focus:ring-0"
+            className="w-[13px] h-[13px] rounded-[2px] border-separator text-point focus:ring-0 cursor-pointer"
             checked={formData.isDefault}
             onChange={(e) => setFormData({...formData, isDefault: e.target.checked})}
           />
-          <label htmlFor="default-address" className="font-noto text-[10px] font-normal text-[#CFB0B0]">
+          <label htmlFor="default-address" className="font-noto text-[11px] font-normal text-[#949494] cursor-pointer">
             기본 배송지로 설정
           </label>
         </div>
