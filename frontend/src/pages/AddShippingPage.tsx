@@ -111,8 +111,8 @@ export function AddShippingPage() {
           </div>
         </div>
 
-        {/* 기본 배송지 설정 - Figma Node 100:338 (정렬 및 간격 보정) */}
-        <div className="flex items-center gap-[6px] mt-[-32px]">
+        {/* 기본 배송지 설정 - Figma Node 100:338 (정렬 및 밀착 보정) */}
+        <div className="flex items-center gap-[6px] mt-[-40px]">
           <input
             type="checkbox"
             id="default-address"
