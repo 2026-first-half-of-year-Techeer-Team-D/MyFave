@@ -23,12 +23,20 @@ const ORDER_ITEMS: OrderItem[] = [
   },
 ]
 
+const SHIPPING_REQUESTS = [
+  '배송 전 미리 연락바랍니다',
+  '부재 시 경비실에 맡겨주세요',
+  '부재 시 문 앞에 놓아주세요',
+  '직접 수령하겠습니다',
+]
+
 export function PaymentPage() {
   const navigate = useNavigate()
   const [selectedMethod, setSelectedMethod] = useState('카드')
   const [appliedCoupon, setAppliedCoupon] = useState<{benefit: string, discount: number} | null>(null)
+  const [shippingRequest, setShippingRequest] = useState('')
+  const [isRequestOpen, setIsRequestOpen] = useState(false)
   
-  // 배송지 상태 관리 (기본값 설정)
   const [address, setAddress] = useState<{
     main: string,
     detail: string,
@@ -64,64 +72,101 @@ export function PaymentPage() {
       </div>
 
       <div className="px-[19.99px]">
-        {/* 배송지 정보 섹션 - X 버튼 추가 */}
+        {/* 2. Shipping Address Section */}
         <section className="mt-[16px] space-y-[12px]">
           <div className="flex items-center justify-between">
             <h2 className="font-noto text-[15px] font-bold text-[#322927]">배송지 정보</h2>
-            <div className="flex gap-[6px]">
-              {address && (
-                <>
-                  <div className="rounded-[5px] bg-[#D9D9D9] px-[10px] py-[4px] flex items-center justify-center">
-                    <span className="font-noto text-[10px] font-medium text-[#949494] leading-none">기본 배송지</span>
-                  </div>
-                  <button 
-                    onClick={() => setAddress(null)} 
-                    className="flex h-[20px] w-[20px] items-center justify-center rounded-full bg-[#FAFAF8] border border-separator/30 text-muted-text active:scale-90 transition-all"
-                    title="배송지 제거"
-                  >
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <path d="M18 6L6 18M6 6L18 18" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                </>
-              )}
-              <button onClick={() => navigate('/add-shipping')} className="rounded-[5px] bg-[#D9D9D9] px-[10px] py-[4px] active:opacity-70 transition-opacity">
-                <span className="font-noto text-[10px] font-medium text-[#949494] leading-none">
-                  {address ? '배송지 변경' : '배송지 등록하기'}
-                </span>
-              </button>
-            </div>
+            {address && (
+              <div className="flex gap-[6px] items-center">
+                <div className="rounded-[5px] bg-[#EFE9E0] px-[8px] py-[2px] flex items-center justify-center">
+                  <span className="font-noto text-[10px] font-medium text-[#949494] leading-none">기본 배송지</span>
+                </div>
+                <button 
+                  onClick={() => navigate('/add-shipping')}
+                  className="rounded-[5px] bg-[#EFE9E0] px-[8px] py-[2px] flex items-center justify-center active:opacity-70 transition-opacity"
+                >
+                  <span className="font-noto text-[10px] font-medium text-[#949494] leading-none">배송지 변경</span>
+                </button>
+                <button 
+                  onClick={() => {
+                    setAddress(null);
+                    setShippingRequest('');
+                  }}
+                  className="ml-1 p-1 text-[#949494] hover:text-red-500 transition-colors"
+                  aria-label="배송지 제거"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
           
-          <div className="rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white p-[20px] space-y-[8px] shadow-sm min-h-[100px] flex flex-col justify-center">
-            {address ? (
-              <>
+          {address ? (
+            <div className="rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white p-[20px] space-y-[10px] shadow-sm">
+              <div className="space-y-[8px]">
                 <p className="font-noto text-[12px] font-normal leading-[18.2px] text-[#322927]">
                   {address.main}<br />
                   {address.detail}
                 </p>
                 <p className="font-noto text-[12px] font-normal text-[#322927]">{address.phone}</p>
-              </>
-            ) : (
-              <p className="font-noto text-[12px] text-muted-text/60 italic text-center py-2">
-                등록된 배송지가 없습니다. 새로운 배송지를 등록해주세요.
-              </p>
-            )}
-          </div>
+              </div>
+
+              {/* 배송 요청사항 선택 기능 구현 */}
+              <div className="relative pt-[2px]">
+                <button 
+                  onClick={() => setIsRequestOpen(!isRequestOpen)}
+                  className="w-full h-[35px] flex items-center justify-between rounded-[5px] border border-[#F2EDEB] px-[12px] bg-white text-left transition-colors hover:border-point/30"
+                >
+                  <span className={`font-noto text-[12px] ${shippingRequest ? 'text-[#322927]' : 'text-[#949494]'}`}>
+                    {shippingRequest || '배송 요청사항을 선택해주세요'}
+                  </span>
+                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className={`text-[#949494] transition-transform ${isRequestOpen ? 'rotate-180' : ''}`}>
+                     <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                
+                {isRequestOpen && (
+                  <div className="absolute top-[38px] left-0 right-0 z-50 rounded-[5px] border border-[#F2EDEB] bg-white shadow-lg overflow-hidden">
+                    {SHIPPING_REQUESTS.map((req) => (
+                      <button
+                        key={req}
+                        onClick={() => {
+                          setShippingRequest(req)
+                          setIsRequestOpen(false)
+                        }}
+                        className="w-full px-[12px] py-[10px] text-left font-noto text-[12px] text-[#322927] hover:bg-main-bg transition-colors border-b border-separator/10 last:border-0"
+                      >
+                        {req}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate('/add-shipping')}
+              className="w-full h-[48px] rounded-[12px] bg-point font-noto text-[14px] font-bold text-white shadow-md active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+            >
+              배송지 등록하기
+            </button>
+          )}
         </section>
 
-        {/* 쿠폰 섹션 */}
+        {/* 3. Coupon Section */}
         <section className="mt-[28px] space-y-[16px]">
           <h2 className="font-noto text-[15px] font-bold text-[#322927]">쿠폰 사용</h2>
           <button 
             onClick={() => navigate('/coupons')}
             className="w-full h-[32px] rounded-[12px] bg-point font-noto text-[12px] font-bold text-white shadow-md active:scale-[0.99] transition-all"
           >
-            {appliedCoupon ? `적용됨: ${appliedCoupon.benefit}` : '쿠폰 선택하기'}
+            {appliedCoupon ? `적용됨: ${appliedCoupon.benefit}` : '쿠폰 사용'}
           </button>
         </section>
 
-        {/* 주문 상품 */}
+        {/* 4. Order Items */}
         <section className="mt-[32px] space-y-[16px]">
           <h2 className="font-noto text-[15px] font-bold text-[#322927]">주문 상품 2개</h2>
           <div className="space-y-[12px]">
@@ -141,7 +186,7 @@ export function PaymentPage() {
           </div>
         </section>
 
-        {/* 결제 수단 */}
+        {/* 5. Payment Method Selection */}
         <section className="mt-[32px] space-y-[16px]">
           <h2 className="font-noto text-[15px] font-bold text-[#322927]">결제 수단</h2>
           <div className="grid grid-cols-2 gap-[11px]">
@@ -151,7 +196,7 @@ export function PaymentPage() {
           </div>
         </section>
 
-        {/* 주문 금액 요약 */}
+        {/* 6. Order Summary Card */}
         <section className="mt-[32px] space-y-[16px] pb-10">
           <h2 className="font-noto text-[15px] font-bold text-[#322927]">주문 금액</h2>
           <div className="rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white p-[21.08px] space-y-[14px] shadow-sm">
@@ -175,19 +220,16 @@ export function PaymentPage() {
         </section>
       </div>
 
-      {/* 최종 결제 버튼 */}
+      {/* 7. Action Button */}
       <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[376.04px] -translate-x-1/2 bg-white p-[19.99px] border-t border-[#F2EDEB] shadow-figma-popup">
         <button
           onClick={handlePayment}
           disabled={!address}
-          className={`w-full h-[56px] rounded-[12px] flex flex-col items-center justify-center shadow-lg transition-all active:scale-[0.98] ${
-            address ? 'bg-point shadow-point/20' : 'bg-gray-300 cursor-not-allowed'
-          }`}
+          className={`w-full h-[56px] rounded-[12px] bg-point flex flex-col items-center justify-center shadow-lg shadow-point/20 active:scale-[0.98] transition-all`}
         >
           <span className="font-noto text-[12px] text-white/60 line-through leading-none mb-[2px]">{(subtotal + shippingFee).toLocaleString()}원</span>
           <span className="font-noto text-[16px] font-black text-white uppercase tracking-tight">{total.toLocaleString()}원 결제하기</span>
         </button>
-        {!address && <p className="mt-2 text-center font-noto text-[10px] text-red-500">배송지를 등록해야 결제가 가능합니다.</p>}
       </div>
     </div>
   )
