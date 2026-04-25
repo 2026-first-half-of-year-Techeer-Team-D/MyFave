@@ -50,9 +50,9 @@ export function AddShippingPage() {
           />
         </div>
 
-        {/* 주소 섹션 - Figma Node 100:327, 331, 333, 340 */}
-        <div className="relative">
-          <label className="font-noto text-[16px] font-normal leading-[24px] text-black block mb-[29px]">
+        {/* 주소 섹션 - Figma Node 100:327, 331, 333, 340 (간격 보정) */}
+        <div className="space-y-[8px]">
+          <label className="font-noto text-[16px] font-normal leading-[24px] text-black block">
             주소
           </label>
           <div className="space-y-[10px]">
