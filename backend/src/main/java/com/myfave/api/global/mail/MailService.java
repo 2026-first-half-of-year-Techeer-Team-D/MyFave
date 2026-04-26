@@ -7,6 +7,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+// 메일 양식을 정하는곳
+//HTML 형식으로 꾸미려면 여기 바꿔야함
 @Service
 @RequiredArgsConstructor
 public class MailService {

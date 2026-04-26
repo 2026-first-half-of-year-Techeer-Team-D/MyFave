@@ -152,20 +152,22 @@ public class AuthService {
     }
 
     public void sendPasswordResetCode(PasswordResetSendCodeRequest request) {
+        // 이메일, 전화번호가 DB에 등록 안 되어있으면 Throw
         userRepository.findByEmailAndPhone(request.getEmail(), request.getPhone())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
+
         String countKey = "pwd-reset-count:" + request.getEmail();
         Long sendCount = redisTemplate.opsForValue().increment(countKey);
-        if (sendCount == 1) {
+        if (sendCount == 1) { // 처음으로 이메일 보내달라고 요청했을때 처음에는 redis에 등록
             redisTemplate.expire(countKey, SEND_LIMIT_TTL_MINUTES, TimeUnit.MINUTES);
         }
-        if (sendCount > MAX_SEND_COUNT) {
+        if (sendCount > MAX_SEND_COUNT) { // 너무 많이 보내면 에러
             throw new CustomException(ErrorCode.AUTH_TOO_MANY_REQUESTS);
         }
 
-        String code = String.format("%06d", RANDOM.nextInt(1_000_000));
-        redisTemplate.opsForValue().set(
+        String code = String.format("%06d", RANDOM.nextInt(1_000_000)); // 인증코드 생성
+        redisTemplate.opsForValue().set(// 인증코드 레디스에 저장
                 "pwd-reset-code:" + request.getEmail(),
                 code,
                 CODE_TTL_MINUTES,
