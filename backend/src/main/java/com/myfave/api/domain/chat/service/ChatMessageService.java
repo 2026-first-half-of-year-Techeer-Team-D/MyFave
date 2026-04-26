@@ -1,7 +1,5 @@
 package com.myfave.api.domain.chat.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,33 +16,37 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChatMessageService {
 
-    private static final Duration HISTORY_TTL = Duration.ofMinutes(30);
+    private static final String CHAT_HISTORY_KEY = "chat:history:";
+    private static final long HISTORY_TTL_HOURS = 24;
+    private static final int MAX_MESSAGES = 200;
+    private static final Duration RATE_LIMIT_TTL = Duration.ofSeconds(3);
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final ObjectMapper objectMapper;
 
-    private String historyKey(Long roomId) {
-        return "chat:room:" + roomId + ":messages";
-    }
-
-    public void save(Long roomId, Object message) {
-        try {
-            String json = objectMapper.writeValueAsString(message);
-            String key = historyKey(roomId);
-            redisTemplate.opsForList().rightPush(key, json);
-            redisTemplate.expire(key, HISTORY_TTL);
-        } catch (JsonProcessingException e) {
-            log.error("히스토리 저장 실패: roomId={}", roomId, e);
-        }
+    public void save(Long roomId, String json) {
+        String key = CHAT_HISTORY_KEY + roomId;
+        redisTemplate.opsForList().rightPush(key, json);
+        redisTemplate.opsForList().trim(key, -MAX_MESSAGES, -1);
+        redisTemplate.expire(key, Duration.ofHours(HISTORY_TTL_HOURS));
+        log.debug("메시지 저장: roomId={}", roomId);
     }
 
     public List<String> getHistory(Long roomId) {
-        List<Object> raw = redisTemplate.opsForList().range(historyKey(roomId), 0, -1);
+        List<Object> raw = redisTemplate.opsForList().range(CHAT_HISTORY_KEY + roomId, 0, -1);
         if (raw == null || raw.isEmpty()) return Collections.emptyList();
         return raw.stream().map(Objects::toString).collect(Collectors.toList());
     }
 
     public void deleteHistory(Long roomId) {
-        redisTemplate.delete(historyKey(roomId));
+        redisTemplate.delete(CHAT_HISTORY_KEY + roomId);
+    }
+
+    public boolean isRateLimited(Long userId) {
+        String key = "rate:chat:" + userId;
+        Long count = redisTemplate.opsForValue().increment(key);
+        if (count != null && count == 1) {
+            redisTemplate.expire(key, RATE_LIMIT_TTL);
+        }
+        return count != null && count > 1;
     }
 }
