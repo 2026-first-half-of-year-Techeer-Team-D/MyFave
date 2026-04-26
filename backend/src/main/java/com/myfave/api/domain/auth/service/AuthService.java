@@ -5,10 +5,12 @@ import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.PasswordResetSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.request.VerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.ReissueResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
+import com.myfave.api.domain.auth.dto.response.VerifyCodeResponse;
 import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -44,6 +47,7 @@ public class AuthService {
     private static final int MAX_SEND_COUNT = 5;
     private static final long SEND_LIMIT_TTL_MINUTES = 5L;
     private static final long CODE_TTL_MINUTES = 5L;
+    private static final long RESET_TOKEN_TTL_MINUTES = 10L;
     private static final SecureRandom RANDOM = new SecureRandom();
 
     @Transactional
@@ -152,9 +156,9 @@ public class AuthService {
     }
 
     public void sendPasswordResetCode(PasswordResetSendCodeRequest request) {
-        // 이메일, 전화번호가 DB에 등록 안 되어있으면 Throw
-        userRepository.findByEmailAndPhone(request.getEmail(), request.getPhone())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        if (userRepository.findByEmailAndPhone(request.getEmail(), request.getPhone()).isEmpty()) {
+            return;
+        }
 
 
         String countKey = "pwd-reset-count:" + request.getEmail();
@@ -175,5 +179,29 @@ public class AuthService {
         );
 
         mailService.sendPasswordResetCode(request.getEmail(), code);
+    }
+
+    public VerifyCodeResponse verifyCode(VerifyCodeRequest request) {
+        String codeKey = "pwd-reset-code:" + request.getEmail();
+        String storedCode = (String) redisTemplate.opsForValue().get(codeKey);
+
+        if (storedCode == null) {
+            throw new CustomException(ErrorCode.AUTH_EXPIRED_VERIFICATION_CODE);
+        }
+        if (!storedCode.equals(request.getVerificationCode())) {
+            throw new CustomException(ErrorCode.AUTH_INVALID_VERIFICATION_CODE);
+        }
+
+        redisTemplate.delete(codeKey);
+
+        String resetToken = UUID.randomUUID().toString();
+        redisTemplate.opsForValue().set(
+                "pwd-reset-token:" + resetToken,
+                request.getEmail(),
+                RESET_TOKEN_TTL_MINUTES,
+                TimeUnit.MINUTES
+        );
+
+        return VerifyCodeResponse.of(resetToken);
     }
 }
