@@ -5,6 +5,7 @@ import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.PasswordResetSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.request.ResetPasswordRequest;
 import com.myfave.api.domain.auth.dto.request.VerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
@@ -203,5 +204,26 @@ public class AuthService {
         );
 
         return VerifyCodeResponse.of(resetToken);
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
+            throw new CustomException(ErrorCode.AUTH_PASSWORD_MISMATCH);
+        }
+
+        String tokenKey = "pwd-reset-token:" + request.getPasswordResetToken();
+        String email = (String) redisTemplate.opsForValue().get(tokenKey);
+
+        if (email == null) {
+            throw new CustomException(ErrorCode.AUTH_INVALID_RESET_TOKEN);
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_INVALID_RESET_TOKEN));//Redis에는 토큰이 있는데 해당 이메일의 유저가 DB에서 탈퇴한 경우
+        // 패스워드 재설정
+        user.updatePassword(passwordEncoder.encode(request.getNewPassword()));
+        //비밀번호 저장할때 사용한  redis 키 지우기
+        redisTemplate.delete(tokenKey);
     }
 }

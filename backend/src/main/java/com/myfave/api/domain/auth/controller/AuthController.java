@@ -5,6 +5,7 @@ import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.PasswordResetSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.request.ResetPasswordRequest;
 import com.myfave.api.domain.auth.dto.request.VerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
@@ -16,6 +17,7 @@ import com.myfave.api.global.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -62,5 +64,11 @@ public class AuthController {
     @PostMapping("/password-reset/verify-code")
     public ApiResponse<VerifyCodeResponse> verifyCode(@Valid @RequestBody VerifyCodeRequest request) {
         return new ApiResponse<>(200, "인증코드 확인 완료", authService.verifyCode(request));
+    }
+
+    @PutMapping("/password-reset")
+    public ApiResponse<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return new ApiResponse<>(200, "비밀번호가 재설정되었습니다.", null);
     }
 }
