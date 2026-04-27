@@ -30,7 +30,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
         <div className="flex h-16 items-center justify-between border-b border-separator px-5">
           <Link to="/" onClick={onClose} className="flex items-center">
             <img
-              src="https://api.builder.io/api/v1/image/assets/TEMP/4365f9105d58ff126ad032631f85a3a4610ef3f2?width=100"
+              src="/logo.svg"
               alt="My Fave"
               className="h-8 w-auto"
             />
