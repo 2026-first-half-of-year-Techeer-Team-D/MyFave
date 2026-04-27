@@ -6,7 +6,7 @@ export function Footer() {
       {/* Logo */}
       <div className="mb-8">
         <img
-          src="https://api.builder.io/api/v1/image/assets/TEMP/4365f9105d58ff126ad032631f85a3a4610ef3f2?width=110"
+          src="/logo.svg"
           alt="My Fave"
           className="h-8 w-auto"
         />
