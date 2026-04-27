@@ -12,7 +12,29 @@ interface HeaderProps {
 export function Header({ showCountdown = true, title, showBackButton = false }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [timeLeft, setTimeLeft] = useState(17 * 60 * 39 + 1) // 17:39:01
+  const [cartCount, setCartCount] = useState(0)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const updateCartCount = () => {
+      const savedCart = localStorage.getItem('cart_items')
+      if (savedCart) {
+        const items = JSON.parse(savedCart)
+        setCartCount(items.length)
+      } else {
+        setCartCount(0)
+      }
+    }
+
+    updateCartCount()
+    window.addEventListener('cartUpdated', updateCartCount)
+    window.addEventListener('storage', updateCartCount) // Handle cross-tab updates
+
+    return () => {
+      window.removeEventListener('cartUpdated', updateCartCount)
+      window.removeEventListener('storage', updateCartCount)
+    }
+  }, [])
 
   useEffect(() => {
     if (!showCountdown) return
@@ -56,12 +78,12 @@ export function Header({ showCountdown = true, title, showBackButton = false }: 
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
                 {title && (
-                  <span className="font-noto text-[16px] font-bold text-[#322927]">{title}</span>
+                  <span className="font-noto text-[15px] font-medium leading-[30px] text-[#322927]">{title}</span>
                 )}
               </button>
             ) : title ? (
                <div className="px-4">
-                 <span className="font-noto text-[16px] font-bold text-[#322927]">{title}</span>
+                 <span className="font-noto text-[15px] font-medium leading-[30px] text-[#322927]">{title}</span>
                </div>
             ) : (
               <button
@@ -82,9 +104,9 @@ export function Header({ showCountdown = true, title, showBackButton = false }: 
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
             <Link to="/" className="flex items-center pointer-events-auto">
               <img
-                src="https://api.builder.io/api/v1/image/assets/TEMP/e7df4be5ec275bc11639573f94373e14d54c4a9e?width=138"
+                src="/logo.svg"
                 alt="My Fave"
-                className={`h-[36px] w-auto transition-all ${title ? 'grayscale opacity-80 scale-90' : ''}`}
+                className="h-[36px] w-auto transition-all"
               />
             </Link>
           </div>
@@ -92,12 +114,17 @@ export function Header({ showCountdown = true, title, showBackButton = false }: 
           {/* Right Section: Cart icon (Only in Default Mode) */}
           {!title && (
             <div className="ml-auto z-10">
-              <Link to="/cart" className="flex h-11 w-11 items-center justify-center">
+              <Link to="/cart" className="relative flex h-11 w-11 items-center justify-center">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <path d="M4.99764 1.66589L2.49878 4.99771V16.6591C2.49878 17.1009 2.67429 17.5246 2.98671 17.837C3.29913 18.1495 3.72286 18.325 4.16469 18.325H15.826C16.2679 18.325 16.6916 18.1495 17.004 17.837C17.3164 17.5246 17.492 17.1009 17.492 16.6591V4.99771L14.9931 1.66589H4.99764Z" stroke="currentColor" className="text-dark-text" strokeWidth="1.66591" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M2.49878 4.99774H17.492" stroke="currentColor" className="text-dark-text" strokeWidth="1.66591" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M13.3272 8.32953C13.3272 9.21318 12.9762 10.0606 12.3513 10.6855C11.7265 11.3103 10.879 11.6613 9.99539 11.6613C9.11174 11.6613 8.26428 11.3103 7.63944 10.6855C7.0146 10.0606 6.66357 9.21318 6.66357 8.32953" stroke="currentColor" className="text-dark-text" strokeWidth="1.66591" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
+                {cartCount > 0 && (
+                  <span className="absolute top-[6px] right-[6px] flex h-[16px] w-[16px] items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-footer-bg">
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
               </Link>
             </div>
           )}
