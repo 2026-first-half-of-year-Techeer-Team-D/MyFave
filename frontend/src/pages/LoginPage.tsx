@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Modal } from '@/shared/components/Modal'
 
 export function LoginPage() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [autoLogin, setAutoLogin] = useState(false)
@@ -11,12 +12,30 @@ export function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // 입력값 검증
     if (!email || !password) {
-      setErrorMessage('비밀번호가 일치하지 않습니다')
+      setErrorMessage('이메일과 비밀번호를 모두 입력해주세요')
       setIsErrorModalOpen(true)
       return
     }
-    // TODO: Login API integration
+
+    // 목데이터 로그인 로직
+    if (email === 'test@test.com' && password === 'password') {
+      // 임시로 localStorage에 로그인 상태 저장
+      localStorage.setItem('accessToken', 'mock-access-token')
+      localStorage.setItem('user', JSON.stringify({
+        email: 'test@test.com',
+        nickname: 'tester',
+        userId: 1
+      }))
+      
+      // 메인 페이지로 이동
+      navigate('/')
+    } else {
+      setErrorMessage('이메일 또는 비밀번호가 일치하지 않습니다')
+      setIsErrorModalOpen(true)
+    }
   }
 
   return (
