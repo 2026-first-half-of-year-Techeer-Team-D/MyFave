@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KakaoUserInfoResponse {
 
-    @JsonProperty("id")
     private Long id;
 
     @JsonProperty("kakao_account")
@@ -21,7 +20,6 @@ public class KakaoUserInfoResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class KakaoAccount {
 
-        @JsonProperty("email")
         private String email;
 
         @JsonProperty("profile")
@@ -32,7 +30,6 @@ public class KakaoUserInfoResponse {
         @JsonIgnoreProperties(ignoreUnknown = true)
         public static class Profile {
 
-            @JsonProperty("nickname")
             private String nickname;
         }
     }
