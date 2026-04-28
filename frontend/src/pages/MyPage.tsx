@@ -1,11 +1,7 @@
-import { Link } from 'react-router-dom'
-import { UserIcon } from '@/shared/components/UserIcon'
+import { Link, useNavigate } from 'react-router-dom'
 
-// TODO: Zustand에서 로그인 유저 정보 가져오기
-const USER = {
-  nickname: '민트초코좋아님',
-  email: 'lovelycasual@myfave.kr',
-}
+import { useLogout, useUser } from '@/features/auth/hooks'
+import { UserIcon } from '@/shared/components/UserIcon'
 
 // TODO: React Query로 대체 - 주문 현황 API 연동
 const ORDER_STATUS = [
@@ -16,10 +12,16 @@ const ORDER_STATUS = [
 ]
 
 export function MyPage() {
+  const navigate = useNavigate()
+  const user = useUser()
+  const logout = useLogout()
+
+  const displayName = user ? `${user.nickname}님` : '비회원'
+  const displayEmail = user?.email ?? ''
+
   const handleLogout = () => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
-    window.location.href = '/login'
+    logout()
+    navigate('/login', { replace: true })
   }
 
   return (
@@ -30,10 +32,10 @@ export function MyPage() {
           <UserIcon type="bear" variant={10} size={56} className="shadow-sm" />
           <div className="flex flex-col gap-[1.99px]">
             <h2 className="font-noto text-[16px] font-medium leading-[24px] text-[#322927] tracking-tight">
-              {USER.nickname}
+              {displayName}
             </h2>
             <p className="font-noto text-[11px] font-normal leading-[16.5px] text-[#8B7E74]">
-              {USER.email}
+              {displayEmail}
             </p>
           </div>
         </div>
@@ -61,8 +63,8 @@ export function MyPage() {
         </div>
       </div>
 
-      {/* 3. Section Divider - Figma Node 37:4300 (h:8px) */}
-      <div className="h-[8px] w-full bg-separator" />
+      {/* 3. Section Divider - Figma Node 37:4300 (h:1.096px) */}
+      <div className="h-[1.096px] w-full bg-separator" />
 
       {/* 4. Menu List Items - Figma Node 37:4301 ~ 4332 */}
       <div className="flex flex-col">
@@ -77,9 +79,6 @@ export function MyPage() {
           </svg>
         </Link>
 
-        {/* Divider 8px */}
-        <div className="h-[8px] w-full bg-separator" />
-
         {/* 쿠폰 */}
         <Link 
           to="/coupons" 
@@ -87,19 +86,16 @@ export function MyPage() {
         >
           <span className="font-noto text-[12px] font-medium text-[#322927]">쿠폰</span>
           <div className="flex items-center gap-1">
-            <span className="font-noto text-[12px] font-medium text-chat-font">2장</span>
+            <span className="font-noto text-[12px] font-medium text-chat-font">3장</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7E74" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </div>
         </Link>
-
-        {/* Divider 8px */}
-        <div className="h-[8px] w-full bg-separator" />
         
         {/* 배송지 관리 */}
         <Link 
-          to="/add-shipping" 
+          to="/shipping-addresses" 
           className="flex h-[51px] items-center justify-between px-[19.99px] border-b-[1.096px] border-separator bg-white active:bg-gray-50 transition-colors"
         >
           <span className="font-noto text-[12px] font-medium text-[#322927]">배송지 관리</span>
@@ -118,16 +114,16 @@ export function MyPage() {
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </Link>
-      </div>
 
-      {/* Logout Button */}
-      <div className="mt-12 px-[19.99px] text-center">
-        <button
-          type="button"
+        {/* 로그아웃 */}
+        <button 
           onClick={handleLogout}
-          className="font-noto text-[12px] font-medium text-muted-text/60 underline decoration-muted-text/30 hover:text-muted-text transition-colors"
+          className="flex w-full h-[51px] items-center justify-between px-[19.99px] border-b-[1.096px] border-separator bg-white active:bg-gray-50 transition-colors"
         >
-          로그아웃
+          <span className="font-noto text-[12px] font-medium text-[#322927]">로그아웃</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7E74" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </button>
       </div>
     </div>
