@@ -216,7 +216,7 @@ export function LiveChatPage() {
             <div key={msg.id} className={`flex items-start gap-[8.5px] ${msg.isOfficial ? 'flex-row-reverse' : ''}`}>
               <UserIcon 
                 type={msg.avatarType} 
-                variant={msg.avatarVariant as any} 
+                variant={msg.avatarVariant}
                 size={23.17} 
                 className="flex-shrink-0 mt-[1px]" 
               />
