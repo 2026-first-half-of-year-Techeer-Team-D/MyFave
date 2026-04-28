@@ -77,6 +77,13 @@ export function PaymentPage() {
         totalAmount: `${total.toLocaleString()}원`,
         paymentMethod: selectedMethod,
       },
+      shipping: {
+        recipientName: address.name,
+        phone: address.phone,
+        address: address.address,
+        detailAddress: address.detailAddress,
+        request: shippingRequest,
+      },
     })
 
     clearCart()
