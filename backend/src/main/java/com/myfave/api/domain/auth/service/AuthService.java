@@ -1,17 +1,23 @@
 package com.myfave.api.domain.auth.service;
 
+import com.myfave.api.domain.auth.client.KakaoAuthClient;
+import com.myfave.api.domain.auth.client.dto.KakaoTokenResponse;
+import com.myfave.api.domain.auth.client.dto.KakaoUserInfoResponse;
 import com.myfave.api.domain.auth.dto.request.FindEmailRequest;
 import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.PasswordResetSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
 import com.myfave.api.domain.auth.dto.request.ResetPasswordRequest;
+import com.myfave.api.domain.auth.dto.request.SocialLoginRequest;
 import com.myfave.api.domain.auth.dto.request.VerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.ReissueResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
+import com.myfave.api.domain.auth.dto.response.SocialLoginResponse;
 import com.myfave.api.domain.auth.dto.response.VerifyCodeResponse;
+import com.myfave.api.domain.user.entity.SocialProvider;
 import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
@@ -27,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +48,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, Object> redisTemplate;
     private final MailService mailService;
+    private final KakaoAuthClient kakaoAuthClient;
 
     @Value("${jwt.refresh-token-expiry}")
     private long refreshTokenExpiry;
@@ -225,5 +233,80 @@ public class AuthService {
         user.updatePassword(passwordEncoder.encode(request.getNewPassword()));
         //비밀번호 저장할때 사용한  redis 키 지우기
         redisTemplate.delete(tokenKey);
+    }
+
+    @Transactional
+    public SocialLoginResponse socialLogin(String provider, SocialLoginRequest request) {
+        if (!"kakao".equals(provider)) {
+            throw new CustomException(ErrorCode.COMMON_INVALID_INPUT);
+        }
+
+        KakaoTokenResponse kakaoToken = kakaoAuthClient.exchangeCodeForToken(request.getAuthorizationCode());
+        KakaoUserInfoResponse kakaoUserInfo = kakaoAuthClient.getUserInfo(kakaoToken.getAccessToken());
+
+        String socialProviderId = String.valueOf(kakaoUserInfo.getId());
+        String email = kakaoUserInfo.getKakaoAccount().getEmail();
+
+        Optional<User> existingBySocialId = userRepository.findBySocialProviderId(socialProviderId);
+        boolean isNewUser;
+        User user;
+
+        if (existingBySocialId.isPresent()) {
+            user = existingBySocialId.get();
+            isNewUser = false;
+        } else {
+            Optional<User> existingByEmail = userRepository.findByEmail(email);
+            if (existingByEmail.isPresent()) {
+                user = existingByEmail.get();
+                user.linkSocial(SocialProvider.KAKAO, socialProviderId);
+                isNewUser = false;
+            } else {
+                user = userRepository.save(buildSocialUser(SocialProvider.KAKAO, socialProviderId, email, kakaoUserInfo));
+                isNewUser = true;
+            }
+        }
+
+        String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
+
+        redisTemplate.opsForValue().set(
+                "refresh:" + user.getUserId(),
+                refreshToken,
+                refreshTokenExpiry,
+                TimeUnit.MILLISECONDS
+        );
+
+        return SocialLoginResponse.of(accessToken, refreshToken, user, isNewUser);
+    }
+
+    private User buildSocialUser(SocialProvider provider, String socialProviderId,
+                                  String email, KakaoUserInfoResponse info) {
+        String rawNickname = info.getKakaoAccount().getProfile().getNickname();
+        String nickname = generateUniqueNickname(rawNickname);
+        String name = rawNickname.length() > 20 ? rawNickname.substring(0, 20) : rawNickname;
+
+        return User.builder()
+                .email(email)
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .name(name)
+                .nickname(nickname)
+                .phone("SOCIAL_" + socialProviderId)
+                .socialProvider(provider)
+                .socialProviderId(socialProviderId)
+                .build();
+    }
+
+    private String generateUniqueNickname(String base) {
+        String truncated = base.length() > 10 ? base.substring(0, 10) : base;
+        String candidate = truncated;
+        int attempt = 0;
+        while (userRepository.existsByNickname(candidate)) {
+            String suffix = String.format("%02d", RANDOM.nextInt(100));
+            candidate = truncated + suffix;
+            if (++attempt > 10) {
+                candidate = truncated + UUID.randomUUID().toString().substring(0, 2);
+            }
+        }
+        return candidate;
     }
 }
