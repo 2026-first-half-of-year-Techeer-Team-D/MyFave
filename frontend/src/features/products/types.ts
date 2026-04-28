@@ -20,4 +20,8 @@ export interface ProductDetail {
   features: ProductFeature[]
 }
 
+export interface InfluencerPick extends Product {
+  rating: string
+}
+
 export type CategoryCode = 'all' | 'fashion' | 'beauty' | 'living' | 'food' | 'etc'
