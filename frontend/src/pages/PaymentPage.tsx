@@ -57,7 +57,10 @@ export function PaymentPage() {
     e.preventDefault()
     if (!address || checkoutItems.length === 0) return
 
+    // 이벤트 핸들러 시점에만 실행되므로 컴포넌트 순수성과 무관
+    // eslint-disable-next-line react-hooks/purity
     const orderId = Date.now().toString()
+    // eslint-disable-next-line react-hooks/purity
     const orderDate = format(new Date(), 'yy.MM.dd (eee)', { locale: ko })
 
     addOrder({
