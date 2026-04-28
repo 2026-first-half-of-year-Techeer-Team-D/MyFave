@@ -64,6 +64,14 @@ export function SignUpPage() {
     }
   }
 
+  const handleBack = () => {
+    if (step === 'EMAIL') navigate('/login')
+    else if (step === 'PASSWORD') setStep('EMAIL')
+    else if (step === 'NAME') setStep('PASSWORD')
+    else if (step === 'PHONE') setStep('NAME')
+    else if (step === 'NICKNAME') setStep('PHONE')
+  }
+
   const handleConfirmAgreement = () => {
     if (!formData.agreements.terms || !formData.agreements.privacyRequired) {
       showPopUp('필수 약관에 동의해주세요')
@@ -486,6 +494,21 @@ export function SignUpPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-white pt-[31px]">
+      {step !== 'AGREEMENT' && (
+        <div className="w-[320px] mb-3">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="flex items-center gap-1 font-noto text-[13px] font-medium text-[#8B7E74] active:opacity-60 transition-opacity"
+            aria-label="이전 단계로 돌아가기"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            <span>뒤로</span>
+          </button>
+        </div>
+      )}
       {renderStep()}
       {renderConfirmModal()}
 
