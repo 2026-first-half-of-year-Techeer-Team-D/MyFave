@@ -78,7 +78,7 @@ export function ShippingAddressPage() {
             </div>
             
             <p className="font-noto text-[12px] leading-[18px] text-[#322927] pr-20">
-              {addr.address}
+              {`${addr.address}${addr.detailAddress ? ` ${addr.detailAddress}` : ''}`}
             </p>
             
             <p className="font-noto text-[12px] text-[#322927]">
