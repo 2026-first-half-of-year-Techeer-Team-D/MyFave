@@ -1,22 +1,132 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import DaumPostcodeEmbed from 'react-daum-postcode'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+
+import { useShippingStore } from '@/features/shipping/store'
+
+interface AddressFormData {
+  name: string
+  phone: string
+  zipcode: string
+  address: string
+  detailAddress: string
+  request: string
+  isDefault: boolean
+}
+
+interface DaumPostcodeData {
+  address: string
+  addressType: string
+  bname: string
+  buildingName: string
+  zonecode: string
+}
+
+const initialFormData: AddressFormData = {
+  name: '',
+  phone: '',
+  zipcode: '',
+  address: '',
+  detailAddress: '',
+  request: '',
+  isDefault: false,
+}
 
 export function AddShippingPage() {
   const navigate = useNavigate()
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    zipcode: '',
-    address: '',
-    detailAddress: '',
-    request: '',
-    isDefault: false
-  })
+  const [searchParams] = useSearchParams()
+  const editId = searchParams.get('id')
+  const fromPath = searchParams.get('from') || '/shipping-addresses'
+
+  const addresses = useShippingStore((s) => s.addresses)
+  const addAddress = useShippingStore((s) => s.addAddress)
+  const updateAddress = useShippingStore((s) => s.updateAddress)
+  const [isOpenPost, setIsOpenPost] = useState(false)
+  const [formData, setFormData] = useState<AddressFormData>(initialFormData)
+
+  useEffect(() => {
+    if (!editId) return
+    const target = addresses.find((a) => a.id === editId)
+    if (target) {
+      setFormData({
+        name: target.name,
+        phone: target.phone,
+        zipcode: target.zipcode ?? '',
+        address: target.address,
+        detailAddress: target.detailAddress ?? '',
+        request: target.request ?? '',
+        isDefault: target.isDefault,
+      })
+    }
+  }, [editId, addresses])
+
+  const handleComplete = (data: DaumPostcodeData) => {
+    let fullAddress = data.address
+    let extraAddress = ''
+
+    if (data.addressType === 'R') {
+      if (data.bname !== '') {
+        extraAddress += data.bname
+      }
+      if (data.buildingName !== '') {
+        extraAddress += extraAddress !== '' ? `, ${data.buildingName}` : data.buildingName
+      }
+      fullAddress += extraAddress !== '' ? ` (${extraAddress})` : ''
+    }
+
+    setFormData({
+      ...formData,
+      zipcode: data.zonecode,
+      address: fullAddress,
+    })
+    setIsOpenPost(false)
+  }
+
+  const formatPhoneNumber = (value: string) => {
+    const numbers = value.replace(/[^\d]/g, '')
+    if (numbers.length <= 3) return numbers
+    if (numbers.length <= 7) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value)
+    setFormData({ ...formData, phone: formatted })
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: 배송지 등록 API 연동
-    navigate('/payment')
+
+    if (!formData.name || !formData.phone || !formData.address) {
+      alert('모든 필수 정보를 입력해주세요.')
+      return
+    }
+
+    if (editId) {
+      updateAddress(editId, {
+        name: formData.name,
+        phone: formData.phone,
+        zipcode: formData.zipcode,
+        address: formData.address,
+        detailAddress: formData.detailAddress,
+        request: formData.request,
+        isDefault: formData.isDefault,
+      })
+    } else {
+      const isFirstAddress = addresses.length === 0
+      addAddress({
+        id: Date.now().toString(),
+        name: formData.name,
+        phone: formData.phone,
+        zipcode: formData.zipcode,
+        address: formData.address,
+        detailAddress: formData.detailAddress,
+        request: formData.request,
+        isDefault: formData.isDefault || isFirstAddress,
+      })
+    }
+
+    navigate(fromPath)
   }
 
   return (
@@ -46,7 +156,8 @@ export function AddShippingPage() {
             placeholder="휴대폰번호를 입력해주세요"
             className="absolute bottom-0 left-0 w-full h-[35px] rounded-[5px] border border-separator px-[15px] font-noto text-[16px] text-black placeholder:text-[#CFB0B0] focus:border-point focus:outline-none transition-colors"
             value={formData.phone}
-            onChange={(e) => setFormData({...formData, phone: e.target.value})}
+            onChange={handlePhoneChange}
+            maxLength={13}
           />
         </div>
 
@@ -66,6 +177,7 @@ export function AddShippingPage() {
               />
               <button
                 type="button"
+                onClick={() => setIsOpenPost(true)}
                 className="w-[69px] h-[35px] rounded-[5px] bg-[#D9D9D9] font-noto text-[15px] font-medium text-[#949494] active:opacity-80 transition-opacity"
               >
                 주소 찾기
@@ -125,16 +237,41 @@ export function AddShippingPage() {
           </label>
         </div>
 
-        {/* 제출 버튼 - Figma Node 100:296 (h:36px) */}
         <div className="pt-[140px] flex justify-center">
           <button
             type="submit"
             className="w-[312px] h-[36px] rounded-[12px] bg-point font-noto text-[14px] font-bold text-white shadow-lg shadow-point/20 active:scale-[0.98] transition-all"
           >
-            배송지 추가하기
+            {editId ? '배송지 수정하기' : '배송지 추가하기'}
           </button>
         </div>
       </form>
+
+      {/* 주소 검색 모달 */}
+      {isOpenPost && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setIsOpenPost(false)}>
+          <div className="relative w-full max-w-[460px] bg-white rounded-lg overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-separator">
+              <h2 className="font-noto text-[16px] font-bold">주소 찾기</h2>
+              <button 
+                onClick={() => setIsOpenPost(false)}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div className="w-full h-[480px]">
+              <DaumPostcodeEmbed 
+                onComplete={handleComplete} 
+                style={{ width: '100%', height: '100%' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
