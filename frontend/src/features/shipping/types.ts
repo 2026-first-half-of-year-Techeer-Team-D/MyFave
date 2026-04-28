@@ -3,5 +3,8 @@ export interface Address {
   name: string
   isDefault: boolean
   address: string
+  detailAddress?: string
+  zipcode?: string
+  request?: string
   phone: string
 }
