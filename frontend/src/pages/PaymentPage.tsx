@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react'
+import { format } from 'date-fns'
+import { ko } from 'date-fns/locale'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-interface CheckoutItem {
-  id: number
-  title: string
-  image: string
-  price: number
-}
+import { useUser } from '@/features/auth/hooks'
+import { useCart } from '@/features/cart/hooks'
+import { useCartStore } from '@/features/cart/store'
+import { useCouponStore } from '@/features/coupons/store'
+import { useOrderStore } from '@/features/orders/store'
+import { useCheckoutStore } from '@/features/payments/store'
+import { getDefaultAddress, useShippingStore } from '@/features/shipping/store'
+import type { Address } from '@/features/shipping/types'
 
 const SHIPPING_REQUESTS = [
   '배송 전 미리 연락바랍니다',
@@ -17,46 +21,32 @@ const SHIPPING_REQUESTS = [
 
 export function PaymentPage() {
   const navigate = useNavigate()
+  const user = useUser()
+  const checkoutItems = useCheckoutStore((s) => s.items)
+  const setCheckoutItems = useCheckoutStore((s) => s.setItems)
+  const cartItems = useCart()
+  const clearCart = useCartStore((s) => s.clear)
+  const appliedCoupon = useCouponStore((s) => s.applied)
+  const applyCoupon = useCouponStore((s) => s.applyCoupon)
+  const addresses = useShippingStore((s) => s.addresses)
+  const addOrder = useOrderStore((s) => s.addOrder)
+
   const [selectedMethod, setSelectedMethod] = useState('카드')
-  const [appliedCoupon, setAppliedCoupon] = useState<{benefit: string, discount: number} | null>(null)
   const [shippingRequest, setShippingRequest] = useState('')
   const [isRequestOpen, setIsRequestOpen] = useState(false)
-  const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>([])
-  
-  // 배송지 초기값을 null로 수정하여 미등록 상태에서 시작
-  const [address, setAddress] = useState<{
-    main: string,
-    detail: string,
-    phone: string
-  } | null>(null)
+  const [address, setAddress] = useState<Address | null>(null)
 
   useEffect(() => {
-    // 결제 상품 로드
-    const savedItems = localStorage.getItem('active_checkout_items')
-    if (savedItems) {
-      setCheckoutItems(JSON.parse(savedItems))
+    if (checkoutItems.length === 0 && cartItems.length > 0) {
+      setCheckoutItems(cartItems)
     }
+  }, [checkoutItems.length, cartItems, setCheckoutItems])
 
-    // 쿠폰 로드
-    const savedCoupon = localStorage.getItem('appliedCoupon')
-    if (savedCoupon) {
-      setAppliedCoupon(JSON.parse(savedCoupon))
-    }
+  useEffect(() => {
+    setAddress(getDefaultAddress(addresses))
+  }, [addresses])
 
-    // 배송지 로드
-    const savedAddresses = localStorage.getItem('shipping_addresses')
-    if (savedAddresses) {
-      const addresses = JSON.parse(savedAddresses)
-      const defaultAddr = addresses.find((addr: any) => addr.isDefault) || addresses[0]
-      if (defaultAddr) {
-        setAddress({
-          main: defaultAddr.address,
-          detail: defaultAddr.detailAddress,
-          phone: defaultAddr.phone
-        })
-      }
-    }
-  }, [])
+  const greetingName = user ? `${user.nickname}님` : '비회원'
 
   const subtotal = checkoutItems.reduce((sum, item) => sum + item.price, 0)
   const shippingFee = 3000
@@ -65,25 +55,42 @@ export function PaymentPage() {
 
   const handlePayment = (e: React.FormEvent) => {
     e.preventDefault()
-    localStorage.setItem('finalOrderCoupon', JSON.stringify(appliedCoupon))
-    localStorage.setItem('finalOrderItems', JSON.stringify(checkoutItems))
-    localStorage.setItem('finalOrderAddress', JSON.stringify(address))
-    localStorage.setItem('finalOrderMethod', selectedMethod)
-    localStorage.setItem('finalOrderRequest', shippingRequest)
-    
-    localStorage.removeItem('appliedCoupon')
-    localStorage.removeItem('active_checkout_items')
+    if (!address || checkoutItems.length === 0) return
+
+    const orderId = Date.now().toString()
+    const orderDate = format(new Date(), 'yy.MM.dd (eee)', { locale: ko })
+
+    addOrder({
+      id: orderId,
+      date: orderDate,
+      items: checkoutItems.map((item) => ({
+        id: String(item.id),
+        name: item.title,
+        price: `${item.price.toLocaleString()}원`,
+        image: item.image,
+        actionLabel: '배송 조회',
+      })),
+      paymentInfo: {
+        productAmount: `${subtotal.toLocaleString()}원`,
+        discountAmount: `-${discount.toLocaleString()}원`,
+        shippingFee: `${shippingFee.toLocaleString()}원`,
+        totalAmount: `${total.toLocaleString()}원`,
+        paymentMethod: selectedMethod,
+      },
+    })
+
+    clearCart()
+    applyCoupon(null)
     navigate('/order-success')
   }
 
   return (
     <div className="flex-1 bg-white min-h-0 pb-40 overflow-y-auto pt-8">
       <div className="px-[19.99px] pt-[17.01px] pb-[8px]">
-        <h1 className="font-noto text-[15px] font-medium leading-[22px] text-[#322927]">민트초코좋아님</h1>
+        <h1 className="font-noto text-[15px] font-medium leading-[22px] text-[#322927]">{greetingName}</h1>
       </div>
 
       <div className="px-[19.99px]">
-        {/* 2. Shipping Address Section */}
         <section className="mt-[16px] space-y-[12px]">
           <div className="flex items-center justify-between">
             <h2 className="font-noto text-[15px] font-bold text-[#322927]">배송지 정보</h2>
@@ -92,40 +99,41 @@ export function PaymentPage() {
                 <div className="h-[20px] rounded-[5px] bg-[#EFE9E0] px-[8px] flex items-center justify-center">
                   <span className="font-noto text-[10px] font-medium text-[#949494] leading-none">기본 배송지</span>
                 </div>
-                {/* 버튼 크기를 뱃지와 동일한 높이(20px)로 맞춤 */}
-                <button 
+                <button
                   onClick={() => navigate('/shipping-addresses')}
                   className="h-[20px] rounded-[5px] bg-[#EFE9E0] px-[8px] flex items-center justify-center active:opacity-70 transition-opacity"
                 >
                   <span className="font-noto text-[10px] font-medium text-[#949494] leading-none">배송지 변경</span>
                 </button>
-                <button 
+                <button
                   onClick={() => {
-                    setAddress(null);
-                    setShippingRequest('');
+                    setAddress(null)
+                    setShippingRequest('')
                   }}
                   className="ml-1 p-1 text-[#949494] hover:text-red-500 transition-colors"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
                 </button>
               </div>
             )}
           </div>
-          
+
           {address ? (
             <div className="rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white p-[20px] space-y-[10px] shadow-sm">
               <div className="space-y-[8px]">
                 <p className="font-noto text-[12px] font-normal leading-[18.2px] text-[#322927]">
-                  {address.main}<br />
-                  {address.detail}
+                  {address.address}
+                  <br />
+                  {address.detailAddress}
                 </p>
                 <p className="font-noto text-[12px] font-normal text-[#322927]">{address.phone}</p>
               </div>
 
               <div className="relative pt-[2px]">
-                <button 
+                <button
                   onClick={() => setIsRequestOpen(!isRequestOpen)}
                   className="w-full h-[35px] flex items-center justify-between rounded-[5px] border border-[#F2EDEB] px-[12px] bg-white text-left transition-colors hover:border-point/30"
                 >
@@ -133,10 +141,10 @@ export function PaymentPage() {
                     {shippingRequest || '배송 요청사항을 선택해주세요'}
                   </span>
                   <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className={`text-[#949494] transition-transform ${isRequestOpen ? 'rotate-180' : ''}`}>
-                     <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
-                
+
                 {isRequestOpen && (
                   <div className="absolute top-[38px] left-0 right-0 z-50 rounded-[5px] border border-[#F2EDEB] bg-white shadow-lg overflow-hidden">
                     {SHIPPING_REQUESTS.map((req) => (
@@ -165,10 +173,9 @@ export function PaymentPage() {
           )}
         </section>
 
-        {/* 3. Coupon Section */}
         <section className="mt-[28px] space-y-[16px]">
           <h2 className="font-noto text-[15px] font-bold text-[#322927]">쿠폰 사용</h2>
-          <button 
+          <button
             onClick={() => navigate('/coupons')}
             className="w-full h-[32px] rounded-[12px] bg-point font-noto text-[12px] font-bold text-white shadow-md active:scale-[0.99] transition-all"
           >
@@ -176,7 +183,6 @@ export function PaymentPage() {
           </button>
         </section>
 
-        {/* 4. Order Items */}
         <section className="mt-[32px] space-y-[16px]">
           <h2 className="font-noto text-[15px] font-bold text-[#322927]">주문 상품 {checkoutItems.length}개</h2>
           <div className="space-y-[12px]">
@@ -196,7 +202,6 @@ export function PaymentPage() {
           </div>
         </section>
 
-        {/* 5. Payment Method Selection */}
         <section className="mt-[32px] space-y-[16px]">
           <h2 className="font-noto text-[15px] font-bold text-[#322927]">결제 수단</h2>
           <div className="grid grid-cols-2 gap-[11px]">
@@ -206,7 +211,6 @@ export function PaymentPage() {
           </div>
         </section>
 
-        {/* 6. Order Summary Card */}
         <section className="mt-[32px] space-y-[16px] pb-10">
           <h2 className="font-noto text-[15px] font-bold text-[#322927]">주문 금액</h2>
           <div className="rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white p-[21.08px] space-y-[14px] shadow-sm">
@@ -230,12 +234,11 @@ export function PaymentPage() {
         </section>
       </div>
 
-      {/* 7. Action Button */}
       <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[376.04px] -translate-x-1/2 bg-white p-[19.99px] border-t border-[#F2EDEB] shadow-figma-popup">
         <button
           onClick={handlePayment}
           disabled={!address || checkoutItems.length === 0}
-          className={`w-full h-[56px] rounded-[12px] bg-point flex flex-col items-center justify-center shadow-lg active:scale-[0.98] transition-all disabled:bg-gray-300`}
+          className="w-full h-[56px] rounded-[12px] bg-point flex flex-col items-center justify-center shadow-lg active:scale-[0.98] transition-all disabled:bg-gray-300"
         >
           {appliedCoupon && (
             <span className="font-noto text-[12px] text-white/60 line-through leading-none mb-[2px]">
