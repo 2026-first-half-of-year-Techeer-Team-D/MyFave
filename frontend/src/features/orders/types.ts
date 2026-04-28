@@ -18,9 +18,18 @@ export interface OrderPaymentInfo {
   paymentMethod: string
 }
 
+export interface OrderShippingInfo {
+  recipientName: string
+  phone: string
+  address: string
+  detailAddress?: string
+  request?: string
+}
+
 export interface Order {
   id: string
   date: string
   items: OrderItem[]
   paymentInfo?: OrderPaymentInfo
+  shipping?: OrderShippingInfo
 }
