@@ -4,9 +4,9 @@ import { persist } from 'zustand/middleware'
 import type { Coupon } from './types'
 
 const DEFAULT_AVAILABLE_COUPONS: Coupon[] = [
-  { id: 1, benefit: '10%', title: '신규 가입 축하 쿠폰', expiry: '2026.06.30', discount: 10 },
-  { id: 2, benefit: '5,000원', title: '첫 주문 감사 쿠폰', expiry: '2026.05.31', discount: 5000 },
-  { id: 3, benefit: '15%', title: 'VIP 회원 전용', expiry: '2026.12.31', discount: 15 },
+  { id: 1, benefit: '배송비 무료', title: '배송비 무료 쿠폰', expiry: '오늘 만료', discount: 3000 },
+  { id: 2, benefit: '3,000원', title: '라이브 채팅 특별 이벤트 쿠폰', expiry: '오늘 만료', discount: 3000 },
+  { id: 3, benefit: '10,000원', title: '라이브 채팅 특별 이벤트 쿠폰', expiry: '오늘 만료', discount: 10000 },
 ]
 
 interface CouponState {
