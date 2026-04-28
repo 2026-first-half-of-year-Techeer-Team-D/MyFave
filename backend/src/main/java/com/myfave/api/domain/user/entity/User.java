@@ -33,13 +33,23 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 20, unique = true)
     private String phone;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "social_provider", length = 20)
+    private SocialProvider socialProvider;
+
+    @Column(name = "social_provider_id", length = 100, unique = true)
+    private String socialProviderId;
+
     @Builder
-    private User(String email, String password, String name, String nickname, String phone) {
+    private User(String email, String password, String name, String nickname, String phone,
+                 SocialProvider socialProvider, String socialProviderId) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.nickname = nickname;
         this.phone = phone;
+        this.socialProvider = socialProvider;
+        this.socialProviderId = socialProviderId;
     }
 
     public void updatePassword(String encodedPassword) {
@@ -55,5 +65,10 @@ public class User extends BaseEntity {
 
     public void updatePhone(String phone) {
         this.phone = phone;
+    }
+
+    public void linkSocial(SocialProvider provider, String socialProviderId) {
+        this.socialProvider = provider;
+        this.socialProviderId = socialProviderId;
     }
 }
