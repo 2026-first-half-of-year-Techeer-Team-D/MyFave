@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { useCartCount } from '@/features/cart/hooks'
 import { SideMenu } from '@/shared/components/SideMenu'
 
 interface HeaderProps {
@@ -12,29 +13,8 @@ interface HeaderProps {
 export function Header({ showCountdown = true, title, showBackButton = false }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [timeLeft, setTimeLeft] = useState(17 * 60 * 39 + 1) // 17:39:01
-  const [cartCount, setCartCount] = useState(0)
+  const cartCount = useCartCount()
   const navigate = useNavigate()
-
-  useEffect(() => {
-    const updateCartCount = () => {
-      const savedCart = localStorage.getItem('cart_items')
-      if (savedCart) {
-        const items = JSON.parse(savedCart)
-        setCartCount(items.length)
-      } else {
-        setCartCount(0)
-      }
-    }
-
-    updateCartCount()
-    window.addEventListener('cartUpdated', updateCartCount)
-    window.addEventListener('storage', updateCartCount) // Handle cross-tab updates
-
-    return () => {
-      window.removeEventListener('cartUpdated', updateCartCount)
-      window.removeEventListener('storage', updateCartCount)
-    }
-  }, [])
 
   useEffect(() => {
     if (!showCountdown) return
