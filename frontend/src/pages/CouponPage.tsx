@@ -1,67 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-interface Coupon {
-  id: number
-  benefit: string
-  title: string
-  expiry: string
-  discount: number
-}
-
-const AVAILABLE_COUPONS: Coupon[] = [
-  {
-    id: 1,
-    benefit: '배송비 무료',
-    title: '배송비 무료 쿠폰',
-    expiry: '오늘 만료',
-    discount: 3000,
-  },
-  {
-    id: 2,
-    benefit: '3,000원',
-    title: '라이브 채팅 특별 이벤트 쿠폰',
-    expiry: '오늘 만료',
-    discount: 3000,
-  },
-  {
-    id: 3,
-    benefit: '10,000원',
-    title: '라이브 채팅 특별 이벤트 쿠폰',
-    expiry: '오늘 만료',
-    discount: 10000,
-  }
-]
+import { useCouponStore } from '@/features/coupons/store'
 
 export function CouponPage() {
   const navigate = useNavigate()
-  const [selectedId, setSelectedId] = useState<number | null>(null)
-
-  // 페이지 진입 시 이미 적용된 쿠폰이 있다면 상태에 반영
-  useEffect(() => {
-    const saved = localStorage.getItem('appliedCoupon')
-    if (saved) {
-      const { id } = JSON.parse(saved)
-      setSelectedId(id)
-    }
-  }, [])
+  const available = useCouponStore((s) => s.available)
+  const applied = useCouponStore((s) => s.applied)
+  const applyCoupon = useCouponStore((s) => s.applyCoupon)
+  const [selectedId, setSelectedId] = useState<number | null>(applied?.id ?? null)
 
   const toggleSelect = (id: number) => {
-    setSelectedId(prev => (prev === id ? null : id))
+    setSelectedId((prev) => (prev === id ? null : id))
   }
 
   const handleApply = () => {
     if (selectedId === null) {
-      localStorage.removeItem('appliedCoupon')
+      applyCoupon(null)
     } else {
-      const selectedCoupon = AVAILABLE_COUPONS.find(c => c.id === selectedId)
-      if (selectedCoupon) {
-        localStorage.setItem('appliedCoupon', JSON.stringify({
-          id: selectedCoupon.id,
-          benefit: selectedCoupon.benefit,
-          discount: selectedCoupon.discount
-        }))
-      }
+      const selected = available.find((c) => c.id === selectedId)
+      applyCoupon(selected ?? null)
     }
     navigate('/payment')
   }
@@ -70,12 +28,12 @@ export function CouponPage() {
     <div className="flex-1 bg-white min-h-0 pb-40 overflow-y-auto">
       <div className="px-[20px] pt-[28.01px]">
         <p className="font-noto text-[16px] font-medium text-black mb-[20px]">
-          사용 가능한 쿠폰 : <span className="text-point">{AVAILABLE_COUPONS.length}장</span>
+          사용 가능한 쿠폰 : <span className="text-point">{available.length}장</span>
         </p>
 
         {/* Coupon Cards - Toggle 활성화 (클릭 시 선택/해제) */}
         <div className="space-y-[16px]">
-          {AVAILABLE_COUPONS.map((coupon) => (
+          {available.map((coupon) => (
             <div
               key={coupon.id}
               onClick={() => toggleSelect(coupon.id)}
