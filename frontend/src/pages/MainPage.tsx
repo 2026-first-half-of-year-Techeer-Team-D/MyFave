@@ -1,44 +1,11 @@
 import { Link } from 'react-router-dom'
 
+import { useInfluencerPicks } from '@/features/products/hooks'
 import { LiveChatPreview } from '@/shared/components/LiveChatPreview'
 
-// TODO: React Query로 대체 - 인플루언서 픽 상품 목록 API 연동
-const influencerProducts = [
-  {
-    id: 1,
-    title: '[set] 윙크 립 쉐이드 프라이머 15종 택 2',
-    image:
-      'https://api.builder.io/api/v1/image/assets/TEMP/dedc87e2e02e3b692900153699047ca6fc3bbedd?width=324',
-    price: '32,000원',
-    rating: '3,283',
-  },
-  {
-    id: 2,
-    title: '플로럴 블라썸 원피스',
-    image:
-      'https://api.builder.io/api/v1/image/assets/TEMP/f7d12ab62f820812ec916bad427ac8ab729ac356?width=168',
-    price: '89,000원',
-    rating: '2,314',
-  },
-  {
-    id: 3,
-    title: '코튼 캐주얼 티셔츠',
-    image:
-      'https://api.builder.io/api/v1/image/assets/TEMP/9c8119427d69f5d98a6fd8fc600888b6444d6521?width=168',
-    price: '45,000원',
-    rating: '3,983',
-  },
-  {
-    id: 4,
-    title: '프리미엄 나일론 자켓',
-    image:
-      'https://api.builder.io/api/v1/image/assets/TEMP/438182fa25c703088b338ac8e37d54c4a9e?width=324',
-    price: '125,000원',
-    rating: '2,594',
-  },
-]
-
 export function MainPage() {
+  const { data: influencerProducts } = useInfluencerPicks()
+
   return (
     <div className="flex-1 bg-white">
       {/* 1. Instagram Reels Banner */}
