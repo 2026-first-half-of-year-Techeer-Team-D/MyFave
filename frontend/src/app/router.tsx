@@ -1,29 +1,37 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import { AboutPage } from '@/pages/AboutPage'
+import { AddShippingPage } from '@/pages/AddShippingPage'
 import { CartPage } from '@/pages/CartPage'
+import { CouponPage } from '@/pages/CouponPage'
 import { FAQPage } from '@/pages/FAQPage'
+import { FindIdPage } from '@/pages/FindIdPage'
+import { FindPasswordPage } from '@/pages/FindPasswordPage'
+import { InquiryPage } from '@/pages/InquiryPage'
 import { LiveChatPage } from '@/pages/LiveChatPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { MainPage } from '@/pages/MainPage'
 import { MyPage } from '@/pages/MyPage'
 import { NoticePage } from '@/pages/NoticePage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
-import { OrdersPage } from '@/pages/OrdersPage'
+import { OrderDetailPage } from '@/pages/OrderDetailPage'
 import { OrderSuccessPage } from '@/pages/OrderSuccessPage'
+import { OrdersPage } from '@/pages/OrdersPage'
 import { PaymentPage } from '@/pages/PaymentPage'
-import { AddShippingPage } from '@/pages/AddShippingPage'
-import { CouponPage } from '@/pages/CouponPage'
 import { ProductDetailPage } from '@/pages/ProductDetailPage'
 import { ProductListPage } from '@/pages/ProductListPage'
+import { ShippingAddressPage } from '@/pages/ShippingAddressPage'
 import { SignUpPage } from '@/pages/SignUpPage'
 import { Layout } from '@/shared/components/Layout'
 import { ProtectedRoute } from '@/shared/components/ProtectedRoute'
 
 const router = createBrowserRouter([
-  // Auth pages (no layout)
+  // Auth & support pages (no layout)
   { path: '/login', element: <LoginPage /> },
   { path: '/signup', element: <SignUpPage /> },
+  { path: '/find-id', element: <FindIdPage /> },
+  { path: '/find-password', element: <FindPasswordPage /> },
+  { path: '/inquiry', element: <InquiryPage /> },
 
   // Pages with Header + Footer (Layout)
   {
@@ -43,11 +51,13 @@ const router = createBrowserRouter([
           { path: '/product/:id', element: <ProductDetailPage /> },
           { path: '/cart', element: <CartPage /> },
           { path: '/payment', element: <PaymentPage /> },
+          { path: '/shipping-addresses', element: <ShippingAddressPage /> },
           { path: '/add-shipping', element: <AddShippingPage /> },
           { path: '/coupons', element: <CouponPage /> },
           { path: '/order-success', element: <OrderSuccessPage /> },
           { path: '/mypage', element: <MyPage /> },
           { path: '/orders', element: <OrdersPage /> },
+          { path: '/orders/:id', element: <OrderDetailPage /> },
           { path: '/live-chat', element: <LiveChatPage /> },
         ],
       },
