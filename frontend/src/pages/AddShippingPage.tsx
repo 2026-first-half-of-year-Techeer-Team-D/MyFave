@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import DaumPostcodeEmbed from 'react-daum-postcode'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useShippingStore } from '@/features/shipping/store'
+import type { Address } from '@/features/shipping/types'
 
 interface AddressFormData {
   name: string
@@ -32,33 +33,32 @@ const initialFormData: AddressFormData = {
   isDefault: false,
 }
 
-export function AddShippingPage() {
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const editId = searchParams.get('id')
-  const fromPath = searchParams.get('from') || '/shipping-addresses'
+function buildInitialFormData(target: Address | undefined): AddressFormData {
+  if (!target) return initialFormData
+  return {
+    name: target.name,
+    phone: target.phone,
+    zipcode: target.zipcode ?? '',
+    address: target.address,
+    detailAddress: target.detailAddress ?? '',
+    request: target.request ?? '',
+    isDefault: target.isDefault,
+  }
+}
 
+interface AddShippingFormProps {
+  editId: string | null
+  fromPath: string
+  initialTarget: Address | undefined
+}
+
+function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormProps) {
+  const navigate = useNavigate()
   const addresses = useShippingStore((s) => s.addresses)
   const addAddress = useShippingStore((s) => s.addAddress)
   const updateAddress = useShippingStore((s) => s.updateAddress)
   const [isOpenPost, setIsOpenPost] = useState(false)
-  const [formData, setFormData] = useState<AddressFormData>(initialFormData)
-
-  useEffect(() => {
-    if (!editId) return
-    const target = addresses.find((a) => a.id === editId)
-    if (target) {
-      setFormData({
-        name: target.name,
-        phone: target.phone,
-        zipcode: target.zipcode ?? '',
-        address: target.address,
-        detailAddress: target.detailAddress ?? '',
-        request: target.request ?? '',
-        isDefault: target.isDefault,
-      })
-    }
-  }, [editId, addresses])
+  const [formData, setFormData] = useState<AddressFormData>(() => buildInitialFormData(initialTarget))
 
   const handleComplete = (data: DaumPostcodeData) => {
     let fullAddress = data.address
@@ -264,8 +264,8 @@ export function AddShippingPage() {
               </button>
             </div>
             <div className="w-full h-[480px]">
-              <DaumPostcodeEmbed 
-                onComplete={handleComplete} 
+              <DaumPostcodeEmbed
+                onComplete={handleComplete}
                 style={{ width: '100%', height: '100%' }}
               />
             </div>
@@ -273,5 +273,23 @@ export function AddShippingPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export function AddShippingPage() {
+  const [searchParams] = useSearchParams()
+  const editId = searchParams.get('id')
+  const fromPath = searchParams.get('from') || '/shipping-addresses'
+  const initialTarget = useShippingStore((s) =>
+    editId ? s.addresses.find((a) => a.id === editId) : undefined,
+  )
+
+  return (
+    <AddShippingForm
+      key={editId ?? 'new'}
+      editId={editId}
+      fromPath={fromPath}
+      initialTarget={initialTarget}
+    />
   )
 }
