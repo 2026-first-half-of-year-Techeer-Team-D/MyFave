@@ -13,6 +13,7 @@ import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -101,6 +103,30 @@ public class CouponService {
             case USED -> throw new CustomException(ErrorCode.COUPON_ALREADY_USED);
             case EXPIRED -> throw new CustomException(ErrorCode.COUPON_EXPIRED);
             case AVAILABLE -> coupon.use();
+        }
+    }
+
+    // 8-3. 쿠폰 복구 (주문 취소/환불 트랜잭션 내에서 호출)
+    // USED 상태가 아닌 경우 no-op (재시도 안전성)
+    @Transactional
+    public void restoreCoupon(Long couponId, Long userId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COUPON_NOT_FOUND));
+
+        if (!coupon.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        if (coupon.getStatus() != CouponStatus.USED) {
+            log.warn("restoreCoupon called on non-USED coupon: couponId={}, status={}",
+                    couponId, coupon.getStatus());
+            return;
+        }
+
+        if (coupon.getExpiredAt().isBefore(ZonedDateTime.now())) {
+            coupon.expire();
+        } else {
+            coupon.restore();
         }
     }
 }
