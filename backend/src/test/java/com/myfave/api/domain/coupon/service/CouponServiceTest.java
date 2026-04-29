@@ -116,7 +116,7 @@ class CouponServiceTest {
     }
 
     @Test
-    @DisplayName("useCoupon 실패 - AVAILABLE이지만 만료 지나면 EXPIRED 전환 + COUPON_EXPIRED")
+    @DisplayName("useCoupon 실패 - AVAILABLE이지만 만료 지나면 COUPON_EXPIRED (상태 전환은 다음 조회 시 벌크 쿼리가 담당)")
     void useCoupon_lazyExpired() {
         // given
         Coupon coupon = mockCoupon(CouponStatus.AVAILABLE, ZonedDateTime.now().minusDays(1), OWNER_ID);
@@ -127,7 +127,8 @@ class CouponServiceTest {
                 .isInstanceOf(CustomException.class)
                 .satisfies(ex -> assertThat(((CustomException) ex).getErrorCode())
                         .isEqualTo(ErrorCode.COUPON_EXPIRED));
-        verify(coupon).expire();
+        // expire() 호출 시 트랜잭션 롤백으로 변경이 손실되므로 호출하지 않음
+        verify(coupon, never()).expire();
         verify(coupon, never()).use();
     }
 

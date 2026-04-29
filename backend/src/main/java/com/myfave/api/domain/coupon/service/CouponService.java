@@ -96,10 +96,10 @@ public class CouponService {
             throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
         }
 
-        // Lazy 만료 전환: AVAILABLE이지만 만료 지난 경우 EXPIRED로 전환 후 예외
+        // Lazy 만료 처리: 여기서 expire() 호출 후 throw 하면 트랜잭션 롤백으로 상태 변경이 손실되므로
+        // 예외만 던지고, DB 상태 정리는 다음 조회 시 expireAvailableCouponsBefore 벌크 쿼리가 담당
         if (coupon.getStatus() == CouponStatus.AVAILABLE
                 && coupon.getExpiredAt().isBefore(ZonedDateTime.now())) {
-            coupon.expire();
             throw new CustomException(ErrorCode.COUPON_EXPIRED);
         }
 
