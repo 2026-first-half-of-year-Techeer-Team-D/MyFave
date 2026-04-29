@@ -57,41 +57,21 @@ export function MainPage() {
         <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">DAON’S PICK</h2>
 
         <div className="flex overflow-x-auto pb-4 gap-[12px] px-[19.99px] scrollbar-hide">
-          {/* Reels 카드 (상품 카드와 동일한 프레임 크기) */}
-          <div className="flex flex-col flex-shrink-0 w-[162.03px]">
-            <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-black shadow-sm border border-separator/20">
-              <iframe
-                src="https://www.instagram.com/reel/DXmDn2dCT9E/embed/"
-                className="w-full h-full"
-                frameBorder="0"
-                scrolling="no"
-                allowTransparency={true}
-                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
-              />
-            </div>
-            <div className="px-0.5">
-              <h3 className="mb-0.5 h-9 font-noto text-[10px] font-normal text-dark-text leading-[18px] tracking-tight">
-                Instagram Reels
-              </h3>
-            </div>
-          </div>
-
           {influencerProducts.map((product) => (
             <Link
               key={product.id}
               to={`/product/${product.id}`}
               className="group flex flex-col flex-shrink-0 w-[162.03px]"
             >
-              <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-gray-50 shadow-sm border border-separator/20">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-black shadow-sm border border-separator/20">
+                <iframe
+                  src="https://www.instagram.com/reel/DXmDn2dCT9E/embed/"
+                  className="w-full h-full"
+                  frameBorder="0"
+                  scrolling="no"
+                  allowTransparency={true}
+                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
-                <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 backdrop-blur-[2px]">
-                  <span className="font-noto text-[9px] font-black text-white">❤️ {product.rating}</span>
-                </div>
               </div>
               <div className="px-0.5">
                 <h3 className="mb-0.5 h-9 font-noto text-[10px] font-normal text-dark-text line-clamp-2 leading-[18px] group-hover:text-point transition-colors tracking-tight whitespace-normal">
