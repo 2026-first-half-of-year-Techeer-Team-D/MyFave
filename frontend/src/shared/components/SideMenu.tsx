@@ -56,7 +56,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
               onClick={onClose}
               className="flex items-center px-6 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
             >
-              <span className="font-lexend text-base font-black tracking-wider text-dark-text">HOME</span>
+              <span className="font-noto text-[18px] font-medium leading-[27px] text-dark-text">HOME</span>
             </Link>
 
             {/* SHOP */}
