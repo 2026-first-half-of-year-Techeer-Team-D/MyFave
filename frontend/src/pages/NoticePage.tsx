@@ -30,11 +30,6 @@ const NOTICES: NoticeItem[] = [
 export function NoticePage() {
   return (
     <div className="flex-1 bg-white pb-10">
-      <div className="border-b border-separator px-5 py-8">
-        <h1 className="font-noto text-xl font-bold text-dark-text tracking-tight">공지사항</h1>
-        <p className="mt-1 font-noto text-xs text-muted-text">마이페이브의 새로운 소식을 알려드립니다.</p>
-      </div>
-
       <div className="mx-auto max-w-md divide-y divide-separator/50">
         {NOTICES.map((notice) => (
           <div
@@ -60,12 +55,6 @@ export function NoticePage() {
         ))}
       </div>
 
-      {/* Pagination Placeholder */}
-      <div className="mx-auto max-w-md px-5 py-12 flex justify-center gap-2">
-        <button className="h-8 w-8 rounded-lg border border-separator bg-white font-lexend text-xs font-bold text-dark-text shadow-sm active:scale-90 transition-transform">1</button>
-        <button className="h-8 w-8 rounded-lg border border-separator bg-white font-lexend text-xs font-bold text-muted-text hover:border-point/30 transition-colors">2</button>
-        <button className="h-8 w-8 rounded-lg border border-separator bg-white font-lexend text-xs font-bold text-muted-text hover:border-point/30 transition-colors">3</button>
-      </div>
     </div>
   )
 }
