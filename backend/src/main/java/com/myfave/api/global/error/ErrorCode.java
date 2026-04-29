@@ -24,6 +24,7 @@ public enum ErrorCode {
     AUTH_INVALID_RESET_TOKEN(401, "유효하지 않은 재설정 토큰"),
     AUTH_INVALID_SOCIAL_CODE(400, "유효하지 않은 인가 코드"),
     AUTH_SOCIAL_PROVIDER_ERROR(502, "소셜 제공자 서버 오류"),
+    AUTH_SOCIAL_EMAIL_REQUIRED(400, "카카오 계정에 이메일 제공 동의가 필요합니다"),
 
     // 사용자
     USER_NOT_FOUND(404, "회원 정보 없음"),

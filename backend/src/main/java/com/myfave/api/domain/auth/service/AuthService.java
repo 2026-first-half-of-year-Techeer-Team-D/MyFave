@@ -245,7 +245,10 @@ public class AuthService {
         KakaoUserInfoResponse kakaoUserInfo = kakaoAuthClient.getUserInfo(kakaoToken.getAccessToken());
 
         String socialProviderId = String.valueOf(kakaoUserInfo.getId());
-        String email = kakaoUserInfo.getKakaoAccount().getEmail();
+
+        String email = (kakaoUserInfo.getKakaoAccount() != null)
+                ? kakaoUserInfo.getKakaoAccount().getEmail()
+                : null;
 
         Optional<User> existingBySocialId = userRepository.findBySocialProviderId(socialProviderId);
         boolean isNewUser;
@@ -255,7 +258,9 @@ public class AuthService {
             user = existingBySocialId.get();
             isNewUser = false;
         } else {
-            Optional<User> existingByEmail = userRepository.findByEmail(email);
+            Optional<User> existingByEmail = (email != null)
+                    ? userRepository.findByEmail(email)
+                    : Optional.empty();
             if (existingByEmail.isPresent()) {
                 user = existingByEmail.get();
                 user.linkSocial(SocialProvider.KAKAO, socialProviderId);
@@ -281,12 +286,16 @@ public class AuthService {
 
     private User buildSocialUser(SocialProvider provider, String socialProviderId,
                                   String email, KakaoUserInfoResponse info) {
-        String rawNickname = info.getKakaoAccount().getProfile().getNickname();
+        KakaoUserInfoResponse.KakaoAccount account = info.getKakaoAccount();
+        String rawNickname = (account != null && account.getProfile() != null && account.getProfile().getNickname() != null)
+                ? account.getProfile().getNickname()
+                : "카카오유저";
         String nickname = generateUniqueNickname(rawNickname);
         String name = rawNickname.length() > 20 ? rawNickname.substring(0, 20) : rawNickname;
+        String resolvedEmail = (email != null) ? email : "kakao_" + socialProviderId + "@kakao.social";
 
         return User.builder()
-                .email(email)
+                .email(resolvedEmail)
                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                 .name(name)
                 .nickname(nickname)
