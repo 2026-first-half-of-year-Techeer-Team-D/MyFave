@@ -1,7 +1,18 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { UserIcon } from '@/shared/components/UserIcon'
+
+const THROTTLE_MS = 3000
+const BEAR_VARIANTS = [1, 3, 5, 6, 7, 10] as const
+
+function getVariantFromNickname(nickname: string): number {
+  let hash = 0
+  for (let i = 0; i < nickname.length; i++) {
+    hash = (hash + nickname.charCodeAt(i)) % BEAR_VARIANTS.length
+  }
+  return BEAR_VARIANTS[hash]
+}
 
 interface Message {
   id: number
@@ -54,29 +65,32 @@ export function LiveChatPage() {
   const [inputText, setInputText] = useState('')
   const [isNoticeOpen, setIsNoticeOpen] = useState(true)
   const [participantCount, setParticipantCount] = useState(5123)
+  const [isConnected, setIsConnected] = useState(false)
+  const [isCooldown, setIsCooldown] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const stompClient = useRef<Client | null>(null)
+  const lastSendTimeRef = useRef<number>(0)
 
   useEffect(() => {
-    // 환경 변수 안전하게 참조
     const wsBaseUrl = import.meta.env?.VITE_WS_BASE_URL
-    if (!wsBaseUrl) {
-      console.warn('VITE_WS_BASE_URL is not defined. Real-time features disabled.')
-      return
-    }
+    if (!wsBaseUrl) return
 
     const httpUrl = wsBaseUrl.replace('ws://', 'http://').replace('wss://', 'https://')
-    
+    const token = localStorage.getItem('accessToken') ?? ''
+
     try {
       const client = new Client({
         webSocketFactory: () => new SockJS(httpUrl),
+        connectHeaders: {
+          Authorization: `Bearer ${token}`,
+        },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
       })
 
       client.onConnect = () => {
-        console.log('WebSocket Connected')
+        setIsConnected(true)
         client.subscribe('/topic/chat/1', (message) => {
           try {
             const data = JSON.parse(message.body)
@@ -85,37 +99,40 @@ export function LiveChatPage() {
             }
             if (data.type === 'NEW_MESSAGE') {
               const payload = data.payload
+              const isOfficial = payload.nickname.includes('공식')
               const newMessage: Message = {
                 id: Date.now(),
                 user: payload.nickname,
                 text: payload.content,
-                avatarType: payload.nickname.includes('공식') ? 'seller' : 'bear',
-                avatarVariant: 1,
-                isOfficial: payload.nickname.includes('공식'),
+                avatarType: isOfficial ? 'seller' : 'bear',
+                avatarVariant: isOfficial ? 1 : getVariantFromNickname(payload.nickname),
+                isOfficial,
                 timestamp: new Date(payload.sentAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
               }
               setMessages((prev) => [...prev, newMessage])
             }
-          } catch (e) {
-            console.error('WS Parse error:', e)
+          } catch {
+            // ignore malformed WS frames
           }
         })
       }
 
-      client.onStompError = (frame) => {
-        console.error('STOMP Error:', frame)
+      client.onDisconnect = () => {
+        setIsConnected(false)
+      }
+
+      client.onStompError = () => {
+        setIsConnected(false)
       }
 
       client.activate()
       stompClient.current = client
-    } catch (e) {
-      console.error('WS Activation failed:', e)
+    } catch {
+      // WS unavailable — fallback to local-only mode
     }
 
     return () => {
-      if (stompClient.current) {
-        stompClient.current.deactivate()
-      }
+      stompClient.current?.deactivate()
     }
   }, [])
 
@@ -128,9 +145,13 @@ export function LiveChatPage() {
     }
   }, [messages])
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     if (!inputText.trim()) return
+
+    const now = Date.now()
+    if (now - lastSendTimeRef.current < THROTTLE_MS) return
+    lastSendTimeRef.current = now
 
     if (stompClient.current?.connected) {
       stompClient.current.publish({
@@ -141,7 +162,7 @@ export function LiveChatPage() {
         }),
       })
     } else {
-      // WebSocket 미연결 시 로컬 업데이트 (데모/백업용)
+      // WS 미연결 시 로컬 업데이트 (데모/오프라인 백업)
       const newMessage: Message = {
         id: Date.now(),
         user: '나',
@@ -152,8 +173,11 @@ export function LiveChatPage() {
       }
       setMessages((prev) => [...prev, newMessage])
     }
+
     setInputText('')
-  }
+    setIsCooldown(true)
+    setTimeout(() => setIsCooldown(false), THROTTLE_MS)
+  }, [inputText])
 
   return (
     <div className="relative flex flex-1 flex-col bg-white overflow-hidden min-h-0">
@@ -197,11 +221,17 @@ export function LiveChatPage() {
         </div>
       </div>
 
-      {/* 2. Participant Badge - Figma Node 99:540 (#E4DFE7, #FF6B6B) */}
-      <div className="relative z-20 flex justify-center pb-[24px]">
+      {/* 2. Participant Badge + WS 연결 상태 */}
+      <div className="relative z-20 flex items-center justify-center gap-[8px] pb-[24px]">
         <div className="inline-flex items-center justify-center rounded-[10px] bg-sub1 px-[12px] py-[4px] border border-black/5 shadow-inner">
           <span className="font-noto text-[11px] font-medium text-[#FF6B6B]">
             {participantCount.toLocaleString()}명이 참여중입니다
+          </span>
+        </div>
+        <div className="inline-flex items-center gap-[4px] rounded-[10px] bg-sub1 px-[10px] py-[4px] border border-black/5">
+          <span className={`h-[6px] w-[6px] rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
+          <span className="font-noto text-[10px] text-muted-text">
+            {isConnected ? '연결됨' : '연결 대기'}
           </span>
         </div>
       </div>
@@ -264,10 +294,10 @@ export function LiveChatPage() {
           {/* Send Button - Figma Rectangle 9 */}
           <button
             type="submit"
-            disabled={!inputText.trim()}
-            className="flex h-[39px] w-[73px] items-center justify-center rounded-[21px] bg-point font-noto text-[12px] font-bold text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-95 disabled:opacity-50"
+            disabled={!inputText.trim() || isCooldown}
+            className="flex h-[39px] w-[73px] items-center justify-center rounded-[21px] bg-point font-noto text-[12px] font-bold text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            보내기
+            {isCooldown ? '대기중' : '보내기'}
           </button>
         </form>
       </div>
