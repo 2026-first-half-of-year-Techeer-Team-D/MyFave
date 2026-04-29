@@ -30,7 +30,7 @@ export function ShippingAddressPage() {
 
   return (
     <div className="flex-1 bg-white min-h-0 pb-10 overflow-y-auto">
-      {/* 2. Search Bar - Figma Node 100:1031 */}
+      {/* 1. Search Bar - Figma Node 100:1031 */}
       <div className="px-[20px] pt-[28.01px] mb-[28px]">
         <div className="relative">
           <input
