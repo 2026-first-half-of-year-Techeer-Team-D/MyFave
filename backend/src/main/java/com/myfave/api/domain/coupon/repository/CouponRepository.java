@@ -20,8 +20,10 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     List<Coupon> findByUserAndStatus(User user, CouponStatus status);
 
     // Lazy 만료 전환: 해당 사용자의 AVAILABLE 쿠폰 중 만료된 것을 EXPIRED로 일괄 전환
+    // 벌크 UPDATE는 @LastModifiedDate 리스너가 동작하지 않으므로 updatedAt을 명시적으로 갱신
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Coupon c SET c.status = com.myfave.api.domain.coupon.entity.CouponStatus.EXPIRED " +
+    @Query("UPDATE Coupon c SET c.status = com.myfave.api.domain.coupon.entity.CouponStatus.EXPIRED, " +
+            "c.updatedAt = :now " +
             "WHERE c.user = :user " +
             "AND c.status = com.myfave.api.domain.coupon.entity.CouponStatus.AVAILABLE " +
             "AND c.expiredAt < :now")
