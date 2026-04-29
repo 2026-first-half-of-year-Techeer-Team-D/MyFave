@@ -6,11 +6,13 @@ import com.myfave.api.domain.auth.dto.request.PasswordResetSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
 import com.myfave.api.domain.auth.dto.request.ResetPasswordRequest;
+import com.myfave.api.domain.auth.dto.request.SocialLoginRequest;
 import com.myfave.api.domain.auth.dto.request.VerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.ReissueResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
+import com.myfave.api.domain.auth.dto.response.SocialLoginResponse;
 import com.myfave.api.domain.auth.dto.response.VerifyCodeResponse;
 import com.myfave.api.domain.auth.service.AuthService;
 import com.myfave.api.global.common.ApiResponse;
@@ -70,5 +72,12 @@ public class AuthController {
     public ApiResponse<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request);
         return new ApiResponse<>(200, "비밀번호가 재설정되었습니다.", null);
+    }
+
+    @PostMapping("/social-login/{provider}")
+    public ApiResponse<SocialLoginResponse> socialLogin(
+            @PathVariable String provider,
+            @Valid @RequestBody SocialLoginRequest request) {
+        return new ApiResponse<>(200, "소셜 로그인 성공", authService.socialLogin(provider, request));
     }
 }
