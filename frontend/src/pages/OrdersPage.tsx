@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { useOrders } from '@/features/orders/hooks'
 
 export function OrdersPage() {
+  const navigate = useNavigate()
   const orders = useOrders()
 
   if (orders.length === 0) {
@@ -54,6 +55,9 @@ export function OrdersPage() {
                       className="w-[204px] h-[35px] flex items-center justify-center border border-[#F2EDEB] rounded-[5px] font-noto text-[15px] font-medium text-[#949494] hover:bg-gray-100 active:scale-[0.98] transition-all"
                       onClick={(e) => {
                         e.preventDefault()
+                        if (item.actionLabel === '배송 조회') {
+                          navigate(`/shipping-status/${order.id}`)
+                        }
                       }}
                     >
                       {item.actionLabel}
@@ -63,6 +67,37 @@ export function OrdersPage() {
               </Link>
             ))}
           </div>
+
+          {order.paymentInfo && (
+            <div className="px-[30px] pb-[24px]">
+              <h2 className="font-noto text-[16px] font-medium leading-[24px] text-[#000000] mb-[13px]">
+                결제 정보
+              </h2>
+
+              <div className="flex flex-col gap-[5px] px-[3px]">
+                <div className="flex justify-between items-center h-[24px]">
+                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000]">상품 금액</span>
+                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000] text-right">{order.paymentInfo.productAmount}</span>
+                </div>
+                <div className="flex justify-between items-center h-[24px]">
+                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000]">할인 금액</span>
+                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000] text-right">{order.paymentInfo.discountAmount}</span>
+                </div>
+                <div className="flex justify-between items-center h-[24px]">
+                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000]">배송비</span>
+                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000] text-right">{order.paymentInfo.shippingFee}</span>
+                </div>
+                <div className="flex justify-between items-center h-[24px]">
+                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000]">결제 금액</span>
+                  <span className="font-noto text-[12px] font-bold leading-[24px] text-[#CF879B] text-right">{order.paymentInfo.totalAmount}</span>
+                </div>
+                <div className="flex justify-between items-center h-[24px]">
+                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000]">결제 수단</span>
+                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000] text-right">{order.paymentInfo.paymentMethod}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="h-[8px] w-full bg-[#EFE9E0]" />
         </div>
