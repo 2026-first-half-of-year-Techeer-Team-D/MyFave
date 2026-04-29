@@ -30,7 +30,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
         <div className="flex h-16 items-center justify-between border-b border-separator px-5">
           <Link to="/" onClick={onClose} className="flex items-center">
             <img
-              src="https://api.builder.io/api/v1/image/assets/TEMP/4365f9105d58ff126ad032631f85a3a4610ef3f2?width=100"
+              src="/logo.svg"
               alt="My Fave"
               className="h-8 w-auto"
             />
@@ -56,7 +56,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
               onClick={onClose}
               className="flex items-center px-6 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
             >
-              <span className="font-lexend text-base font-black tracking-wider text-dark-text">HOME</span>
+              <span className="font-noto text-[18px] font-medium leading-[27px] text-dark-text">HOME</span>
             </Link>
 
             {/* SHOP */}
@@ -129,7 +129,6 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
                     { label: '마이 페이브 소개', path: '/about' },
                     { label: '공지사항', path: '/notice' },
                     { label: '자주 묻는 질문', path: '/faq' },
-                    { label: '1:1 문의', path: '/inquiry' },
                   ].map((item) => (
                     <Link
                       key={item.label}
@@ -140,6 +139,15 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
                       {item.label}
                     </Link>
                   ))}
+                  <a
+                    href="https://www.instagram.com/direct/inbox/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={onClose}
+                    className="block px-10 py-3 font-noto text-[15px] font-medium text-dark-text/70 transition-colors hover:text-point active:translate-x-1"
+                  >
+                    1:1 문의
+                  </a>
                 </div>
               )}
             </div>

@@ -1,4 +1,3 @@
-import React from 'react'
 
 type IconType = 'bear' | 'human' | 'seller'
 type Variant = number

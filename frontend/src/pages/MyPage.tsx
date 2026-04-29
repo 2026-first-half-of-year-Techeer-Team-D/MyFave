@@ -1,101 +1,118 @@
-import { ChevronRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { UserIcon } from '@/shared/components/UserIcon'
+import { Link, useNavigate } from 'react-router-dom'
 
-// TODO: Zustand에서 로그인 유저 정보 가져오기
-const USER = {
-  nickname: '민트초코좋아님',
-  email: 'lovelycasual@myfave.kr',
-}
+import { useLogout, useUser } from '@/features/auth/hooks'
+import { UserIcon } from '@/shared/components/UserIcon'
 
 // TODO: React Query로 대체 - 주문 현황 API 연동
 const ORDER_STATUS = [
   { status: '입금확인', count: 0 },
   { status: '배송준비', count: 0 },
   { status: '배송중', count: 0 },
-  { status: '배송완료', count: 2 },
+  { status: '배송완료', count: 0 },
 ]
 
 export function MyPage() {
+  const navigate = useNavigate()
+  const user = useUser()
+  const logout = useLogout()
+
+  const displayName = user ? `${user.nickname}님` : '비회원'
+  const displayEmail = user?.email ?? ''
+
   const handleLogout = () => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
-    window.location.href = '/login'
+    logout()
+    navigate('/login', { replace: true })
   }
 
   return (
-    <div className="flex-1 bg-white pb-10">
-      {/* User Profile Section */}
-      <div className="px-5 py-10">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <UserIcon type="bear" variant={5} size={96} />
-            <button className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md border border-separator text-muted-text active:scale-95 transition-transform">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            </button>
+    <div className="flex-1 bg-white min-h-0 pb-10 overflow-y-auto">
+      {/* 1. User Profile Section - Figma Node 99:1201 */}
+      <div className="px-[19.99px] pt-[23.99px] pb-[19.99px]">
+        <div className="flex items-center gap-[14px]">
+          <UserIcon type="bear" variant={10} size={56} className="shadow-sm" />
+          <div className="flex flex-col gap-[1.99px]">
+            <h2 className="font-noto text-[16px] font-medium leading-[24px] text-[#322927] tracking-tight">
+              {displayName}
+            </h2>
+            <p className="font-noto text-[11px] font-normal leading-[16.5px] text-[#8B7E74]">
+              {displayEmail}
+            </p>
           </div>
-          <div className="text-center">
-            <h2 className="font-noto text-lg font-black text-dark-text tracking-tight">{USER.nickname}</h2>
-            <p className="font-noto text-[13px] font-medium text-muted-text/80">{USER.email}</p>
+        </div>
+      </div>
+
+      {/* 2. Order Status Container - Figma Node 37:4278 */}
+      <div className="px-[19.99px] mb-[24px]">
+        <div className="rounded-[12px] bg-footer-bg p-[15.99px] shadow-sm border border-separator/10">
+          <div className="flex justify-between items-center h-[54.99px]">
+            {ORDER_STATUS.map((order) => (
+              <Link
+                key={order.status}
+                to="/orders"
+                className="flex flex-col items-center justify-between h-full w-[74.12px]"
+              >
+                <span className="font-noto text-[24px] font-medium leading-[36px] text-[#322927]">
+                  {order.count}
+                </span>
+                <span className="font-noto text-[12px] font-normal leading-[18px] text-[#8B7E74]">
+                  {order.status}
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Order Status Container */}
-      <div className="mx-5 mb-10 rounded-2xl bg-footer-bg p-6 shadow-sm border border-separator/30">
-        <div className="mb-5 flex items-center justify-between">
-          <span className="font-noto text-sm font-bold text-dark-text">나의 주문 현황</span>
-          <Link to="/orders" className="font-noto text-[11px] font-bold text-point underline decoration-point/30">전체보기</Link>
-        </div>
-        <div className="grid grid-cols-4 gap-2">
-          {ORDER_STATUS.map((order) => (
-            <Link
-              key={order.status}
-              to="/orders"
-              className="flex flex-col items-center gap-2 group"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-dark-text font-lexend text-sm font-black shadow-sm group-active:scale-90 transition-transform">
-                {order.count}
-              </div>
-              <span className="whitespace-nowrap text-center font-noto text-[11px] font-bold text-muted-text">
-                {order.status}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </div>
+      {/* 3. Section Divider - Figma Node 37:4300 (h:1.096px) */}
+      <div className="h-[1.096px] w-full bg-separator" />
 
-      {/* Navigation List */}
-      <div className="mx-5 space-y-2">
-        <h3 className="mb-4 font-noto text-xs font-black text-muted-text/50 uppercase tracking-widest">General</h3>
-        <div className="divide-y divide-separator/50 overflow-hidden rounded-2xl border border-separator/30 bg-white">
-          <Link to="/orders" className="flex items-center justify-between px-5 py-4 transition-colors hover:bg-gray-50 active:bg-gray-100">
-            <span className="font-noto text-sm font-bold text-dark-text">주문 내역</span>
-            <ChevronRight className="h-4 w-4 text-muted-text" />
-          </Link>
-          <Link to="/shipping-address" className="flex items-center justify-between px-5 py-4 transition-colors hover:bg-gray-50 active:bg-gray-100">
-            <span className="font-noto text-sm font-bold text-dark-text">배송지 관리</span>
-            <ChevronRight className="h-4 w-4 text-muted-text" />
-          </Link>
-          <Link to="/profile-edit" className="flex items-center justify-between px-5 py-4 transition-colors hover:bg-gray-50 active:bg-gray-100">
-            <span className="font-noto text-sm font-bold text-dark-text">회원 정보 수정</span>
-            <ChevronRight className="h-4 w-4 text-muted-text" />
-          </Link>
-          <Link to="/customer-service" className="flex items-center justify-between px-5 py-4 transition-colors hover:bg-gray-50 active:bg-gray-100">
-            <span className="font-noto text-sm font-bold text-dark-text">고객센터</span>
-            <ChevronRight className="h-4 w-4 text-muted-text" />
-          </Link>
-        </div>
-      </div>
-
-      {/* Logout Button */}
-      <div className="mt-12 px-5 text-center">
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="font-noto text-[13px] font-bold text-muted-text/50 underline decoration-muted-text/20 hover:text-muted-text transition-colors"
+      {/* 4. Menu List Items - Figma Node 37:4301 ~ 4332 */}
+      <div className="flex flex-col">
+        {/* 주문조회 */}
+        <Link 
+          to="/orders" 
+          className="flex h-[51px] items-center justify-between px-[19.99px] border-b-[1.096px] border-separator bg-white active:bg-gray-50 transition-colors"
         >
-          로그아웃
+          <span className="font-noto text-[12px] font-medium text-[#322927]">주문조회</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7E74" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </Link>
+
+        {/* 쿠폰 */}
+        <Link 
+          to="/coupons" 
+          className="flex h-[51px] items-center justify-between px-[19.99px] border-b-[1.096px] border-separator bg-white active:bg-gray-50 transition-colors"
+        >
+          <span className="font-noto text-[12px] font-medium text-[#322927]">쿠폰</span>
+          <div className="flex items-center gap-1">
+            <span className="font-noto text-[12px] font-medium text-chat-font">3장</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7E74" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
+        </Link>
+        
+        {/* 배송지 관리 */}
+        <Link 
+          to="/shipping-addresses" 
+          className="flex h-[51px] items-center justify-between px-[19.99px] border-b-[1.096px] border-separator bg-white active:bg-gray-50 transition-colors"
+        >
+          <span className="font-noto text-[12px] font-medium text-[#322927]">배송지 관리</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7E74" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </Link>
+
+        {/* 로그아웃 */}
+        <button 
+          onClick={handleLogout}
+          className="flex w-full h-[51px] items-center justify-between px-[19.99px] border-b-[1.096px] border-separator bg-white active:bg-gray-50 transition-colors"
+        >
+          <span className="font-noto text-[12px] font-medium text-[#322927]">로그아웃</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7E74" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </button>
       </div>
     </div>
