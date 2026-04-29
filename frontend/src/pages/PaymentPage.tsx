@@ -13,9 +13,9 @@ import { getDefaultAddress, useShippingStore } from '@/features/shipping/store'
 import type { Address } from '@/features/shipping/types'
 
 const SHIPPING_REQUESTS = [
+  '문 앞에 두어주세요',
+  '경비실에 맡겨주세요',
   '배송 전 미리 연락바랍니다',
-  '부재 시 경비실에 맡겨주세요',
-  '부재 시 문 앞에 놓아주세요',
   '직접 수령하겠습니다',
 ]
 
@@ -43,7 +43,11 @@ export function PaymentPage() {
   }, [checkoutItems.length, cartItems, setCheckoutItems])
 
   useEffect(() => {
-    setAddress(getDefaultAddress(addresses))
+    const defaultAddr = getDefaultAddress(addresses)
+    setAddress(defaultAddr)
+    if (defaultAddr?.request) {
+      setShippingRequest(defaultAddr.request)
+    }
   }, [addresses])
 
   const greetingName = user ? `${user.nickname}님` : '비회원'
@@ -133,6 +137,7 @@ export function PaymentPage() {
           {address ? (
             <div className="rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white p-[20px] space-y-[10px] shadow-sm">
               <div className="space-y-[8px]">
+                <p className="font-noto text-[13px] font-bold text-[#322927]">{address.name}</p>
                 <p className="font-noto text-[12px] font-normal leading-[18.2px] text-[#322927]">
                   {address.address}
                   <br />
