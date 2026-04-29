@@ -10,17 +10,10 @@ export function MainPage() {
     <div className="flex-1 bg-white">
       {/* 1. Instagram Reels Banner */}
       <div className="mx-auto max-w-md px-[19.99px] pt-[18.01px] pb-[41.28px]">
-        <div className="relative overflow-hidden rounded-[16px] border-figma border-main-bg bg-black shadow-figma-card h-[635.72px]">
-          {/* Browser-like Header */}
-          <div className="flex h-[40px] items-center gap-[8px] bg-main-bg px-[12px]">
-            <div className="h-[12px] w-[12px] rounded-full bg-[#FF5F57] shadow-sm" />
-            <div className="h-[12px] w-[12px] rounded-full bg-[#FFBD2E] shadow-sm" />
-            <div className="h-[12px] w-[12px] rounded-full bg-[#28C840] shadow-sm" />
-          </div>
-          
+        <div className="overflow-hidden rounded-[16px] shadow-figma-card h-[635.72px]">
           <iframe
             src="https://www.instagram.com/reel/DXmDn2dCT9E/embed/"
-            className="w-full h-[593.53px]"
+            className="w-full h-full"
             frameBorder="0"
             scrolling="no"
             allowTransparency={true}
@@ -53,9 +46,23 @@ export function MainPage() {
         </div>
       </div>
 
-      {/* 4. Influencer’s PICK Section (Horizontal Scroll) */}
+      {/* 4. DAON’S PICK Section (Horizontal Scroll) */}
       <div className="mx-auto max-w-md pt-[23.99px] pb-20">
         <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">DAON’S PICK</h2>
+
+        {/* DAON’S PICK Reels 테스트 영역 */}
+        <div className="px-[19.99px] mb-[16px]">
+          <div className="overflow-hidden rounded-[16px] shadow-figma-card h-[500px]">
+            <iframe
+              src="https://www.instagram.com/reel/DXmDn2dCT9E/embed/"
+              className="w-full h-full"
+              frameBorder="0"
+              scrolling="no"
+              allowTransparency={true}
+              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+            />
+          </div>
+        </div>
 
         <div className="flex overflow-x-auto pb-4 gap-[12px] px-[19.99px] scrollbar-hide">
           {influencerProducts.map((product) => (
