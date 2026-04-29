@@ -79,4 +79,28 @@ public class CouponService {
 
         return CouponIssueResponse.from(coupon);
     }
+
+    // 8-3. 쿠폰 사용 (Payment/Order 도메인 트랜잭션 내에서 호출)
+    @Transactional
+    public void useCoupon(Long couponId, Long userId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COUPON_NOT_FOUND));
+
+        if (!coupon.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        // Lazy 만료 처리: AVAILABLE이지만 만료 지난 경우 EXPIRED 예외만 던지고 상태 전환은 다음 조회 시 벌크 쿼리가 담당
+        // (여기서 expire() 호출 후 throw 하면 트랜잭션 롤백으로 변경이 손실됨)
+        if (coupon.getStatus() == CouponStatus.AVAILABLE
+                && coupon.getExpiredAt().isBefore(ZonedDateTime.now())) {
+            throw new CustomException(ErrorCode.COUPON_EXPIRED);
+        }
+
+        switch (coupon.getStatus()) {
+            case USED -> throw new CustomException(ErrorCode.COUPON_ALREADY_USED);
+            case EXPIRED -> throw new CustomException(ErrorCode.COUPON_EXPIRED);
+            case AVAILABLE -> coupon.use();
+        }
+    }
 }
