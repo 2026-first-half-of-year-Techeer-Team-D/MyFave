@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import { AboutPage } from '@/pages/AboutPage'
 import { AddShippingPage } from '@/pages/AddShippingPage'
+import { BusinessInfoPage } from '@/pages/BusinessInfoPage'
 import { CartPage } from '@/pages/CartPage'
 import { CouponPage } from '@/pages/CouponPage'
 import { FAQPage } from '@/pages/FAQPage'
@@ -14,6 +15,9 @@ import { MainPage } from '@/pages/MainPage'
 import { MyPage } from '@/pages/MyPage'
 import { NoticePage } from '@/pages/NoticePage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { PrivacyPage } from '@/pages/PrivacyPage'
+import { ShippingInfoPage } from '@/pages/ShippingInfoPage'
+import { TermsPage } from '@/pages/TermsPage'
 import { OrderDetailPage } from '@/pages/OrderDetailPage'
 import { OrderSuccessPage } from '@/pages/OrderSuccessPage'
 import { OrdersPage } from '@/pages/OrdersPage'
@@ -41,6 +45,10 @@ const router = createBrowserRouter([
       { path: '/about', element: <AboutPage /> },
       { path: '/notice', element: <NoticePage /> },
       { path: '/faq', element: <FAQPage /> },
+      { path: '/shipping', element: <ShippingInfoPage /> },
+      { path: '/business', element: <BusinessInfoPage /> },
+      { path: '/terms', element: <TermsPage /> },
+      { path: '/privacy', element: <PrivacyPage /> },
 
       // Protected pages (require login)
       {
