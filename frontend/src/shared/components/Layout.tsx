@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { Footer } from '@/shared/components/Footer'
@@ -5,7 +6,12 @@ import { Header } from '@/shared/components/Header'
 
 export function Layout() {
   const location = useLocation()
-  
+  const mainRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, behavior: 'instant' })
+  }, [location.pathname])
+
   const getHeaderProps = () => {
     const path = location.pathname
     
@@ -32,7 +38,7 @@ export function Layout() {
     <div className="min-h-screen w-full bg-[#E2AFAF] flex justify-center overflow-x-hidden">
       <div className="w-full max-w-[376.04px] min-h-screen bg-white shadow-figma-app flex flex-col relative">
         <Header {...getHeaderProps()} />
-        <main className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
+        <main ref={mainRef} className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
           <Outlet />
         </main>
         <Footer />
