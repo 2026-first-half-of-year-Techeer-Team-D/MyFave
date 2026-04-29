@@ -104,17 +104,6 @@ export function MyPage() {
           </svg>
         </Link>
 
-        {/* 고객센터 */}
-        <Link 
-          to="/faq" 
-          className="flex h-[51px] items-center justify-between px-[19.99px] border-b-[1.096px] border-separator bg-white active:bg-gray-50 transition-colors"
-        >
-          <span className="font-noto text-[12px] font-medium text-[#322927]">고객센터</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7E74" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </Link>
-
         {/* 로그아웃 */}
         <button 
           onClick={handleLogout}
