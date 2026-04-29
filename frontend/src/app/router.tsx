@@ -25,6 +25,7 @@ import { PaymentPage } from '@/pages/PaymentPage'
 import { ProductDetailPage } from '@/pages/ProductDetailPage'
 import { ProductListPage } from '@/pages/ProductListPage'
 import { ShippingAddressPage } from '@/pages/ShippingAddressPage'
+import { ShippingStatusPage } from '@/pages/ShippingStatusPage'
 import { SignUpPage } from '@/pages/SignUpPage'
 import { Layout } from '@/shared/components/Layout'
 import { ProtectedRoute } from '@/shared/components/ProtectedRoute'
@@ -66,6 +67,7 @@ const router = createBrowserRouter([
           { path: '/mypage', element: <MyPage /> },
           { path: '/orders', element: <OrdersPage /> },
           { path: '/orders/:id', element: <OrderDetailPage /> },
+          { path: '/shipping-status/:orderId', element: <ShippingStatusPage /> },
           { path: '/live-chat', element: <LiveChatPage /> },
         ],
       },

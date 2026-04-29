@@ -1,8 +1,9 @@
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { useOrder } from '@/features/orders/hooks'
 
 export function OrderDetailPage() {
+  const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const data = useOrder(id)
 
@@ -45,6 +46,11 @@ export function OrderDetailPage() {
 
                 <button
                   type="button"
+                  onClick={() => {
+                    if (item.actionLabel === '배송 조회') {
+                      navigate(`/shipping-status/${data.id}`)
+                    }
+                  }}
                   className="w-full h-[35px] flex items-center justify-center border border-[#F2EDEB] rounded-[5px] font-noto text-[15px] font-medium text-[#949494] active:bg-gray-50 transition-colors"
                 >
                   {item.actionLabel}
