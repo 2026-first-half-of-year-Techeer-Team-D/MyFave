@@ -37,11 +37,6 @@ export function FAQPage() {
 
   return (
     <div className="flex-1 bg-white pb-10">
-      <div className="border-b border-separator px-5 py-8">
-        <h1 className="font-noto text-xl font-bold text-dark-text tracking-tight">자주 묻는 질문</h1>
-        <p className="mt-1 font-noto text-xs text-muted-text">도움이 필요하신가요? 궁금하신 점을 확인해보세요.</p>
-      </div>
-
       <div className="mx-auto max-w-md divide-y divide-separator/50">
         {FAQs.map((faq) => (
           <div key={faq.id} className="overflow-hidden">
@@ -72,16 +67,6 @@ export function FAQPage() {
         ))}
       </div>
 
-      {/* Contact Link */}
-      <div className="mx-auto max-w-md px-5 py-12 text-center">
-        <p className="mb-4 font-noto text-xs text-muted-text">찾으시는 답변이 없으신가요?</p>
-        <Link 
-          to="/inquiry" 
-          className="inline-flex items-center gap-2 rounded-xl border border-point px-6 py-2.5 font-noto text-sm font-bold text-point transition-all hover:bg-main-bg active:scale-95"
-        >
-          1:1 문의하기
-        </Link>
-      </div>
     </div>
   )
 }

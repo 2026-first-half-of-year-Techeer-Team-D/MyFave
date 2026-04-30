@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 
 interface PopUpProps {
   message: string
@@ -18,12 +18,14 @@ export function PopUp({ message, isOpen, onClose, duration = 3000 }: PopUpProps)
   if (!isOpen) return null
 
   return (
-    <div className="fixed bottom-24 left-1/2 z-[150] w-[calc(100%-40px)] max-w-md -translate-x-1/2 transition-all animate-in fade-in slide-in-from-bottom-4 duration-300">
-      {/* Pop up Content - Figma Node 99:1204 기반 */}
-      <div className="flex items-center justify-center rounded-lg bg-main-bg px-6 py-4 shadow-figma-popup border border-point/10">
-        <p className="font-noto text-sm font-bold text-chat-font2">
-          {message}
-        </p>
+    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[150] w-[340px]">
+      <div className="w-full transition-all animate-in fade-in slide-in-from-bottom-8 duration-500 ease-out">
+        {/* Pop up Content - Figma Node 99:1204 100% Sync */}
+        <div className="flex h-[48px] items-center justify-center rounded-[8px] bg-main-bg shadow-[0px_2px_2px_0px_rgba(0,0,0,0.25)] border border-point/5">
+          <p className="font-noto text-[14px] font-medium leading-[21px] text-[#1B1B1B] text-center">
+            {message}
+          </p>
+        </div>
       </div>
     </div>
   )

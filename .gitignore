@@ -18,3 +18,5 @@ docs
 docs
 .claude/
 meetings/
+.vercel
+.env*.local
