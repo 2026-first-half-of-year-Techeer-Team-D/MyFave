@@ -117,4 +117,18 @@ export const INFLUENCER_PICKS: InfluencerPick[] = [
     price: '37,000원',
     rating: '3,314',
   },
+  {
+    id: 3,
+    title: '[오늘출발][썸머][MADE] 니스 투핀턱 나일론 벨티드 슬랙스',
+    image: 'https://pureda.co.kr/web/product/medium/202604/263e9dec20ecbf8455ab9351faa3ab42.webp',
+    price: '36,000원',
+    rating: '2,854',
+  },
+  {
+    id: 4,
+    title: '[살안타템/여리핏] 리슬디 보트넥 썸머 니트',
+    image: 'https://pureda.co.kr/web/product/medium/202604/2d697f353f00692137b01108848bd7d0.jpg',
+    price: '23,000원',
+    rating: '3,921',
+  },
 ]
