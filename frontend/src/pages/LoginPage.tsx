@@ -82,6 +82,11 @@ export function LoginPage() {
             로그인
           </button>
 
+          {/* Demo Account Info - added for demonstration */}
+          <p className="text-center font-noto text-[12px] text-muted-text/80">
+            시연 계정: test@test.com / password
+          </p>
+
           {/* Options & Links */}
           <div className="space-y-[15px] pt-[2px]">
             {/* Auto Login - Figma Node 148:180 */}
