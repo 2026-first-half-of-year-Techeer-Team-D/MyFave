@@ -1,5 +1,8 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+
+import { useIsAuthenticated } from '@/features/auth/hooks'
+import { Modal } from '@/shared/components/Modal'
 
 interface SideMenuProps {
   isOpen: boolean
@@ -7,11 +10,36 @@ interface SideMenuProps {
 }
 
 export function SideMenu({ isOpen, onClose }: SideMenuProps) {
+  const navigate = useNavigate()
+  const isAuthenticated = useIsAuthenticated()
   const [shopOpen, setShopOpen] = useState(true)
   const [communityOpen, setCommunityOpen] = useState(true)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+
+  const handleProtectedNavigation = (path: string) => {
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true)
+      return
+    }
+    onClose()
+    navigate(path)
+  }
 
   return (
     <>
+      <Modal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        buttonText="확인"
+        onButtonClick={() => {
+          setIsAuthModalOpen(false)
+          onClose()
+          navigate('/login')
+        }}
+      >
+        로그인 시에만 이용이 가능합니다.
+      </Modal>
+      
       {/* Overlay */}
       {isOpen && (
         <div 
@@ -153,22 +181,20 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
             </div>
 
             {/* MY PAGE */}
-            <Link
-              to="/mypage"
-              onClick={onClose}
-              className="flex items-center border-b-[1.1px] border-separator px-5 py-4 transition-colors hover:bg-footer-bg"
+            <button
+              onClick={() => handleProtectedNavigation('/mypage')}
+              className="flex w-full items-center border-b-[1.1px] border-separator px-5 py-4 transition-colors hover:bg-footer-bg"
             >
               <span className="font-noto text-[18px] font-medium leading-[27px] text-dark-text">MY PAGE</span>
-            </Link>
+            </button>
 
             {/* ORDER */}
-            <Link
-              to="/orders"
-              onClick={onClose}
-              className="flex items-center border-b-[1.1px] border-separator px-5 py-4 transition-colors hover:bg-footer-bg"
+            <button
+              onClick={() => handleProtectedNavigation('/orders')}
+              className="flex w-full items-center border-b-[1.1px] border-separator px-5 py-4 transition-colors hover:bg-footer-bg"
             >
               <span className="font-noto text-[18px] font-medium leading-[27px] text-dark-text">ORDER</span>
-            </Link>
+            </button>
           </div>
         </div>
 
