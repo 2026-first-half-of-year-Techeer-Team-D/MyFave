@@ -1,14 +1,19 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useIsAuthenticated } from '@/features/auth/hooks'
 import { useCart } from '@/features/cart/hooks'
 import { useCartStore } from '@/features/cart/store'
 import { useCheckoutStore } from '@/features/payments/store'
+import { Modal } from '@/shared/components/Modal'
 
 export function CartPage() {
   const navigate = useNavigate()
   const items = useCart()
   const removeCartItem = useCartStore((s) => s.removeItem)
   const setCheckoutItems = useCheckoutStore((s) => s.setItems)
+  const isAuthenticated = useIsAuthenticated()
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
   const removeItem = (id: number) => {
     removeCartItem(id)
@@ -16,6 +21,12 @@ export function CartPage() {
 
   const handleCheckout = () => {
     if (items.length === 0) return
+
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true)
+      return
+    }
+
     setCheckoutItems(items)
     navigate('/payment')
   }
@@ -26,6 +37,15 @@ export function CartPage() {
 
   return (
     <div className="flex-1 bg-white min-h-0 pb-32">
+      <Modal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        buttonText="확인"
+        onButtonClick={() => navigate('/login')}
+      >
+        회원들만 결제가 가능한 쇼핑몰입니다.<br />
+        결제하시려면 회원가입 또는 로그인을 진행해주세요.
+      </Modal>
       <div className="px-[19.99px] pt-8 space-y-[11.99px]">
         {items.length > 0 ? (
           items.map((item) => (
