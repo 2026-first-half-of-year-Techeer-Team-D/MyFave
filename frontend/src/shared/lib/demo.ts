@@ -17,9 +17,10 @@ export const initDemoData = () => {
     })
   }
 
-  // 2. 주문 내역 데이터 시딩
+  // 2. 주문 내역 데이터 시딩 (4월 내역 제외)
   const orderStore = useOrderStore.getState()
   if (orderStore.orders.length === 0) {
+    // 5월 1일 내역만 유지 (기존에 4월 내역이 있었다면 이 시점에서 필터링하거나 추가하지 않음)
     orderStore.addOrder({
       id: 'ORDER-20240501-12345',
       date: '2024-05-01',
