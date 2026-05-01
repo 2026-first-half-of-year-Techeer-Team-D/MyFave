@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useInfluencerPicks } from '@/features/products/hooks'
 import { LiveChatPreview } from '@/shared/components/LiveChatPreview'
 
-const DAONS_PICK_SHORTS = [
+const MY_PICK_SHORTS = [
   '7s9NQcQMTHo',
   'd-Hrt-SC6D0',
   '1gfbdSHLDoY',
@@ -59,9 +59,9 @@ export function MainPage() {
         </div>
       </div>
 
-      {/* 4. DAON’S PICK Section (Horizontal Scroll) */}
+      {/* 4. MY PICK Section (Horizontal Scroll) */}
       <div className="mx-auto max-w-md pt-[23.99px] pb-20">
-        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">DAON’S PICK</h2>
+        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">MY PICK</h2>
 
         <div className="flex overflow-x-auto pb-4 gap-[12px] px-[19.99px] scrollbar-hide">
           {influencerProducts.map((product, index) => (
@@ -71,7 +71,7 @@ export function MainPage() {
             >
               <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-black shadow-sm border border-separator/20">
                 <iframe
-                  src={`https://www.youtube.com/embed/${DAONS_PICK_SHORTS[index % DAONS_PICK_SHORTS.length]}?autoplay=1&mute=1&loop=1&playlist=${DAONS_PICK_SHORTS[index % DAONS_PICK_SHORTS.length]}&controls=0&modestbranding=1`}
+                  src={`https://www.youtube.com/embed/${MY_PICK_SHORTS[index % MY_PICK_SHORTS.length]}?autoplay=1&mute=1&loop=1&playlist=${MY_PICK_SHORTS[index % MY_PICK_SHORTS.length]}&controls=0&modestbranding=1`}
                   className="w-full h-full pointer-events-none scale-150"
                   frameBorder="0"
                   scrolling="no"
