@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
+import { useIsAuthenticated } from '@/features/auth/hooks'
 import { useCartStore } from '@/features/cart/store'
 import { useCheckoutStore } from '@/features/payments/store'
 import { useProduct } from '@/features/products/hooks'
+import { Modal } from '@/shared/components/Modal'
 import { PopUp } from '@/shared/components/PopUp'
 
 export function ProductDetailPage() {
@@ -13,9 +15,11 @@ export function ProductDetailPage() {
   const { data: product } = useProduct(productId)
   const addCartItem = useCartStore((s) => s.addItem)
   const setCheckoutItems = useCheckoutStore((s) => s.setItems)
+  const isAuthenticated = useIsAuthenticated()
   const [isShippingOpen, setIsShippingOpen] = useState(false)
   const [isRefundOpen, setIsRefundOpen] = useState(false)
   const [isPopUpOpen, setIsPopUpOpen] = useState(false)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
   if (!product) {
     return (
@@ -26,6 +30,11 @@ export function ProductDetailPage() {
   }
 
   const handleBuyNow = () => {
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true)
+      return
+    }
+
     setCheckoutItems([
       { id: product.id, title: product.title, image: product.images[0], price: product.priceNumber },
     ])
@@ -49,6 +58,15 @@ export function ProductDetailPage() {
         message="상품이 장바구니에 담겼습니다👏" 
         onClose={() => setIsPopUpOpen(false)} 
       />
+      <Modal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        buttonText="확인"
+        onButtonClick={() => navigate('/login')}
+      >
+        회원들만 결제가 가능한 쇼핑몰입니다.<br />
+        결제하시려면 회원가입 또는 로그인을 진행해주세요.
+      </Modal>
       <div className="w-full h-[455px] bg-[#F8F8F8] overflow-hidden">
         <img src={product.images[0]} alt={product.title} className="h-full w-full object-cover" />
       </div>

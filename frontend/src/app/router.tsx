@@ -42,7 +42,12 @@ const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      // Public community pages
+      // Public browsing and community pages
+      { path: '/', element: <MainPage /> },
+      { path: '/shop', element: <ProductListPage /> },
+      { path: '/product/:id', element: <ProductDetailPage /> },
+      { path: '/cart', element: <CartPage /> },
+      { path: '/live-chat', element: <LiveChatPage /> },
       { path: '/about', element: <AboutPage /> },
       { path: '/notice', element: <NoticePage /> },
       { path: '/faq', element: <FAQPage /> },
@@ -55,10 +60,6 @@ const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
-          { path: '/', element: <MainPage /> },
-          { path: '/shop', element: <ProductListPage /> },
-          { path: '/product/:id', element: <ProductDetailPage /> },
-          { path: '/cart', element: <CartPage /> },
           { path: '/payment', element: <PaymentPage /> },
           { path: '/shipping-addresses', element: <ShippingAddressPage /> },
           { path: '/add-shipping', element: <AddShippingPage /> },
@@ -68,7 +69,6 @@ const router = createBrowserRouter([
           { path: '/orders', element: <OrdersPage /> },
           { path: '/orders/:id', element: <OrderDetailPage /> },
           { path: '/shipping-status/:orderId', element: <ShippingStatusPage /> },
-          { path: '/live-chat', element: <LiveChatPage /> },
         ],
       },
     ],
