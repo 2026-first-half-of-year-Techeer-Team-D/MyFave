@@ -4,10 +4,10 @@ import { useInfluencerPicks } from '@/features/products/hooks'
 import { LiveChatPreview } from '@/shared/components/LiveChatPreview'
 
 const LOCAL_PICKS = [
-  'https://drive.google.com/uc?export=download&id=10aaIz2zGl9SjJ4t2jvzupzp3cEmJunS5',
-  'https://drive.google.com/uc?export=download&id=1bVTsVcodizBVE-HfqEKvxfoS-3nnTZ0A',
-  'https://drive.google.com/uc?export=download&id=1mKTPc230bkNrk1wWEB0x_-EoO8zdkMfG',
-  'https://drive.google.com/uc?export=download&id=1bVTsVcodizBVE-HfqEKvxfoS-3nnTZ0A',
+  '/videos/pick1.mp4',
+  '/videos/pick4.mp4',
+  '/videos/pick3.mp4',
+  '/videos/pick4.mp4',
 ]
 
 export function MainPage() {
@@ -25,7 +25,7 @@ export function MainPage() {
             <div className="h-[12px] w-[12px] rounded-full bg-[#28C840] shadow-sm" />
           </div>
           <video
-            src="https://drive.google.com/uc?export=download&id=10aaIz2zGl9SjJ4t2jvzupzp3cEmJunS5"
+            src="/videos/pick1.mp4"
             autoPlay
             muted
             loop
