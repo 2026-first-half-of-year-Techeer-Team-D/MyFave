@@ -1,6 +1,7 @@
 package com.myfave.api.domain.chat.controller;
 
 import com.myfave.api.domain.chat.dto.response.ChatHistoryResponse;
+import com.myfave.api.domain.chat.dto.response.ChatRoomCloseResponse;
 import com.myfave.api.domain.chat.dto.response.ChatRoomInfoResponse;
 import com.myfave.api.domain.chat.service.ChatService;
 import com.myfave.api.global.common.ApiResponse;
@@ -8,8 +9,10 @@ import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,10 +35,22 @@ public class ChatController {
             @RequestParam(defaultValue = "50") int size,
             @RequestParam(required = false) String before) {
 
-        if (authentication == null || authentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken) {
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
             throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
         }
 
         return ResponseEntity.ok(ApiResponse.ok(chatService.getMessageHistory(size, before)));
+    }
+
+    @PatchMapping("/close")
+    public ResponseEntity<ApiResponse<ChatRoomCloseResponse>> closeChatRoom(
+            Authentication authentication) {
+
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
+        }
+
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(new ApiResponse<>(200, "채팅방이 종료되었습니다.", chatService.closeChatRoom(userId)));
     }
 }
