@@ -2,6 +2,7 @@ package com.myfave.api.domain.auth.controller;
 
 import com.myfave.api.domain.auth.dto.request.FindEmailRequest;
 import com.myfave.api.domain.auth.dto.request.LoginRequest;
+import com.myfave.api.domain.auth.dto.request.PasswordResetSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
 import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
@@ -48,5 +49,11 @@ public class AuthController {
     @PostMapping("/find-email")
     public ApiResponse<FindEmailResponse> findEmail(@Valid @RequestBody FindEmailRequest request) {
         return new ApiResponse<>(200, "이메일 조회 성공", authService.findEmail(request));
+    }
+
+    @PostMapping("/password-reset/send-code")
+    public ApiResponse<Void> sendPasswordResetCode(@Valid @RequestBody PasswordResetSendCodeRequest request) {
+        authService.sendPasswordResetCode(request);
+        return new ApiResponse<>(200, "인증코드가 이메일로 발송되었습니다.", null);
     }
 }
