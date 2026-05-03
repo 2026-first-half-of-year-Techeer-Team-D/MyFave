@@ -5,23 +5,28 @@ import com.myfave.api.domain.content.entity.ShortFormType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+
 @Getter
 @AllArgsConstructor
 public class ShortFormResponse {
 
     private Long shortFormId;
-    private Long productId;
+    private ShortFormType displayType;
     private String videoUrl;
     private String thumbnailUrl;
-    private ShortFormType displayType;
+    private Long productId;
+    private String productName;
+    private Integer price;
 
     public static ShortFormResponse from(ShortForm shortForm) {
         return new ShortFormResponse(
                 shortForm.getShortFormId(),
-                shortForm.getProduct() != null ? shortForm.getProduct().getProductId() : null,
+                shortForm.getDisplayType(),
                 shortForm.getVideoUrl(),
                 shortForm.getThumbnailUrl(),
-                shortForm.getDisplayType()
+                shortForm.getProduct() != null ? shortForm.getProduct().getProductId() : null,
+                shortForm.getProduct() != null ? shortForm.getProduct().getProductName() : null,
+                shortForm.getProduct() != null ? shortForm.getProduct().getPrice() : null
         );
     }
 }
