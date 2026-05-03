@@ -46,9 +46,14 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findByIsActiveTrue()
                 .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
 
-        ZonedDateTime cursor = before != null
-                ? ZonedDateTime.parse(before)
-                : ZonedDateTime.now().plusSeconds(1);
+        ZonedDateTime cursor;
+        try {
+            cursor = before != null
+                    ? ZonedDateTime.parse(before)
+                    : ZonedDateTime.now().plusSeconds(1);
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new CustomException(ErrorCode.COMMON_INVALID_INPUT);
+        }
 
         List<StoredMessage> parsed = parseMessages(chatRoom.getChatRoomId(), cursor);
 

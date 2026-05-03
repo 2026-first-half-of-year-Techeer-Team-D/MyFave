@@ -32,7 +32,7 @@ public class ChatController {
             @RequestParam(defaultValue = "50") int size,
             @RequestParam(required = false) String before) {
 
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (authentication == null || authentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken) {
             throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
         }
 
