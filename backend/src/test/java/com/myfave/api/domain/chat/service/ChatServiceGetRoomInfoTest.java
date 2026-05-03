@@ -46,6 +46,7 @@ class ChatServiceGetRoomInfoTest {
         assertThat(response.getId()).isEqualTo(1L);
         assertThat(response.getIsActive()).isTrue();
         assertThat(response.getParticipantCount()).isEqualTo(42);
+        assertThat(response.getCreatedAt()).isNull(); // 테스트 빌더에서 createdAt 미설정 — 필드 존재 확인
     }
 
     @Test
