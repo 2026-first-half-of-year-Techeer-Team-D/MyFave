@@ -3,6 +3,7 @@ package com.myfave.api.domain.chat.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myfave.api.domain.chat.dto.response.ChatHistoryResponse;
+import com.myfave.api.domain.chat.dto.response.ChatRoomCloseResponse;
 import com.myfave.api.domain.chat.dto.response.ChatRoomInfoResponse;
 import com.myfave.api.domain.chat.entity.ChatRoom;
 import com.myfave.api.domain.chat.repository.ChatRoomRepository;
@@ -76,6 +77,23 @@ public class ChatService {
         }
 
         return new ChatHistoryResponse(items, hasMore);
+    }
+
+    @Transactional
+    public ChatRoomCloseResponse closeChatRoom(Long requestUserId) {
+        ChatRoom chatRoom = chatRoomRepository.findTopByOrderByChatRoomIdDesc()
+                .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+        if (!chatRoom.getIsActive()) {
+            throw new CustomException(ErrorCode.CHAT_ROOM_ALREADY_CLOSED);
+        }
+
+        if (!requestUserId.equals(influencerUserId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        chatRoom.close();
+        return ChatRoomCloseResponse.from(chatRoom);
     }
 
     List<StoredMessage> parseMessages(Long roomId, ZonedDateTime cursor) {
