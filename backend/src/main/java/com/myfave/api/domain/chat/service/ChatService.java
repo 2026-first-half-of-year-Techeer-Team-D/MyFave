@@ -80,6 +80,30 @@ public class ChatService {
         return new ChatHistoryResponse(items, hasMore);
     }
 
+    public ChatPreviewResponse getChatPreview(int size) {
+        ChatRoom chatRoom = chatRoomRepository.findByIsActiveTrue()
+                .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+        int participantCount = sessionRegistry.getParticipantCount(chatRoom.getChatRoomId());
+
+        List<StoredMessage> allParsed = parseMessages(chatRoom.getChatRoomId(), ZonedDateTime.now().plusSeconds(1));
+        int total = allParsed.size();
+        int fromIndex = Math.max(0, total - size);
+        List<StoredMessage> page = allParsed.subList(fromIndex, total);
+
+        List<ChatPreviewResponse.PreviewMessage> recentMessages = new ArrayList<>();
+        for (StoredMessage msg : page) {
+            StoredPayload p = msg.getPayload();
+            recentMessages.add(ChatPreviewResponse.PreviewMessage.builder()
+                    .senderNickname(p.getNickname())
+                    .content(p.getContent())
+                    .createdAt(p.getSentAt())
+                    .build());
+        }
+
+        return new ChatPreviewResponse(chatRoom.getIsActive(), participantCount, recentMessages);
+    }
+
     @Transactional
     public ChatRoomCloseResponse closeChatRoom(Long requestUserId) {
         ChatRoom chatRoom = chatRoomRepository.findTopByOrderByChatRoomIdDesc()
@@ -99,40 +123,6 @@ public class ChatService {
 
     List<StoredMessage> parseMessages(Long roomId, ZonedDateTime cursor) {
         List<String> rawMessages = chatMessageService.getHistory(roomId);
-        List<StoredMessage> result = new ArrayList<>();
-
-        for (String json : rawMessages) {
-            try {
-                StoredMessage msg = objectMapper.readValue(json, StoredMessage.class);
-                if (msg.getPayload() == null) continue;
-                if (!"NEW_MESSAGE".equals(msg.getType())) continue;
-                if (!msg.getPayload().getSentAt().isBefore(cursor)) continue;
-                result.add(msg);
-            } catch (JsonProcessingException e) {
-                log.warn("메시지 파싱 실패: {}", json);
-            }
-        }
-        return result;
-    }
-
-    @Getter
-    @NoArgsConstructor
-    static class StoredMessage {
-        private String type;
-        private StoredPayload payload;
-    }
-
-    @Getter
-    @NoArgsConstructor
-    static class StoredPayload {
-        private String messageId;
-        private Long userId;
-        private String nickname;
-        private String content;
-        private ZonedDateTime sentAt;
-    }
-}
-     List<String> rawMessages = chatMessageService.getHistory(roomId);
         List<StoredMessage> result = new ArrayList<>();
 
         for (String json : rawMessages) {

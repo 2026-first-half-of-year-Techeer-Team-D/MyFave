@@ -130,7 +130,9 @@ class ChatServiceGetPreviewTest {
 
     private ChatRoom buildRoom(Long id, boolean active) {
         try {
-            ChatRoom room = (ChatRoom) ChatRoom.class.getDeclaredConstructors()[0].newInstance();
+            var constructor = ChatRoom.class.getDeclaredConstructors()[0];
+            constructor.setAccessible(true);
+            ChatRoom room = (ChatRoom) constructor.newInstance();
             var f1 = ChatRoom.class.getDeclaredField("chatRoomId");
             f1.setAccessible(true);
             f1.set(room, id);
