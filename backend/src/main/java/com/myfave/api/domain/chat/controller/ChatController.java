@@ -1,6 +1,7 @@
 package com.myfave.api.domain.chat.controller;
 
 import com.myfave.api.domain.chat.dto.response.ChatHistoryResponse;
+import com.myfave.api.domain.chat.dto.response.ChatPreviewResponse;
 import com.myfave.api.domain.chat.dto.response.ChatRoomCloseResponse;
 import com.myfave.api.domain.chat.dto.response.ChatRoomInfoResponse;
 import com.myfave.api.domain.chat.service.ChatService;
@@ -40,6 +41,12 @@ public class ChatController {
         }
 
         return ResponseEntity.ok(ApiResponse.ok(chatService.getMessageHistory(size, before)));
+    }
+
+    @GetMapping("/preview")
+    public ResponseEntity<ApiResponse<ChatPreviewResponse>> getChatPreview(
+            @RequestParam(defaultValue = "5") int size) {
+        return ResponseEntity.ok(ApiResponse.ok(chatService.getChatPreview(size)));
     }
 
     @PatchMapping("/close")
