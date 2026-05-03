@@ -70,8 +70,8 @@ public class ContentService {
             MultipartFile mediaFile,
             MultipartFile thumbnailFile) {
 
-        // 1. 상품 조회
-        Product product = productRepository.findById(request.getProductId())
+        // 1. 상품 조회 (soft-delete된 상품 제외)
+        Product product = productRepository.findByProductIdAndDeletedAtIsNull(request.getProductId())
                 .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
         // 2. contentType에 따라 분기
@@ -80,6 +80,10 @@ public class ContentService {
             if (request.getShortFormType() == null || thumbnailFile == null) {
                 throw new CustomException(ErrorCode.COMMON_INVALID_INPUT);
             }
+
+            // 파일 형식 검증
+            validateShortFormMediaFile(mediaFile);
+            validateImageFile(thumbnailFile);
 
             // S3 업로드 (영상 + 썸네일)
             String videoUrl = s3UploadService.upload(mediaFile, "contents/shortforms");
@@ -97,6 +101,9 @@ public class ContentService {
             return ContentRegisterResponse.fromShortForm(shortForm);
 
         } else if ("STYLE_FEED".equals(request.getContentType())) {
+            // 파일 형식 검증
+            validateImageFile(mediaFile);
+
             // STYLE_FEED: 이미지만 업로드
             String imageUrl = s3UploadService.upload(mediaFile, "contents/stylefeeds");
 
@@ -111,6 +118,30 @@ public class ContentService {
 
         } else {
             throw new CustomException(ErrorCode.COMMON_INVALID_INPUT);
+        }
+    }
+
+    // 파일 확장자 추출
+    private String extractExtension(String filename) {
+        if (filename == null || !filename.contains(".")) {
+            throw new CustomException(ErrorCode.FILE_INVALID_TYPE);
+        }
+        return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+    }
+
+    // SHORT_FORM mediaFile은 mp4만 허용
+    private void validateShortFormMediaFile(MultipartFile mediaFile) {
+        String ext = extractExtension(mediaFile.getOriginalFilename());
+        if (!"mp4".equals(ext)) {
+            throw new CustomException(ErrorCode.FILE_INVALID_TYPE);
+        }
+    }
+
+    // STYLE_FEED mediaFile, thumbnailFile은 jpg/jpeg/png만 허용
+    private void validateImageFile(MultipartFile file) {
+        String ext = extractExtension(file.getOriginalFilename());
+        if (!"jpg".equals(ext) && !"jpeg".equals(ext) && !"png".equals(ext)) {
+            throw new CustomException(ErrorCode.FILE_INVALID_TYPE);
         }
     }
 }

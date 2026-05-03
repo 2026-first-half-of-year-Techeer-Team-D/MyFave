@@ -31,8 +31,8 @@ public class ContentRegisterResponse {
                 shortForm.getVideoUrl(),
                 null,
                 shortForm.getThumbnailUrl(),
-                shortForm.getProduct().getProductId(),
-                shortForm.getProduct().getProductName(),
+                shortForm.getProduct() != null ? shortForm.getProduct().getProductId() : null,
+                shortForm.getProduct() != null ? shortForm.getProduct().getProductName() : null,
                 shortForm.getCreatedAt()
         );
     }
