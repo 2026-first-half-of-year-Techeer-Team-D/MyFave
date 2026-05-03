@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom'
 import { useInfluencerPicks } from '@/features/products/hooks'
 import { LiveChatPreview } from '@/shared/components/LiveChatPreview'
 
-const MY_PICK_SHORTS = [
-  '7s9NQcQMTHo',
-  'd-Hrt-SC6D0',
-  '1gfbdSHLDoY',
-  'gh_yql93quc',
+const LOCAL_PICKS = [
+  '/videos/pick1.mp4',
+  '/videos/pick4.mp4',
+  '/videos/pick3.mp4',
+  '/videos/pick4.mp4',
 ]
 
 export function MainPage() {
@@ -15,22 +15,22 @@ export function MainPage() {
 
   return (
     <div className="flex-1 bg-white">
-      {/* 1. YouTube Shorts Banner */}
+      {/* 1. Main Reels Banner */}
       <div className="mx-auto max-w-md px-[19.99px] pt-[18.01px] pb-[41.28px]">
-        <div className="relative overflow-hidden rounded-[16px] border-figma border-main-bg bg-black shadow-figma-card h-[635.72px]">
+        <div className="relative overflow-hidden rounded-[16px] bg-white border-0 shadow-figma-card h-[635.72px]">
           {/* Browser-like Header */}
-          <div className="flex h-[40px] items-center gap-[8px] bg-main-bg px-[12px]">
+          <div className="flex h-[40px] items-center gap-[8px] bg-main-bg px-[12px] border-0">
             <div className="h-[12px] w-[12px] rounded-full bg-[#FF5F57] shadow-sm" />
             <div className="h-[12px] w-[12px] rounded-full bg-[#FFBD2E] shadow-sm" />
             <div className="h-[12px] w-[12px] rounded-full bg-[#28C840] shadow-sm" />
           </div>
-          <iframe
-            src="https://www.youtube.com/embed/_Cib8IO1-CU?autoplay=1&mute=1&loop=1&playlist=_Cib8IO1-CU&controls=0&modestbranding=1"
-            className="w-full h-[595.72px] pointer-events-none"
-            frameBorder="0"
-            scrolling="no"
-            allow="autoplay; encrypted-media; picture-in-picture"
-            allowFullScreen
+          <video
+            src="/videos/pick1.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-[595.72px] object-cover border-0"
           />
         </div>
       </div>
@@ -59,9 +59,9 @@ export function MainPage() {
         </div>
       </div>
 
-      {/* 4. MY PICK Section (Horizontal Scroll) */}
+      {/* 4. DAON'S PICK Section (Horizontal Scroll) */}
       <div className="mx-auto max-w-md pt-[23.99px] pb-20">
-        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">MY PICK</h2>
+        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">DAON'S PICK</h2>
 
         <div className="flex overflow-x-auto pb-4 gap-[12px] px-[19.99px] scrollbar-hide">
           {influencerProducts.map((product, index) => (
@@ -69,14 +69,14 @@ export function MainPage() {
               key={product.id}
               className="group flex flex-col flex-shrink-0 w-[162.03px]"
             >
-              <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-black shadow-sm border border-separator/20">
-                <iframe
-                  src={`https://www.youtube.com/embed/${MY_PICK_SHORTS[index % MY_PICK_SHORTS.length]}?autoplay=1&mute=1&loop=1&playlist=${MY_PICK_SHORTS[index % MY_PICK_SHORTS.length]}&controls=0&modestbranding=1`}
-                  className="w-full h-full pointer-events-none scale-150"
-                  frameBorder="0"
-                  scrolling="no"
-                  allow="autoplay; encrypted-media; picture-in-picture"
-                  allowFullScreen
+              <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-white border-0 shadow-sm">
+                <video
+                  src={LOCAL_PICKS[index % LOCAL_PICKS.length]}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover border-0"
                 />
               </div>
               <Link to={`/product/${product.id}`} className="px-0.5">
