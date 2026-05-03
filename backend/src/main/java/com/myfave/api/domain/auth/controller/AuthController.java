@@ -5,10 +5,12 @@ import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.PasswordResetSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.request.VerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.ReissueResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
+import com.myfave.api.domain.auth.dto.response.VerifyCodeResponse;
 import com.myfave.api.domain.auth.service.AuthService;
 import com.myfave.api.global.common.ApiResponse;
 import jakarta.validation.Valid;
@@ -55,5 +57,10 @@ public class AuthController {
     public ApiResponse<Void> sendPasswordResetCode(@Valid @RequestBody PasswordResetSendCodeRequest request) {
         authService.sendPasswordResetCode(request);
         return new ApiResponse<>(200, "인증코드가 이메일로 발송되었습니다.", null);
+    }
+
+    @PostMapping("/password-reset/verify-code")
+    public ApiResponse<VerifyCodeResponse> verifyCode(@Valid @RequestBody VerifyCodeRequest request) {
+        return new ApiResponse<>(200, "인증코드 확인 완료", authService.verifyCode(request));
     }
 }
