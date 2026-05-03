@@ -67,8 +67,21 @@ export function ProductDetailPage() {
         회원들만 결제가 가능한 쇼핑몰입니다.<br />
         결제하시려면 회원가입 또는 로그인을 진행해주세요.
       </Modal>
-      <div className="w-full h-[455px] bg-[#F8F8F8] overflow-hidden">
-        <img src={product.images[0]} alt={product.title} className="h-full w-full object-cover" />
+      <div className="relative w-full h-[455px] bg-[#F8F8F8]">
+        <div className="flex h-full w-full overflow-x-auto snap-x snap-mandatory scrollbar-hide">
+          {product.images.map((img, idx) => (
+            <div key={idx} className="h-full w-full flex-shrink-0 snap-center">
+              <img src={img} alt={`${product.title}-${idx}`} className="h-full w-full object-cover" />
+            </div>
+          ))}
+        </div>
+        {product.images.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {product.images.map((_, idx) => (
+              <div key={idx} className="w-1.5 h-1.5 rounded-full bg-black/20" />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="px-[19.99px] pt-[16px] pb-[32px]">
