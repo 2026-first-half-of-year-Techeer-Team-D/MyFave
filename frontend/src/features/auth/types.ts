@@ -9,3 +9,9 @@ export interface LoginResponse {
   userId: number
   nickname: string
 }
+
+export interface User {
+  id: number
+  email: string
+  nickname: string
+}

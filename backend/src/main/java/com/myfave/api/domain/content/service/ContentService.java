@@ -1,22 +1,31 @@
 package com.myfave.api.domain.content.service;
 
-import com.myfave.api.domain.content.repository.ShortFormRepository;
-import com.myfave.api.domain.content.repository.StyleFeedRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.myfave.api.domain.content.dto.request.ContentRegisterRequest;
 import com.myfave.api.domain.content.dto.response.ContentRegisterResponse;
+import com.myfave.api.domain.content.dto.response.ShortFormResponse;
+import com.myfave.api.domain.content.dto.response.StyleFeedResponse;
 import com.myfave.api.domain.content.entity.ShortForm;
 import com.myfave.api.domain.content.entity.ShortFormType;
 import com.myfave.api.domain.content.entity.StyleFeed;
+import com.myfave.api.domain.content.repository.ShortFormRepository;
+import com.myfave.api.domain.content.repository.StyleFeedRepository;
 import com.myfave.api.domain.product.entity.Product;
 import com.myfave.api.domain.product.repository.ProductRepository;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
 import com.myfave.api.global.util.S3UploadService;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +36,32 @@ public class ContentService {
     private final StyleFeedRepository styleFeedRepository;
     private final ProductRepository productRepository;
     private final S3UploadService s3UploadService;
+
+    // 9-1. 숏폼 목록 조회
+    public List<ShortFormResponse> getShortForms(ShortFormType type, int size) {
+        Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "shortFormId"));
+
+        List<ShortFormResponse> shortForms;
+
+        if (type != null) {
+            shortForms = shortFormRepository.findByDisplayType(type, pageable).stream()
+                    .map(ShortFormResponse::from)
+                    .toList();
+        } else {
+            shortForms = shortFormRepository.findAll(pageable).getContent().stream()
+                    .map(ShortFormResponse::from)
+                    .toList();
+        }
+
+        return shortForms;
+    }
+
+    // 9-2. 스타일 피드 목록 조회
+    public Page<StyleFeedResponse> getStyleFeeds(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "styleFeedId"));
+        return styleFeedRepository.findAll(pageable)
+                .map(StyleFeedResponse::from);
+    }
 
     // 9-3. 콘텐츠 등록
     @Transactional

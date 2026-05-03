@@ -1,10 +1,6 @@
 export function AboutPage() {
   return (
     <div className="flex-1">
-      <div className="border-b border-separator px-5 py-6">
-        <h1 className="font-noto text-xl font-bold text-dark-text">마이 페이브 소개</h1>
-      </div>
-
       <div className="space-y-6 px-5 py-8">
         <section>
           <h2 className="mb-3 font-noto text-lg font-bold text-dark-text">MY FAVE에 대해</h2>
