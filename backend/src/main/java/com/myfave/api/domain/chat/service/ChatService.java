@@ -3,6 +3,7 @@ package com.myfave.api.domain.chat.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myfave.api.domain.chat.dto.response.ChatHistoryResponse;
+import com.myfave.api.domain.chat.dto.response.ChatPreviewResponse;
 import com.myfave.api.domain.chat.dto.response.ChatRoomCloseResponse;
 import com.myfave.api.domain.chat.dto.response.ChatRoomInfoResponse;
 import com.myfave.api.domain.chat.entity.ChatRoom;
@@ -98,6 +99,40 @@ public class ChatService {
 
     List<StoredMessage> parseMessages(Long roomId, ZonedDateTime cursor) {
         List<String> rawMessages = chatMessageService.getHistory(roomId);
+        List<StoredMessage> result = new ArrayList<>();
+
+        for (String json : rawMessages) {
+            try {
+                StoredMessage msg = objectMapper.readValue(json, StoredMessage.class);
+                if (msg.getPayload() == null) continue;
+                if (!"NEW_MESSAGE".equals(msg.getType())) continue;
+                if (!msg.getPayload().getSentAt().isBefore(cursor)) continue;
+                result.add(msg);
+            } catch (JsonProcessingException e) {
+                log.warn("메시지 파싱 실패: {}", json);
+            }
+        }
+        return result;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    static class StoredMessage {
+        private String type;
+        private StoredPayload payload;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    static class StoredPayload {
+        private String messageId;
+        private Long userId;
+        private String nickname;
+        private String content;
+        private ZonedDateTime sentAt;
+    }
+}
+     List<String> rawMessages = chatMessageService.getHistory(roomId);
         List<StoredMessage> result = new ArrayList<>();
 
         for (String json : rawMessages) {
