@@ -3,27 +3,34 @@ import { Link } from 'react-router-dom'
 import { useInfluencerPicks } from '@/features/products/hooks'
 import { LiveChatPreview } from '@/shared/components/LiveChatPreview'
 
+const LOCAL_PICKS = [
+  '/videos/pick1.mp4',
+  '/videos/pick4.mp4',
+  '/videos/pick3.mp4',
+  '/videos/pick4.mp4',
+]
+
 export function MainPage() {
   const { data: influencerProducts } = useInfluencerPicks()
 
   return (
     <div className="flex-1 bg-white">
-      {/* 1. Instagram Reels Banner */}
+      {/* 1. Main Reels Banner */}
       <div className="mx-auto max-w-md px-[19.99px] pt-[18.01px] pb-[41.28px]">
-        <div className="relative overflow-hidden rounded-[16px] border-figma border-main-bg bg-black shadow-figma-card h-[635.72px]">
+        <div className="relative overflow-hidden rounded-[16px] bg-white border-0 shadow-figma-card h-[635.72px]">
           {/* Browser-like Header */}
-          <div className="flex h-[40px] items-center gap-[8px] bg-main-bg px-[12px]">
+          <div className="flex h-[40px] items-center gap-[8px] bg-main-bg px-[12px] border-0">
             <div className="h-[12px] w-[12px] rounded-full bg-[#FF5F57] shadow-sm" />
             <div className="h-[12px] w-[12px] rounded-full bg-[#FFBD2E] shadow-sm" />
             <div className="h-[12px] w-[12px] rounded-full bg-[#28C840] shadow-sm" />
           </div>
-          <iframe
-            src="https://www.instagram.com/reel/DXmDn2dCT9E/embed/"
-            className="w-full h-[595.72px]"
-            frameBorder="0"
-            scrolling="no"
-            allowTransparency={true}
-            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+          <video
+            src="/videos/pick1.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-[595.72px] object-cover border-0"
           />
         </div>
       </div>
@@ -52,34 +59,33 @@ export function MainPage() {
         </div>
       </div>
 
-      {/* 4. DAON’S PICK Section (Horizontal Scroll) */}
+      {/* 4. DAON'S PICK Section (Horizontal Scroll) */}
       <div className="mx-auto max-w-md pt-[23.99px] pb-20">
-        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">DAON’S PICK</h2>
+        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">DAON'S PICK</h2>
 
         <div className="flex overflow-x-auto pb-4 gap-[12px] px-[19.99px] scrollbar-hide">
-          {influencerProducts.map((product) => (
-            <Link
+          {influencerProducts.map((product, index) => (
+            <div
               key={product.id}
-              to={`/product/${product.id}`}
               className="group flex flex-col flex-shrink-0 w-[162.03px]"
             >
-              <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-black shadow-sm border border-separator/20">
-                <iframe
-                  src="https://www.instagram.com/reel/DXmDn2dCT9E/embed/"
-                  className="w-full h-full"
-                  frameBorder="0"
-                  scrolling="no"
-                  allowTransparency={true}
-                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+              <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-white border-0 shadow-sm">
+                <video
+                  src={LOCAL_PICKS[index % LOCAL_PICKS.length]}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover border-0"
                 />
               </div>
-              <div className="px-0.5">
+              <Link to={`/product/${product.id}`} className="px-0.5">
                 <h3 className="mb-0.5 h-9 font-noto text-[10px] font-normal text-dark-text line-clamp-2 leading-[18px] group-hover:text-point transition-colors tracking-tight whitespace-normal">
                   {product.title}
                 </h3>
                 <p className="font-noto text-[12px] font-medium text-point leading-[18px]">{product.price}</p>
-              </div>
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
       </div>

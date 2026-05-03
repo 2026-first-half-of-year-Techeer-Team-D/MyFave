@@ -58,6 +58,31 @@ const INITIAL_MESSAGES: Message[] = [
     avatarVariant: 7,
     timestamp: '오후 5:38',
   },
+  {
+    id: 5,
+    user: '바닐라라떼',
+    text: '쿠폰 적용 중복으로 되나요?',
+    avatarType: 'bear',
+    avatarVariant: 1,
+    timestamp: '오후 5:40',
+  },
+  {
+    id: 6,
+    user: 'My Fave 공식',
+    text: '아쉽게도 쿠폰은 1주문당 1개만 적용 가능합니다. 하지만 무료배송 혜택은 자동 적용되니 걱정 마세요! 😊',
+    avatarType: 'seller',
+    avatarVariant: 1,
+    isOfficial: true,
+    timestamp: '오후 5:41',
+  },
+  {
+    id: 7,
+    user: '포근한겨울',
+    text: '지난번 원피스 너무 잘 샀어요! 이번에도 기대중 ㅎㅎ',
+    avatarType: 'bear',
+    avatarVariant: 6,
+    timestamp: '오후 5:43',
+  },
 ]
 
 export function LiveChatPage() {
