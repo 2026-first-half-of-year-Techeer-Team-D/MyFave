@@ -35,7 +35,8 @@ public class SecurityConfig {
                                 "/auth/**",        // context-path(/api/v1) 제외한 경로로 매칭
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/ws/**"
+                                "/ws/**",
+                                "/chat-room/opentemp"
                         ).permitAll()
                         .anyRequest().permitAll()   // (JWT 인증 필요).anyRequest().authenticated() ㅣ (JWT 없이 모든 요청 허용) .anyRequest().permitAll()
                 )
