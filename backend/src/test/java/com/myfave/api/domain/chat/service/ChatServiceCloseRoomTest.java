@@ -9,6 +9,8 @@ import com.myfave.api.domain.chat.repository.ChatRoomRepository;
 import com.myfave.api.global.config.SessionRegistry;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
+import com.myfave.api.domain.user.repository.UserRepository;
+import com.myfave.api.domain.saleevent.repository.SaleEventRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,12 @@ class ChatServiceCloseRoomTest {
     @Mock
     private ChatMessageService chatMessageService;
 
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private SaleEventRepository saleEventRepository;
+
     private ChatService chatService;
 
     private static final Long INFLUENCER_ID = 1L;
@@ -45,7 +53,7 @@ class ChatServiceCloseRoomTest {
         ObjectMapper objectMapper = new ObjectMapper()
                 .registerModule(new JavaTimeModule())
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        chatService = new ChatService(chatRoomRepository, sessionRegistry, chatMessageService, objectMapper);
+        chatService = new ChatService(chatRoomRepository, sessionRegistry, chatMessageService, objectMapper, userRepository, saleEventRepository);
         ReflectionTestUtils.setField(chatService, "influencerUserId", INFLUENCER_ID);
     }
 

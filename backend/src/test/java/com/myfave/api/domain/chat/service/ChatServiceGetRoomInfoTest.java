@@ -6,6 +6,8 @@ import com.myfave.api.domain.chat.repository.ChatRoomRepository;
 import com.myfave.api.global.config.SessionRegistry;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
+import com.myfave.api.domain.user.repository.UserRepository;
+import com.myfave.api.domain.saleevent.repository.SaleEventRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

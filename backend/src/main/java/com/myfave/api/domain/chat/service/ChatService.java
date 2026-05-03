@@ -11,6 +11,10 @@ import com.myfave.api.domain.chat.repository.ChatRoomRepository;
 import com.myfave.api.global.config.SessionRegistry;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
+import com.myfave.api.domain.user.repository.UserRepository;
+import com.myfave.api.domain.user.entity.User;
+import com.myfave.api.domain.saleevent.repository.SaleEventRepository;
+import com.myfave.api.domain.saleevent.entity.SaleEvent;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +37,8 @@ public class ChatService {
     private final SessionRegistry sessionRegistry;
     private final ChatMessageService chatMessageService;
     private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
+    private final SaleEventRepository saleEventRepository;
 
     @Value("${influencer.user-id}")
     private Long influencerUserId;
@@ -102,6 +108,28 @@ public class ChatService {
         }
 
         return new ChatPreviewResponse(chatRoom.getIsActive(), participantCount, recentMessages);
+    }
+
+    @Transactional
+    public ChatRoomInfoResponse openTempRoom() {
+        chatRoomRepository.findByIsActiveTrue().ifPresent(chatRoom -> {
+            throw new CustomException(ErrorCode.COMMON_INVALID_INPUT);
+        });
+
+        User user = userRepository.findById(influencerUserId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        SaleEvent saleEvent = saleEventRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMON_INVALID_INPUT));
+
+        ChatRoom chatRoom = ChatRoom.builder()
+                .user(user)
+                .saleEvent(saleEvent)
+                .build();
+        
+        chatRoomRepository.save(chatRoom);
+        
+        return ChatRoomInfoResponse.from(chatRoom, 0);
     }
 
     @Transactional

@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -47,6 +48,11 @@ public class ChatController {
     public ResponseEntity<ApiResponse<ChatPreviewResponse>> getChatPreview(
             @RequestParam(defaultValue = "5") int size) {
         return ResponseEntity.ok(ApiResponse.ok(chatService.getChatPreview(size)));
+    }
+
+    @PostMapping("/opentemp")
+    public ResponseEntity<ApiResponse<ChatRoomInfoResponse>> openTempRoom() {
+        return ResponseEntity.ok(ApiResponse.ok(chatService.openTempRoom()));
     }
 
     @PatchMapping("/close")
