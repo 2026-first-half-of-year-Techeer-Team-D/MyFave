@@ -1,121 +1,142 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+
+import { useAuthStore } from '@/features/auth/store'
 import { Modal } from '@/shared/components/Modal'
 
 export function LoginPage() {
+  const navigate = useNavigate()
+  const login = useAuthStore((s) => s.login)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [autoLogin, setAutoLogin] = useState(false)
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  // TODO: useLogin 훅으로 대체 - auth API 연동
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    // 임시 에러 처리 시뮬레이션 - Figma Node 245:76 기준
+
     if (!email || !password) {
-      setErrorMessage('비밀번호가 일치하지 않습니다')
+      setErrorMessage('이메일과 비밀번호를 모두 입력해주세요')
       setIsErrorModalOpen(true)
       return
+    }
+
+    if (email === 'test@test.com' && password === 'password') {
+      login({
+        user: { id: 1, email: 'test@test.com', nickname: 'tester' },
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+      })
+      navigate('/')
+    } else {
+      setErrorMessage('이메일 또는 비밀번호가 일치하지 않습니다')
+      setIsErrorModalOpen(true)
     }
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white px-9">
-      <div className="w-full max-w-sm space-y-10">
-        {/* Logo */}
-        <div className="flex justify-center">
+    <div className="flex min-h-screen flex-col items-center bg-white">
+      {/* Container - Figma Node 98:92 */}
+      <div className="flex w-[320px] flex-col items-center pt-[96px] pb-10">
+        {/* Logo - Figma Node 284:69 */}
+        <div className="mb-[136px] h-[125px] w-[192px]">
           <img
-            src="https://api.builder.io/api/v1/image/assets/TEMP/0d5a3ee5b83044e745d0f73790e43411ae194727?width=384"
+            src="/logo.svg"
             alt="My Fave"
-            className="h-24 w-auto"
+            className="h-full w-full object-contain"
           />
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
+        {/* Form Container - Figma Node 98:91 */}
+        <form onSubmit={handleLogin} className="w-full space-y-[15px]">
+          {/* Input Stack - Figma Node 98:89 */}
           <div className="flex flex-col">
-            {/* Email input */}
-            <input
-              type="email"
-              placeholder="이메일"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-t-lg border border-[#BBB] bg-white px-4 py-3.5 font-noto text-sm text-dark-text placeholder:text-[#999] focus:z-10 focus:border-point focus:outline-none"
-            />
-
-            {/* Password input */}
-            <input
-              type="password"
-              placeholder="패스워드"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-[-1px] w-full rounded-b-lg border border-[#BBB] bg-white px-4 py-3.5 font-noto text-sm text-dark-text placeholder:text-[#999] focus:z-10 focus:border-point focus:outline-none"
-            />
+            {/* Email - Figma Node 98:87 */}
+            <div className="flex h-[43px] items-center rounded-t-[8px] border border-[#BBBBBB] bg-white px-[14px]">
+              <input
+                type="email"
+                placeholder="이메일"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-transparent font-noto text-[14px] font-medium text-[#322927] placeholder:text-[#999999] focus:outline-none"
+              />
+            </div>
+            {/* Password - Figma Node 98:88 */}
+            <div className="mt-[-1px] flex h-[43px] items-center rounded-b-[8px] border border-[#BBBBBB] bg-white px-[14px]">
+              <input
+                type="password"
+                placeholder="패스워드"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-transparent font-noto text-[14px] font-medium text-[#322927] placeholder:text-[#999999] focus:outline-none"
+              />
+            </div>
           </div>
 
-          {/* Login button */}
+          {/* Login Button - Figma Node 98:90 */}
           <button
             type="submit"
-            className="w-full rounded-[5px] bg-point py-3.5 font-noto text-base font-bold text-white shadow-lg shadow-point/20 transition-all hover:bg-[#ff7fa3] active:scale-[0.98]"
+            className="flex h-[43px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-medium text-white shadow-sm active:scale-[0.98] transition-transform"
           >
             로그인
           </button>
 
-          {/* Options */}
-          <div className="pt-2 space-y-4">
-            {/* Auto login */}
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="autoLogin"
-                checked={autoLogin}
-                onChange={(e) => setAutoLogin(e.target.checked)}
-                className="h-4 w-4 cursor-pointer rounded border-[#CFCFCF] text-point focus:ring-point"
-              />
+          {/* Demo Account Info - added for demonstration */}
+          <p className="text-center font-noto text-[12px] text-muted-text/80">
+            시연 계정: test@test.com / password
+          </p>
+
+          {/* Options & Links */}
+          <div className="space-y-[15px] pt-[2px]">
+            {/* Auto Login - Figma Node 148:180 */}
+            <div className="flex items-center gap-[8px]">
+              <div className="relative flex items-center h-[17px]">
+                <input
+                  type="checkbox"
+                  id="autoLogin"
+                  checked={autoLogin}
+                  onChange={(e) => setAutoLogin(e.target.checked)}
+                  className="h-[17px] w-[17px] cursor-pointer rounded-[4px] border border-[#CFCFCF] bg-white text-point focus:ring-0"
+                />
+              </div>
               <label
                 htmlFor="autoLogin"
-                className="cursor-pointer font-noto text-xs font-medium text-muted-text"
+                className="cursor-pointer font-noto text-[14px] font-medium leading-[18px] text-[#999999]"
               >
                 자동로그인
               </label>
             </div>
 
-            {/* Find links */}
-            <div className="flex items-center justify-center gap-6">
-              <Link
-                to="/find-id"
-                className="font-noto text-xs font-medium text-muted-text hover:underline underline-offset-2"
-              >
-                아이디찾기
-              </Link>
-              <span className="h-2.5 w-px bg-[#EEE]" />
-              <Link
-                to="/find-password"
-                className="font-noto text-xs font-medium text-muted-text hover:underline underline-offset-2"
-              >
-                비밀번호찾기
-              </Link>
-            </div>
+            {/* Bottom Links Row - Figma Node 98:86 */}
+            <div className="flex items-center justify-between">
+              {/* Find ID/PW - Figma Node 98:85 */}
+              <div className="flex items-center gap-[15px]">
+                <Link
+                  to="/find-id"
+                  className="font-noto text-[14px] font-medium text-[#999999] hover:text-[#322927] transition-colors"
+                >
+                  아이디찾기
+                </Link>
+                <div className="h-[10px] w-[1px] bg-[#EEEEEE]" />
+                <Link
+                  to="/find-password"
+                  className="font-noto text-[14px] font-medium text-[#999999] hover:text-[#322927] transition-colors"
+                >
+                  비밀번호찾기
+                </Link>
+              </div>
 
-            {/* Sign up */}
-            <div className="flex items-center justify-end gap-1 pt-2 group">
+              {/* Sign Up Link - Figma Node 98:84 */}
               <Link
                 to="/signup"
-                className="font-noto text-sm font-bold text-chat-font group-hover:underline underline-offset-2"
+                className="flex items-center gap-[4px] group"
               >
-                회원가입
+                <span className="font-noto text-[14px] font-bold text-chat-font group-hover:underline decoration-chat-font/30">회원가입</span>
+                <svg width="5" height="8" viewBox="0 0 5 8" fill="none" className="transition-transform group-hover:translate-x-0.5">
+                  <path d="M1 1L4 4L1 7" stroke="#CF879B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </Link>
-              <svg width="6" height="10" viewBox="0 0 6 10" fill="none" className="group-hover:translate-x-0.5 transition-transform">
-                <path
-                  d="M1 1L5 5L1 9"
-                  stroke="currentColor"
-                  className="text-chat-font"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
             </div>
           </div>
         </form>
@@ -126,7 +147,7 @@ export function LoginPage() {
         onClose={() => setIsErrorModalOpen(false)}
         buttonText="확인"
       >
-        {errorMessage}
+        <p className="font-noto text-[14px] text-[#322927] text-center">{errorMessage}</p>
       </Modal>
     </div>
   )

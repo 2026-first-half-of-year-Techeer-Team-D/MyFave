@@ -5,6 +5,14 @@ import com.myfave.api.domain.content.repository.StyleFeedRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import com.myfave.api.domain.content.dto.response.ShortFormResponse;
+import com.myfave.api.domain.content.entity.ShortFormType;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -13,4 +21,23 @@ public class ContentService {
 
     private final ShortFormRepository shortFormRepository;
     private final StyleFeedRepository styleFeedRepository;
+
+    // 9-1. 숏폼 목록 조회
+    public List<ShortFormResponse> getShortForms(ShortFormType type, int size) {
+        Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "shortFormId"));
+
+        List<ShortFormResponse> shortForms;
+
+        if (type != null) {
+            shortForms = shortFormRepository.findByDisplayType(type, pageable).stream()
+                    .map(ShortFormResponse::from)
+                    .toList();
+        } else {
+            shortForms = shortFormRepository.findAll(pageable).getContent().stream()
+                    .map(ShortFormResponse::from)
+                    .toList();
+        }
+
+        return shortForms;
+    }
 }

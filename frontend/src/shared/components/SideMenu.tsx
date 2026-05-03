@@ -1,5 +1,8 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+
+import { useIsAuthenticated } from '@/features/auth/hooks'
+import { Modal } from '@/shared/components/Modal'
 
 interface SideMenuProps {
   isOpen: boolean
@@ -7,11 +10,36 @@ interface SideMenuProps {
 }
 
 export function SideMenu({ isOpen, onClose }: SideMenuProps) {
+  const navigate = useNavigate()
+  const isAuthenticated = useIsAuthenticated()
   const [shopOpen, setShopOpen] = useState(true)
   const [communityOpen, setCommunityOpen] = useState(true)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+
+  const handleProtectedNavigation = (path: string) => {
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true)
+      return
+    }
+    onClose()
+    navigate(path)
+  }
 
   return (
     <>
+      <Modal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        buttonText="확인"
+        onButtonClick={() => {
+          setIsAuthModalOpen(false)
+          onClose()
+          navigate('/login')
+        }}
+      >
+        로그인 시에만 이용이 가능합니다.
+      </Modal>
+      
       {/* Overlay */}
       {isOpen && (
         <div 
@@ -30,7 +58,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
         <div className="flex h-16 items-center justify-between border-b border-separator px-5">
           <Link to="/" onClick={onClose} className="flex items-center">
             <img
-              src="https://api.builder.io/api/v1/image/assets/TEMP/4365f9105d58ff126ad032631f85a3a4610ef3f2?width=100"
+              src="/logo.svg"
               alt="My Fave"
               className="h-8 w-auto"
             />
@@ -56,7 +84,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
               onClick={onClose}
               className="flex items-center px-6 py-4 transition-colors hover:bg-footer-bg active:bg-separator/30"
             >
-              <span className="font-lexend text-base font-black tracking-wider text-dark-text">HOME</span>
+              <span className="font-noto text-[18px] font-medium leading-[27px] text-dark-text">HOME</span>
             </Link>
 
             {/* SHOP */}
@@ -129,7 +157,6 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
                     { label: '마이 페이브 소개', path: '/about' },
                     { label: '공지사항', path: '/notice' },
                     { label: '자주 묻는 질문', path: '/faq' },
-                    { label: '1:1 문의', path: '/inquiry' },
                   ].map((item) => (
                     <Link
                       key={item.label}
@@ -140,27 +167,34 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
                       {item.label}
                     </Link>
                   ))}
+                  <a
+                    href="https://www.instagram.com/direct/inbox/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={onClose}
+                    className="block px-10 py-3 font-noto text-[15px] font-medium text-dark-text/70 transition-colors hover:text-point active:translate-x-1"
+                  >
+                    1:1 문의
+                  </a>
                 </div>
               )}
             </div>
 
             {/* MY PAGE */}
-            <Link
-              to="/mypage"
-              onClick={onClose}
-              className="flex items-center border-b-[1.1px] border-separator px-5 py-4 transition-colors hover:bg-footer-bg"
+            <button
+              onClick={() => handleProtectedNavigation('/mypage')}
+              className="flex w-full items-center border-b-[1.1px] border-separator px-5 py-4 transition-colors hover:bg-footer-bg"
             >
               <span className="font-noto text-[18px] font-medium leading-[27px] text-dark-text">MY PAGE</span>
-            </Link>
+            </button>
 
             {/* ORDER */}
-            <Link
-              to="/orders"
-              onClick={onClose}
-              className="flex items-center border-b-[1.1px] border-separator px-5 py-4 transition-colors hover:bg-footer-bg"
+            <button
+              onClick={() => handleProtectedNavigation('/orders')}
+              className="flex w-full items-center border-b-[1.1px] border-separator px-5 py-4 transition-colors hover:bg-footer-bg"
             >
               <span className="font-noto text-[18px] font-medium leading-[27px] text-dark-text">ORDER</span>
-            </Link>
+            </button>
           </div>
         </div>
 
