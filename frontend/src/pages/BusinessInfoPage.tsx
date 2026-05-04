@@ -5,12 +5,12 @@ export function BusinessInfoPage() {
         <table className="w-full font-noto text-sm">
           <tbody className="divide-y divide-separator/40">
             {[
-              { label: '상호명', value: 'MY FAVE' },
-              { label: '대표자', value: '(주)마이페이브' },
-              { label: '사업자등록번호', value: '000-00-00000' },
-              { label: '통신판매업신고번호', value: '제 0000-서울00-0000호' },
-              { label: '주소', value: '서울특별시 00구 00로 000' },
-              { label: '이메일', value: 'info@myfave.kr' },
+              { label: '상호명', value: '마이페이브(MyFave)' },
+              { label: '대표자', value: '이현영' },
+              { label: '사업자등록번호', value: '658-47-01216' },
+              { label: '통신판매업신고번호', value: '제 2026-인천부평-0795' },
+              { label: '주소', value: '인천광역시 부평구 산청로97' },
+              { label: '이메일', value: 'team.myfave@gmail.com' },
               { label: '고객센터', value: '평일 11:00 ~ 18:00' },
             ].map(({ label, value }) => (
               <tr key={label}>
