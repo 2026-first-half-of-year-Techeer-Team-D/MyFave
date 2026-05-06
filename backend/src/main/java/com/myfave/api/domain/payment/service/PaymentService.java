@@ -137,12 +137,15 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_INVALID_STATUS);
         }
 
+        // PortOne API 조회
         PortOnePaymentInfo pgInfo = paymentProvider.getPaymentInfo(request.getPgTransactionId());
 
         int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(payment.getPaymentId()) + 1;
 
+        // 금액 불일치 또는 PG 결제 실패
         if (!"PAID".equals(pgInfo.status()) || pgInfo.totalAmount() != payment.getTotalPaymentPrice()) {
             if ("PAID".equals(pgInfo.status())) {
+                // 금액 불일치 → 자동 환불
                 paymentProvider.cancelPayment(pgInfo.pgTransactionId(), pgInfo.totalAmount(), "금액 불일치 자동 환불");
             }
             String failReason = "PG상태: " + pgInfo.status() +
@@ -153,6 +156,7 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
+        // 금액 일치 → 결제 완료
         payment.authorize(pgInfo.pgTransactionId());
         payment.complete(pgInfo.receiptUrl(), pgInfo.paidAt());
         payment.getOrder().completePay(payment);
@@ -166,18 +170,6 @@ public class PaymentService {
 
         saveAttempt(payment, attemptNo, PaymentStatus.COMPLETED, pgInfo.pgTransactionId(), null);
         log.info("[Payment] 결제 완료: paymentId={}, orderId={}", payment.getPaymentId(), payment.getOrder().getOrderId());
-
-        return PaymentResponse.from(payment);
-    }
-
-    // ── 결제 조회 ────────────────────────────────────────────────────────────────
-    public PaymentResponse getPayment(Long userId, Long paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
-
-        if (!payment.getOrder().getUser().getUserId().equals(userId)) {
-            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
-        }
 
         return PaymentResponse.from(payment);
     }

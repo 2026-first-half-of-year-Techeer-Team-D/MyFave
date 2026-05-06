@@ -68,22 +68,6 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.ok(paymentService.confirmPayment(userId, request)));
     }
 
-    @Operation(summary = "결제 단건 조회",
-            description = "paymentId로 결제 정보를 조회합니다.")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 결제 정보 아님"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "결제 정보 없음")
-    })
-    @GetMapping("/{paymentId}")
-    public ResponseEntity<ApiResponse<PaymentResponse>> getPayment(
-            @AuthenticationPrincipal Long userId,
-            @PathVariable Long paymentId) {
-
-        return ResponseEntity.ok(ApiResponse.ok(paymentService.getPayment(userId, paymentId)));
-    }
-
     @Operation(summary = "PortOne 웹훅 수신",
             description = "PortOne에서 발송하는 결제 이벤트 웹훅을 처리합니다. HMAC-SHA256 서명을 검증합니다.")
     @ApiResponses({

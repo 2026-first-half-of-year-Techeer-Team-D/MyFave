@@ -10,7 +10,7 @@ public class PaymentWebhookRequest {
 
     @Getter
     public static class WebhookData {
-        private String paymentId;
+        private String paymentId;      // PortOne pgTransactionId
         private String transactionId;
     }
 }
