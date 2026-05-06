@@ -10,7 +10,6 @@ import com.myfave.api.domain.order.entity.OrderItem;
 import com.myfave.api.domain.order.entity.OrderStatus;
 import com.myfave.api.domain.order.repository.OrderItemRepository;
 import com.myfave.api.domain.order.repository.OrderRepository;
-import com.myfave.api.domain.payment.dto.request.PaymentCancelRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentConfirmRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentPrepareRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentWebhookRequest;
@@ -180,46 +179,6 @@ public class PaymentService {
             throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
         }
 
-        return PaymentResponse.from(payment);
-    }
-
-    // ── 결제 취소 ────────────────────────────────────────────────────────────────
-    @Transactional
-    public PaymentResponse cancelPayment(Long userId, Long paymentId, PaymentCancelRequest request) {
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
-
-        if (!payment.getOrder().getUser().getUserId().equals(userId)) {
-            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
-        }
-
-        if (payment.getPaymentStatus() != PaymentStatus.COMPLETED &&
-            payment.getPaymentStatus() != PaymentStatus.PARTIAL_CANCELLED) {
-            throw new CustomException(ErrorCode.PAYMENT_INVALID_STATUS);
-        }
-
-        int cancelAmount = request.getRefundAmount() != null
-                ? request.getRefundAmount()
-                : payment.getTotalPaymentPrice() - payment.getRefundedAmount();
-
-        paymentProvider.cancelPayment(payment.getPgTransactionId(), cancelAmount, request.getReason());
-
-        boolean isFullCancel = (payment.getRefundedAmount() + cancelAmount) >= payment.getTotalPaymentPrice();
-        if (isFullCancel) {
-            payment.cancel();
-            payment.getOrder().cancel();
-
-            if (payment.getDiscountCoupon() != null) {
-                couponService.restoreCoupon(payment.getDiscountCoupon().getCouponId(), userId);
-            }
-            if (payment.getShippingCoupon() != null) {
-                couponService.restoreCoupon(payment.getShippingCoupon().getCouponId(), userId);
-            }
-        } else {
-            payment.partialCancel(cancelAmount);
-        }
-
-        log.info("[Payment] 결제 취소: paymentId={}, cancelAmount={}, full={}", paymentId, cancelAmount, isFullCancel);
         return PaymentResponse.from(payment);
     }
 
