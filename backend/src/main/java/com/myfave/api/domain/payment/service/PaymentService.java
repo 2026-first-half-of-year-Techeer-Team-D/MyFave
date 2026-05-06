@@ -39,6 +39,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Base64;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -82,12 +83,9 @@ public class PaymentService {
             throw new CustomException(ErrorCode.ORDER_INVALID_STATUS);
         }
 
-        paymentRepository.findByOrder(order).ifPresent(existing -> {
-            if (existing.getPaymentStatus() != PaymentStatus.FAILED &&
-                existing.getPaymentStatus() != PaymentStatus.CANCELLED) {
-                throw new CustomException(ErrorCode.PAYMENT_ALREADY_DONE);
-            }
-        });
+        paymentRepository.findByOrderAndPaymentStatusNotIn(
+                order, EnumSet.of(PaymentStatus.FAILED, PaymentStatus.CANCELLED))
+                .ifPresent(existing -> { throw new CustomException(ErrorCode.PAYMENT_ALREADY_DONE); });
 
         Coupon discountCoupon = validateCoupon(request.getDiscountCouponId(), CouponType.DISCOUNT, user);
         Coupon shippingCoupon = validateCoupon(request.getShippingCouponId(), CouponType.SHIPPING, user);
