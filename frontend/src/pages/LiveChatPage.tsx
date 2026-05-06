@@ -52,7 +52,7 @@ function InactiveRoomScreen() {
 
 export function LiveChatPage() {
   const { data: roomInfo, isLoading: isRoomLoading, isError: isRoomError } = useChatRoomInfo()
-  const { data: historyData } = useChatMessageHistory(roomInfo?.isActive === true)
+  const { data: historyData } = useChatMessageHistory(roomInfo?.isActive === true, roomInfo?.id)
 
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
@@ -64,6 +64,7 @@ export function LiveChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const stompClient = useRef<Client | null>(null)
   const lastSendTimeRef = useRef<number>(0)
+  const historyAppliedRef = useRef(false)
 
   useEffect(() => {
     if (roomInfo?.participantCount != null) {
@@ -72,7 +73,8 @@ export function LiveChatPage() {
   }, [roomInfo?.participantCount])
 
   useEffect(() => {
-    if (!historyData?.messages.length) return
+    if (historyAppliedRef.current || !historyData?.messages.length) return
+    historyAppliedRef.current = true
     setMessages(historyData.messages.map(historyToMessage))
   }, [historyData])
 
@@ -141,14 +143,16 @@ export function LiveChatPage() {
       client.onDisconnect = () => setIsConnected(false)
       client.onStompError = () => setIsConnected(false)
 
-      client.activate()
       stompClient.current = client
+      client.activate()
     } catch {
       // WS unavailable — fallback to local-only mode
     }
 
     return () => {
-      stompClient.current?.deactivate()
+      const c = stompClient.current
+      stompClient.current = null
+      c?.deactivate()
     }
   }, [roomInfo?.id, roomInfo?.isActive])
 
@@ -172,6 +176,8 @@ export function LiveChatPage() {
           destination: `/app/chat/${roomInfo.id}`,
           body: JSON.stringify({ type: 'SEND_MESSAGE', payload: { content: inputText } }),
         })
+        setIsCooldown(true)
+        setTimeout(() => setIsCooldown(false), THROTTLE_MS)
       } else {
         const newMessage: Message = {
           id: Date.now(),
@@ -185,8 +191,6 @@ export function LiveChatPage() {
       }
 
       setInputText('')
-      setIsCooldown(true)
-      setTimeout(() => setIsCooldown(false), THROTTLE_MS)
     },
     [inputText, isRoomClosed, roomInfo?.id],
   )

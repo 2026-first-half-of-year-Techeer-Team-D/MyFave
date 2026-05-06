@@ -1,6 +1,7 @@
 package com.myfave.api.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -13,6 +14,9 @@ import java.util.List;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    @Value("${cors.allowed-origins}")
+    private String[] allowedOrigins;
 
     // Swagger UI가 multipart 요청 시 JSON 파트를 octet-stream으로 보내는 문제 해결
     @Override
@@ -27,7 +31,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("*")
+                .allowedOriginPatterns(allowedOrigins)
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)

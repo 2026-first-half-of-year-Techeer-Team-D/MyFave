@@ -1,6 +1,7 @@
 package com.myfave.api.global.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -16,6 +17,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
     private final JwtChannelInterceptor jwtChannelInterceptor;
 
+    @Value("${cors.allowed-origins}")
+    private String[] allowedOrigins;
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic", "/queue");
@@ -28,12 +32,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 // TODO: 테스트 후 인터셉터 활성화
                 // .addInterceptors(jwtHandshakeInterceptor)
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns(allowedOrigins)
                 .withSockJS();
-
-        // TODO: 테스트 전용 — 배포 전 제거
-        registry.addEndpoint("/ws-test")
-                .setAllowedOriginPatterns("*");
     }
 
     @Override

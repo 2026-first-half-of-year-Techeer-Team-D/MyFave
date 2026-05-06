@@ -10,11 +10,11 @@ export function useChatRoomInfo() {
   })
 }
 
-export function useChatMessageHistory(enabled: boolean, size = 50) {
+export function useChatMessageHistory(enabled: boolean, roomId: number | undefined, size = 50) {
   return useQuery({
-    queryKey: ['chat', 'history', size],
+    queryKey: ['chat', 'history', roomId, size],
     queryFn: () => chatApi.getMessageHistory(size),
-    enabled,
+    enabled: enabled && roomId != null,
     staleTime: Infinity,
     retry: false,
   })

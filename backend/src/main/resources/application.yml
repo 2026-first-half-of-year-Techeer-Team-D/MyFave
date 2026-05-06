@@ -20,6 +20,10 @@ server:
 influencer:
   user-id: 1
 
+# CORS 허용 출처 (로컬 개발 기본값)
+cors:
+  allowed-origins: http://localhost:5173,http://localhost:3000
+
 # JWT 설정
 jwt:
   secret: ${JWT_SECRET:local-dev-jwt-secret-key-must-be-at-least-256-bits-long-here}
