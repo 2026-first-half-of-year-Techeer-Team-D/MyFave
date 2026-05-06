@@ -7,6 +7,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 @Slf4j
 @RestControllerAdvice
@@ -36,6 +37,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(405)
                 .body(ApiResponse.error(ErrorCode.COMMON_METHOD_NOT_ALLOWED));
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMissingServletRequestPart(MissingServletRequestPartException e) {
+        return ResponseEntity
+                .status(400)
+                .body(new ApiResponse<>(400, "필수 파일 파라미터가 누락되었습니다.", null));
     }
 
     @ExceptionHandler(Exception.class)
