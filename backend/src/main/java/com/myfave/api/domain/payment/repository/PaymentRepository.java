@@ -6,12 +6,14 @@ import com.myfave.api.domain.payment.entity.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
-    Optional<Payment> findByOrder(Order order);
+    // FAILED/CANCELLED를 제외한 활성 결제 조회 (중복 결제 준비 방지)
+    Optional<Payment> findByOrderAndPaymentStatusNotIn(Order order, Collection<PaymentStatus> statuses);
 
     Optional<Payment> findByPgTransactionId(String pgTransactionId);
 
