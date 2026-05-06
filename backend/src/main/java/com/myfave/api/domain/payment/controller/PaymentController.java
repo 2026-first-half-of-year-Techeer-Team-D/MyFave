@@ -65,9 +65,7 @@ public class PaymentController {
             @AuthenticationPrincipal Long userId,
             @RequestBody @Valid PaymentConfirmRequest request) {
 
-        return ResponseEntity.ok(
-                ApiResponse.ok("결제가 승인되었습니다.",
-                        paymentService.confirmPayment(userId, request)));
+        return ResponseEntity.ok(ApiResponse.ok(paymentService.confirmPayment(userId, request)));
     }
 
     @Operation(summary = "PortOne 웹훅 수신",
@@ -86,6 +84,6 @@ public class PaymentController {
         PaymentWebhookRequest request = objectMapper.readValue(rawBody, PaymentWebhookRequest.class);
         paymentService.processWebhook(webhookId, timestamp, signature, rawBody, request);
 
-        return ResponseEntity.ok(ApiResponse.ok("웹훅 처리 완료", null));
+        return ResponseEntity.ok(ApiResponse.ok("웹훅 처리 완료"));
     }
 }
