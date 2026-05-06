@@ -20,14 +20,13 @@ import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -35,14 +34,12 @@ import java.util.concurrent.TimeUnit;
 public class PaymentService {
 
     private static final int DELIVERY_FEE = 3000;
-    private static final String PAYMENT_LOCK_PREFIX = "payment:lock:order:";
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final CouponRepository couponRepository;
     private final UserRepository userRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
 
     @Value("${portone.channel-key}")
     private String channelKey;
@@ -55,6 +52,10 @@ public class PaymentService {
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
+        if (!order.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
         if (order.getOrderStatus() != OrderStatus.PENDING) {
             throw new CustomException(ErrorCode.ORDER_INVALID_STATUS);
         }
@@ -66,46 +67,39 @@ public class PaymentService {
             }
         });
 
-        String lockKey = PAYMENT_LOCK_PREFIX + order.getOrderId();
-        Boolean acquired = redisTemplate.opsForValue()
-                .setIfAbsent(lockKey, userId.toString(), 30, TimeUnit.SECONDS);
-        if (Boolean.FALSE.equals(acquired)) {
+        Coupon discountCoupon = validateCoupon(request.getDiscountCouponId(), CouponType.DISCOUNT, user);
+        Coupon shippingCoupon = validateCoupon(request.getShippingCouponId(), CouponType.SHIPPING, user);
+
+        List<OrderItem> items = orderItemRepository.findByOrder(order);
+        int totalProductPrice = items.stream().mapToInt(OrderItem::getPrice).sum();
+        int deliveryFee = shippingCoupon != null ? 0 : DELIVERY_FEE;
+        int discountPrice = discountCoupon != null
+                ? discountCoupon.getCouponMaster().getDiscountPrice()
+                : 0;
+        int totalPaymentPrice = totalProductPrice + deliveryFee - discountPrice;
+
+        String idempotencyKey = UUID.randomUUID().toString();
+
+        Payment payment = Payment.builder()
+                .order(order)
+                .discountCoupon(discountCoupon)
+                .shippingCoupon(shippingCoupon)
+                .idempotencyKey(idempotencyKey)
+                .pgProvider("PORTONE")
+                .paymentMethod(request.getPaymentMethod())
+                .totalProductPrice(totalProductPrice)
+                .deliveryFee(deliveryFee)
+                .discountPrice(discountPrice)
+                .totalPaymentPrice(totalPaymentPrice)
+                .build();
+
+        try {
+            paymentRepository.save(payment);
+        } catch (OptimisticLockingFailureException e) {
             throw new CustomException(ErrorCode.PAYMENT_LOCK_CONFLICT);
         }
 
-        try {
-            Coupon discountCoupon = validateCoupon(request.getDiscountCouponId(), CouponType.DISCOUNT, user);
-            Coupon shippingCoupon = validateCoupon(request.getShippingCouponId(), CouponType.SHIPPING, user);
-
-            List<OrderItem> items = orderItemRepository.findByOrder(order);
-            int totalProductPrice = items.stream().mapToInt(OrderItem::getPrice).sum();
-            int deliveryFee = shippingCoupon != null ? 0 : DELIVERY_FEE;
-            int discountPrice = discountCoupon != null
-                    ? discountCoupon.getCouponMaster().getDiscountPrice()
-                    : 0;
-            int totalPaymentPrice = totalProductPrice + deliveryFee - discountPrice;
-
-            String idempotencyKey = UUID.randomUUID().toString();
-
-            Payment payment = Payment.builder()
-                    .order(order)
-                    .discountCoupon(discountCoupon)
-                    .shippingCoupon(shippingCoupon)
-                    .idempotencyKey(idempotencyKey)
-                    .pgProvider("PORTONE")
-                    .paymentMethod(request.getPaymentMethod())
-                    .totalProductPrice(totalProductPrice)
-                    .deliveryFee(deliveryFee)
-                    .discountPrice(discountPrice)
-                    .totalPaymentPrice(totalPaymentPrice)
-                    .build();
-
-            paymentRepository.save(payment);
-
-            return PaymentPrepareResponse.of(payment, channelKey);
-        } finally {
-            redisTemplate.delete(lockKey);
-        }
+        return PaymentPrepareResponse.of(payment, channelKey);
     }
 
     private Coupon validateCoupon(Long couponId, CouponType expectedType, User user) {
