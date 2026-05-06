@@ -5,16 +5,25 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.myfave.api.domain.content.dto.request.ContentRegisterRequest;
+import com.myfave.api.domain.content.dto.response.ContentRegisterResponse;
 import com.myfave.api.domain.content.dto.response.StyleFeedResponse;
 import com.myfave.api.domain.content.dto.response.ShortFormResponse;
 import com.myfave.api.domain.content.entity.ShortFormType;
-import org.springframework.data.domain.Page;
 import com.myfave.api.global.common.ApiResponse;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -42,5 +51,17 @@ public class ContentController {
             @Min(1) @RequestParam(defaultValue = "12") int size) {
         Page<StyleFeedResponse> response = contentService.getStyleFeeds(page, size);
         return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    // 9-3. 콘텐츠 등록 (Influencer)
+    @PostMapping
+    public ResponseEntity<ApiResponse<ContentRegisterResponse>> registerContent(
+            @Valid @ModelAttribute ContentRegisterRequest request,
+            @RequestParam("mediaFile") MultipartFile mediaFile,
+            @RequestParam(value = "thumbnailFile", required = false) MultipartFile thumbnailFile) {
+
+        ContentRegisterResponse response = contentService.registerContent(request, mediaFile, thumbnailFile);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created("콘텐츠가 등록되었습니다.", response));
     }
 }
