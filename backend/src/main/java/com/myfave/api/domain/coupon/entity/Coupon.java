@@ -48,6 +48,10 @@ public class Coupon extends BaseEntity {
         this.status = CouponStatus.USED;
     }
 
+    public void restore() {
+        this.status = CouponStatus.AVAILABLE;
+    }
+
     public void expire() {
         this.status = CouponStatus.EXPIRED;
     }

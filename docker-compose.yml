@@ -12,6 +12,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/myfave
       SPRING_DATA_REDIS_HOST: redis
       JWT_SECRET: ${JWT_SECRET:-myfave-dev-secret-key-minimum-32-characters-long}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy

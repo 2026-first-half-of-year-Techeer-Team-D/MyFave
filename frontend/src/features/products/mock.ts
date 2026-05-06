@@ -1,0 +1,228 @@
+import type { InfluencerPick, Product, ProductDetail } from './types'
+
+export const PRODUCTS: Product[] = [
+  {
+    id: 1,
+    title: '원오프 넘버링 티셔츠',
+    image: '/images/products/top1_1.jpg',
+    price: '29,000원',
+  },
+  {
+    id: 2,
+    title: '스트라이프 카디건',
+    image: '/images/products/top2_1.jpg',
+    price: '32,000원',
+  },
+  {
+    id: 3,
+    title: '오프숄더 리본 니트',
+    image: '/images/products/top3_1.jpg',
+    price: '35,000원',
+  },
+  {
+    id: 4,
+    title: '스카이 골지 카디건',
+    image: '/images/products/top4_1.jpg',
+    price: '28,000원',
+  },
+  {
+    id: 5,
+    title: '살구 핑크 레이어드 셔츠',
+    image: '/images/products/top5_1.jpg',
+    price: '38,000원',
+  },
+  {
+    id: 6,
+    title: '배색 스트라이프 니트 카디건',
+    image: '/images/products/top6_1.jpg',
+    price: '42,000원',
+  },
+  {
+    id: 7,
+    title: '브라운 무스탕 자켓',
+    image: '/images/products/outer1_1.jpg',
+    price: '89,000원',
+  },
+  {
+    id: 8,
+    title: '블랙 퍼 카라 레더 자켓',
+    image: '/images/products/outer2_1.jpg',
+    price: '75,000원',
+  },
+  {
+    id: 9,
+    title: '플라워 롱스커트',
+    image: '/images/products/bottom1_1.jpg',
+    price: '45,000원',
+  },
+  {
+    id: 10,
+    title: '셔링 롱스커트',
+    image: '/images/products/bottom2_1.jpg',
+    price: '43,000원',
+  },
+]
+
+export const PRODUCT_DETAILS: Record<number, ProductDetail> = {
+  1: {
+    id: 1,
+    title: '원오프 넘버링 티셔츠',
+    subtitle: '한쪽 어깨가 시원하게 드러나는 오프숄더 디자인의 화이트 긴팔 티셔츠예요.',
+    price: '29,000원',
+    priceNumber: 29000,
+    images: ['/images/products/top1_1.jpg', '/images/products/top1_2.jpg'],
+    features: [
+      { title: '디테일', description: '빈티지한 넘버링 프린트 포인트' },
+      { title: '특징', description: '데일리룩 완성도' },
+      { title: '상태', description: '미착용 (피팅만)' },
+    ],
+  },
+  2: {
+    id: 2,
+    title: '스트라이프 카디건',
+    subtitle: '부드러운 촉감의 그레이 톤 스트라이프 카디건이에요.',
+    price: '32,000원',
+    priceNumber: 32000,
+    images: ['/images/products/top2_1.jpg', '/images/products/top2_2.jpg'],
+    features: [
+      { title: '디자인', description: '세련된 투톤 그레이 스트라이프' },
+      { title: '매치', description: '어떤 하의에도 무난한 매치' },
+      { title: '상태', description: '미착용 (피팅만)' },
+    ],
+  },
+  3: {
+    id: 3,
+    title: '오프숄더 리본 니트',
+    subtitle: '과하지 않은 레드 컬러에 어깨 리본 디자인이 사랑스러운 니트예요.',
+    price: '35,000원',
+    priceNumber: 35000,
+    images: ['/images/products/top3_1.jpg', '/images/products/top3_2.jpg'],
+    features: [
+      { title: '디자인', description: '어깨 리본 포인트 디자인' },
+      { title: '핏', description: '허리라인 포인트로 라인 강조' },
+      { title: '상태', description: '착용 1번' },
+    ],
+  },
+  4: {
+    id: 4,
+    title: '스카이 골지 카디건',
+    subtitle: '봄·여름 분위기에 딱 맞는 슬림핏 골지 카디건이에요.',
+    price: '28,000원',
+    priceNumber: 28000,
+    images: ['/images/products/top4_1.jpg'],
+    features: [
+      { title: '소재', description: '슬림핏 세로 골지 패턴' },
+      { title: '활용도', description: '단독 혹은 이너로 활용 가능' },
+      { title: '상태', description: '착용 1번' },
+    ],
+  },
+  5: {
+    id: 5,
+    title: '살구 핑크 레이어드 셔츠',
+    subtitle: '은은한 살구빛 핑크 컬러의 레이어드 셔츠예요.',
+    price: '38,000원',
+    priceNumber: 38000,
+    images: ['/images/products/top5_1.jpg', '/images/products/top5_2.jpg'],
+    features: [
+      { title: '디테일', description: '센스있는 레이어드 디테일' },
+      { title: '소재', description: '봄~초여름 가벼운 소재' },
+      { title: '상태', description: '미착용 (피팅만)' },
+    ],
+  },
+  6: {
+    id: 6,
+    title: '배색 스트라이프 니트 카디건',
+    subtitle: '클래식한 마린룩 무드의 아이보리 블랙 스트라이프 카디건이에요.',
+    price: '42,000원',
+    priceNumber: 42000,
+    images: ['/images/products/top6_1.jpg'],
+    features: [
+      { title: '핏', description: '편안한 오버핏 실루엣' },
+      { title: '활용도', description: '사계절 베이직 아이템' },
+      { title: '상태', description: '미착용 (피팅만)' },
+    ],
+  },
+  7: {
+    id: 7,
+    title: '브라운 무스탕 자켓',
+    subtitle: '포근한 안감과 브라운 외피가 조화로운 무스탕 자켓이에요.',
+    price: '89,000원',
+    priceNumber: 89000,
+    images: ['/images/products/outer1_1.jpg', '/images/products/outer1_2.jpg'],
+    features: [
+      { title: '보온성', description: '풍성한 무스탕 안감 처리' },
+      { title: '스타일', description: '빈티지한 겨울 코디' },
+      { title: '상태', description: '착용 1번' },
+    ],
+  },
+  8: {
+    id: 8,
+    title: '블랙 퍼 카라 레더 자켓',
+    subtitle: '탈부착 가능한 화이트 퍼 카라가 포인트인 블랙 레더 자켓이에요.',
+    price: '75,000원',
+    priceNumber: 75000,
+    images: ['/images/products/outer2_1.jpg', '/images/products/outer2_2.jpg'],
+    features: [
+      { title: '활용도', description: '휘뚤마뚤 데일리 가죽 자켓' },
+      { title: '카라', description: '탈부착 가능한 퍼 카라' },
+      { title: '상태', description: '미착용 (피팅만)' },
+    ],
+  },
+  9: {
+    id: 9,
+    title: '플라워 롱스커트',
+    subtitle: '은은하게 비치는 시스루 소재에 플라워 자카드 패턴이 입체적으로 들어간 롱스커트예요.',
+    price: '45,000원',
+    priceNumber: 45000,
+    images: ['/images/products/bottom1_1.jpg', '/images/products/bottom1_2.jpg'],
+    features: [
+      { title: '소재', description: '우아한 플라워 자카드 패턴' },
+      { title: '실루엣', description: '풍성하고 우아한 분위기' },
+      { title: '상태', description: '미착용 (피팅만)' },
+    ],
+  },
+  10: {
+    id: 10,
+    title: '셔링 롱스커트',
+    subtitle: '은은한 광택감이 도는 블랙 컬러의 셔링 디테일 롱스커트예요.',
+    price: '43,000원',
+    priceNumber: 43000,
+    images: ['/images/products/bottom2_1.jpg', '/images/products/bottom2_2.jpg'],
+    features: [
+      { title: '디자인', description: '자연스러운 셔링 주름 디테일' },
+      { title: '실루엣', description: '페미닌한 분위기 연출' },
+      { title: '상태', description: '미착용 (피팅만)' },
+    ],
+  },
+}
+
+export const INFLUENCER_PICKS: InfluencerPick[] = [
+  {
+    id: 1,
+    title: '원오프 넘버링 티셔츠',
+    image: '/images/products/top1_1.jpg',
+    price: '29,000원',
+    rating: '4,283',
+  },
+  {
+    id: 7,
+    title: '브라운 무스탕 자켓',
+    image: '/images/products/outer1_1.jpg',
+    price: '89,000원',
+    rating: '2,854',
+  },
+  {
+    id: 2,
+    title: '스트라이프 카디건',
+    image: '/images/products/top2_1.jpg',
+    price: '32,000원',
+    rating: '3,314',
+  },
+  {
+    id: 9,
+    title: '플라워 롱스커트',
+    image: '/images/products/bottom1_1.jpg',
+    price: '45,000원',
+    rating: '3,921',
+  },
+]
