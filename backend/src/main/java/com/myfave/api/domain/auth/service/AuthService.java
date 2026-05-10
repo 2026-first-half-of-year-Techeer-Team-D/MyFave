@@ -263,8 +263,17 @@ public class AuthService {
                     : Optional.empty();
             if (existingByEmail.isPresent()) {
                 user = existingByEmail.get();
-                user.linkSocial(SocialProvider.KAKAO, socialProviderId);
-                isNewUser = false;
+                if (user.getSocialProvider() == SocialProvider.KAKAO) {
+                    if (!socialProviderId.equals(user.getSocialProviderId())) {
+                        throw new CustomException(ErrorCode.AUTH_SOCIAL_ACCOUNT_CONFLICT);
+                    }
+                    // socialProviderId 일치 → 기존 연동 유지, 변경 없음
+                    isNewUser = false;
+                } else {
+                    // 카카오 연동 이력 없음 → 최초 연동
+                    user.linkSocial(SocialProvider.KAKAO, socialProviderId);
+                    isNewUser = true;
+                }
             } else {
                 user = userRepository.save(buildSocialUser(SocialProvider.KAKAO, socialProviderId, email, kakaoUserInfo));
                 isNewUser = true;

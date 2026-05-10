@@ -62,4 +62,4 @@ springdoc:
     enabled: true
 
 kakao:
-  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:3000/oauth/kakao/callback}
+  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:5173/oauth/kakao/callback}
