@@ -14,6 +14,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:-myfave-dev-secret-key-minimum-32-characters-long}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
+      KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI}
     depends_on:
       postgres:
         condition: service_healthy
