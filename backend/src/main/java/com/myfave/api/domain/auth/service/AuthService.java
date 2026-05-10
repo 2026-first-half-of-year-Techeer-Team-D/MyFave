@@ -1,16 +1,23 @@
 package com.myfave.api.domain.auth.service;
 
+import com.myfave.api.domain.auth.client.KakaoAuthClient;
+import com.myfave.api.domain.auth.client.dto.KakaoTokenResponse;
+import com.myfave.api.domain.auth.client.dto.KakaoUserInfoResponse;
 import com.myfave.api.domain.auth.dto.request.FindEmailRequest;
 import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.PasswordResetSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.request.ResetPasswordRequest;
+import com.myfave.api.domain.auth.dto.request.SocialLoginRequest;
 import com.myfave.api.domain.auth.dto.request.VerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.ReissueResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
+import com.myfave.api.domain.auth.dto.response.SocialLoginResponse;
 import com.myfave.api.domain.auth.dto.response.VerifyCodeResponse;
+import com.myfave.api.domain.user.entity.SocialProvider;
 import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
@@ -26,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -40,6 +48,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, Object> redisTemplate;
     private final MailService mailService;
+    private final KakaoAuthClient kakaoAuthClient;
 
     @Value("${jwt.refresh-token-expiry}")
     private long refreshTokenExpiry;
@@ -203,5 +212,119 @@ public class AuthService {
         );
 
         return VerifyCodeResponse.of(resetToken);
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
+            throw new CustomException(ErrorCode.AUTH_PASSWORD_MISMATCH);
+        }
+
+        String tokenKey = "pwd-reset-token:" + request.getPasswordResetToken();
+        String email = (String) redisTemplate.opsForValue().get(tokenKey);
+
+        if (email == null) {
+            throw new CustomException(ErrorCode.AUTH_INVALID_RESET_TOKEN);
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_INVALID_RESET_TOKEN));//Redis에는 토큰이 있는데 해당 이메일의 유저가 DB에서 탈퇴한 경우
+        // 패스워드 재설정
+        user.updatePassword(passwordEncoder.encode(request.getNewPassword()));
+        //비밀번호 저장할때 사용한  redis 키 지우기
+        redisTemplate.delete(tokenKey);
+    }
+
+    @Transactional
+    public SocialLoginResponse socialLogin(String provider, SocialLoginRequest request) {
+        if (!"kakao".equals(provider)) {
+            throw new CustomException(ErrorCode.COMMON_INVALID_INPUT);
+        }
+
+        KakaoTokenResponse kakaoToken = kakaoAuthClient.exchangeCodeForToken(request.getAuthorizationCode());
+        KakaoUserInfoResponse kakaoUserInfo = kakaoAuthClient.getUserInfo(kakaoToken.getAccessToken());
+
+        String socialProviderId = String.valueOf(kakaoUserInfo.getId());
+
+        String email = (kakaoUserInfo.getKakaoAccount() != null)
+                ? kakaoUserInfo.getKakaoAccount().getEmail()
+                : null;
+
+        Optional<User> existingBySocialId = userRepository.findBySocialProviderId(socialProviderId);
+        boolean isNewUser;
+        User user;
+
+        if (existingBySocialId.isPresent()) {
+            user = existingBySocialId.get();
+            isNewUser = false;
+        } else {
+            Optional<User> existingByEmail = (email != null)
+                    ? userRepository.findByEmail(email)
+                    : Optional.empty();
+            if (existingByEmail.isPresent()) {
+                user = existingByEmail.get();
+                if (user.getSocialProvider() == SocialProvider.KAKAO) {
+                    if (!socialProviderId.equals(user.getSocialProviderId())) {
+                        throw new CustomException(ErrorCode.AUTH_SOCIAL_ACCOUNT_CONFLICT);
+                    }
+                    // socialProviderId 일치 → 기존 연동 유지, 변경 없음
+                    isNewUser = false;
+                } else {
+                    // 카카오 연동 이력 없음 → 최초 연동
+                    user.linkSocial(SocialProvider.KAKAO, socialProviderId);
+                    isNewUser = true;
+                }
+            } else {
+                user = userRepository.save(buildSocialUser(SocialProvider.KAKAO, socialProviderId, email, kakaoUserInfo));
+                isNewUser = true;
+            }
+        }
+
+        String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
+
+        redisTemplate.opsForValue().set(
+                "refresh:" + user.getUserId(),
+                refreshToken,
+                refreshTokenExpiry,
+                TimeUnit.MILLISECONDS
+        );
+
+        return SocialLoginResponse.of(accessToken, refreshToken, user, isNewUser);
+    }
+
+    private User buildSocialUser(SocialProvider provider, String socialProviderId,
+                                  String email, KakaoUserInfoResponse info) {
+        KakaoUserInfoResponse.KakaoAccount account = info.getKakaoAccount();
+        String rawNickname = (account != null && account.getProfile() != null && account.getProfile().getNickname() != null)
+                ? account.getProfile().getNickname()
+                : "카카오유저";
+        String nickname = generateUniqueNickname(rawNickname);
+        String name = rawNickname.length() > 20 ? rawNickname.substring(0, 20) : rawNickname;
+        String resolvedEmail = (email != null) ? email : "kakao_" + socialProviderId + "@kakao.social";
+
+        return User.builder()
+                .email(resolvedEmail)
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .name(name)
+                .nickname(nickname)
+                .phone("SOCIAL_" + socialProviderId)
+                .socialProvider(provider)
+                .socialProviderId(socialProviderId)
+                .build();
+    }
+
+    private String generateUniqueNickname(String base) {
+        String truncated = base.length() > 10 ? base.substring(0, 10) : base;
+        String candidate = truncated;
+        int attempt = 0;
+        while (userRepository.existsByNickname(candidate)) {
+            String suffix = String.format("%02d", RANDOM.nextInt(100));
+            candidate = truncated + suffix;
+            if (++attempt > 10) {
+                candidate = truncated + UUID.randomUUID().toString().substring(0, 2);
+            }
+        }
+        return candidate;
     }
 }
