@@ -18,6 +18,7 @@ import com.myfave.api.domain.payment.dto.response.PaymentPrepareResponse;
 import com.myfave.api.domain.payment.dto.response.PaymentResponse;
 import com.myfave.api.domain.payment.entity.Payment;
 import com.myfave.api.domain.payment.entity.PaymentAttempt;
+import com.myfave.api.domain.payment.entity.PaymentMethod;
 import com.myfave.api.domain.payment.entity.PaymentStatus;
 import com.myfave.api.domain.payment.provider.PaymentProvider;
 import com.myfave.api.domain.payment.provider.PaymentProvider.PortOnePaymentInfo;
@@ -61,8 +62,20 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final PaymentProvider paymentProvider;
 
-    @Value("${portone.channel-key}")
-    private String channelKey;
+    @Value("${portone.store-id}")
+    private String storeId;
+
+    @Value("${portone.channel-keys.card}")
+    private String channelKeyCard;
+
+    @Value("${portone.channel-keys.kakao-pay}")
+    private String channelKeyKakaoPay;
+
+    @Value("${portone.channel-keys.naver-pay}")
+    private String channelKeyNaverPay;
+
+    @Value("${portone.channel-keys.toss-pay}")
+    private String channelKeyTossPay;
 
     @Value("${portone.api-secret}")
     private String apiSecret;
@@ -120,7 +133,17 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_LOCK_CONFLICT);
         }
 
-        return PaymentPrepareResponse.of(payment, channelKey);
+        return PaymentPrepareResponse.of(payment, storeId, resolveChannelKey(request.getPaymentMethod()));
+    }
+
+    // 결제수단별 채널키 라우팅 (V2는 결제수단마다 별도 채널 등록 필요)
+    private String resolveChannelKey(PaymentMethod method) {
+        return switch (method) {
+            case CARD -> channelKeyCard;
+            case KAKAO_PAY -> channelKeyKakaoPay;
+            case NAVER_PAY -> channelKeyNaverPay;
+            case TOSS_PAY -> channelKeyTossPay;
+        };
     }
 
     // ── 결제 승인 ────────────────────────────────────────────────────────────────
