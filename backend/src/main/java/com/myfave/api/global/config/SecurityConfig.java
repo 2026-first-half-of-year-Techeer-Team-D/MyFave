@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -31,13 +32,22 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // 인증·문서·웹훅 등 시스템 경로 (JWT 면제)
                         .requestMatchers(
-                                "/auth/**",        // context-path(/api/v1) 제외한 경로로 매칭
+                                "/auth/**",            // context-path(/api/v1) 제외한 경로로 매칭
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/ws/**"
+                                "/ws/**",
+                                "/payments/webhook"    // 외부 PG(PortOne) 콜백 - HMAC 서명으로 자체 보안
                         ).permitAll()
-                        .anyRequest().permitAll()   // (JWT 인증 필요).anyRequest().authenticated() ㅣ (JWT 없이 모든 요청 허용) .anyRequest().permitAll()
+                        // 비로그인 공개 조회 (카탈로그·콘텐츠·이벤트)
+                        .requestMatchers(HttpMethod.GET,
+                                "/products/**",
+                                "/content/short-forms",
+                                "/content/style-feeds",
+                                "/sale-events/current"
+                        ).permitAll()
+                        .anyRequest().authenticated()  // 그 외 모든 요청은 JWT 인증 필수
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate),
                         UsernamePasswordAuthenticationFilter.class);
