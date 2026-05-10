@@ -146,7 +146,9 @@ public class DataInitializer implements CommandLineRunner {
         // Payment 도메인 미완성 → 테스트용 더미 결제 데이터
         Payment payment = Payment.builder()
                 .order(order)
-                .paymentMethod(PaymentMethod.CREDITCARD)
+                .idempotencyKey(java.util.UUID.randomUUID().toString())
+                .pgProvider("PORTONE")
+                .paymentMethod(PaymentMethod.CARD)
                 .totalProductPrice(10000)
                 .deliveryFee(3000)
                 .discountPrice(0)
@@ -210,7 +212,9 @@ public class DataInitializer implements CommandLineRunner {
         // ── 6-3. Payment 생성 + Order에 연결 ────────────────────────
         Payment payment = Payment.builder()
                 .order(order)
-                .paymentMethod(PaymentMethod.CREDITCARD)
+                .idempotencyKey(java.util.UUID.randomUUID().toString())
+                .pgProvider("PORTONE")
+                .paymentMethod(PaymentMethod.CARD)
                 .totalProductPrice(10000)
                 .deliveryFee(3000)
                 .discountPrice(0)
