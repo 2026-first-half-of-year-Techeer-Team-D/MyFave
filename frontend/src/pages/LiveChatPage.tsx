@@ -4,6 +4,7 @@ import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { UserIcon } from '@/shared/components/UserIcon'
 import { useChatRoomInfo, useChatMessageHistory } from '@/features/chat/hooks'
+import { useAuthStore } from '@/features/auth/store'
 import type { ChatHistoryMessage } from '@/features/chat/types'
 
 const THROTTLE_MS = 3000
@@ -52,6 +53,7 @@ function InactiveRoomScreen() {
 
 export function LiveChatPage() {
   const { data: roomInfo, isLoading: isRoomLoading, isError: isRoomError } = useChatRoomInfo()
+  const accessToken = useAuthStore((s) => s.accessToken)
   const { data: historyData } = useChatMessageHistory(roomInfo?.id)
 
   const [messages, setMessages] = useState<Message[]>([])
@@ -65,6 +67,7 @@ export function LiveChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const stompClient = useRef<Client | null>(null)
   const lastSendTimeRef = useRef<number>(0)
+  const historyInitializedRef = useRef(false)
 
   useEffect(() => {
     if (roomInfo?.participantCount != null) {
@@ -73,7 +76,8 @@ export function LiveChatPage() {
   }, [roomInfo?.participantCount])
 
   useEffect(() => {
-    if (!historyData?.messages.length) return
+    if (!historyData?.messages.length || historyInitializedRef.current) return
+    historyInitializedRef.current = true
     setMessages(historyData.messages.map(historyToMessage))
   }, [historyData])
 
@@ -85,16 +89,19 @@ export function LiveChatPage() {
 
     const roomId = roomInfo.id
     const httpUrl = wsBaseUrl.replace('ws://', 'http://').replace('wss://', 'https://')
-    const token = localStorage.getItem('accessToken') ?? ''
 
     try {
       const client = new Client({
         webSocketFactory: () => new SockJS(httpUrl),
-        connectHeaders: { Authorization: `Bearer ${token}` },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
       })
+
+      client.beforeConnect = () => {
+        const token = useAuthStore.getState().accessToken ?? ''
+        client.connectHeaders = { Authorization: `Bearer ${token}` }
+      }
 
       client.onConnect = () => {
         setIsConnected(true)

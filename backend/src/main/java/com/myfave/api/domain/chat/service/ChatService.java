@@ -17,6 +17,7 @@ import com.myfave.api.domain.saleevent.repository.SaleEventRepository;
 import com.myfave.api.domain.saleevent.entity.SaleEvent;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -169,6 +170,7 @@ public class ChatService {
     }
 
     @Getter
+    @Setter
     @NoArgsConstructor
     static class StoredMessage {
         private String type;
@@ -176,6 +178,7 @@ public class ChatService {
     }
 
     @Getter
+    @Setter
     @NoArgsConstructor
     static class StoredPayload {
         private String messageId;

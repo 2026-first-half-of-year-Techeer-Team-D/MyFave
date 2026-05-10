@@ -23,7 +23,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>(200, message, null);
     }
 
-    public static ApiResponse<Void> error(ErrorCode errorCode) {
+    public static <T> ApiResponse<T> error(ErrorCode errorCode) {
         return new ApiResponse<>(errorCode.getHttpStatus(), errorCode.getMessage(), null);
     }
 }

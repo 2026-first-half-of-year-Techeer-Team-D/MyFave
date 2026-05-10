@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { useAuthStore } from '@/features/auth/store'
+import { useLogin } from '@/features/auth/hooks'
 import { Modal } from '@/shared/components/Modal'
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const login = useAuthStore((s) => s.login)
+  const { mutate: loginMutate, isPending } = useLogin()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [autoLogin, setAutoLogin] = useState(false)
@@ -22,17 +22,16 @@ export function LoginPage() {
       return
     }
 
-    if (email === 'test@test.com' && password === 'password') {
-      login({
-        user: { id: 1, email: 'test@test.com', nickname: 'tester' },
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
-      })
-      navigate('/')
-    } else {
-      setErrorMessage('이메일 또는 비밀번호가 일치하지 않습니다')
-      setIsErrorModalOpen(true)
-    }
+    loginMutate(
+      { email, password },
+      {
+        onSuccess: () => navigate('/'),
+        onError: () => {
+          setErrorMessage('이메일 또는 비밀번호가 일치하지 않습니다')
+          setIsErrorModalOpen(true)
+        },
+      },
+    )
   }
 
   return (
@@ -77,9 +76,10 @@ export function LoginPage() {
           {/* Login Button - Figma Node 98:90 */}
           <button
             type="submit"
-            className="flex h-[43px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-medium text-white shadow-sm active:scale-[0.98] transition-transform"
+            disabled={isPending}
+            className="flex h-[43px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-medium text-white shadow-sm active:scale-[0.98] transition-transform disabled:opacity-60"
           >
-            로그인
+            {isPending ? '로그인 중...' : '로그인'}
           </button>
 
           {/* Demo Account Info - added for demonstration */}
