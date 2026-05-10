@@ -21,7 +21,7 @@ public class ChatHistoryResponse {
         private String messageId;
         private Long senderId;
         private String senderNickname;
-        private boolean isInfluencer;
+        private Boolean isInfluencer;
         private String content;
         private ZonedDateTime createdAt;
     }

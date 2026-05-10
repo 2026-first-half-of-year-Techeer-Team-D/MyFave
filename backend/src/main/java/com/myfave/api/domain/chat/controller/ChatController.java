@@ -40,6 +40,9 @@ public class ChatController {
         if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
             throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
         }
+        if (size < 1 || size > 100) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(ErrorCode.COMMON_INVALID_INPUT));
+        }
 
         return ResponseEntity.ok(ApiResponse.ok(chatService.getMessageHistory(size, before)));
     }
@@ -47,6 +50,9 @@ public class ChatController {
     @GetMapping("/preview")
     public ResponseEntity<ApiResponse<ChatPreviewResponse>> getChatPreview(
             @RequestParam(defaultValue = "5") int size) {
+        if (size < 1 || size > 100) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(ErrorCode.COMMON_INVALID_INPUT));
+        }
         return ResponseEntity.ok(ApiResponse.ok(chatService.getChatPreview(size)));
     }
 

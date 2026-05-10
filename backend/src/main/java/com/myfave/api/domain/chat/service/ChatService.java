@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -77,7 +78,7 @@ public class ChatService {
                     .messageId(p.getMessageId())
                     .senderId(p.getUserId())
                     .senderNickname(p.getNickname())
-                    .isInfluencer(p.getUserId().equals(influencerUserId))
+                    .isInfluencer(Objects.equals(p.getUserId(), influencerUserId))
                     .content(p.getContent())
                     .createdAt(p.getSentAt())
                     .build());
