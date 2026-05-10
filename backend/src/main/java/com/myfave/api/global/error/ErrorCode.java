@@ -24,6 +24,8 @@ public enum ErrorCode {
     AUTH_INVALID_RESET_TOKEN(401, "유효하지 않은 재설정 토큰"),
     AUTH_INVALID_SOCIAL_CODE(400, "유효하지 않은 인가 코드"),
     AUTH_SOCIAL_PROVIDER_ERROR(502, "소셜 제공자 서버 오류"),
+    AUTH_SOCIAL_EMAIL_REQUIRED(400, "카카오 계정에 이메일 제공 동의가 필요합니다"),
+    AUTH_SOCIAL_ACCOUNT_CONFLICT(409, "이미 다른 카카오 계정과 연결된 이메일입니다"),
 
     // 사용자
     USER_NOT_FOUND(404, "회원 정보 없음"),
@@ -81,6 +83,11 @@ public enum ErrorCode {
     PAYMENT_CANCELLED(409, "취소된 결제"),
     PAYMENT_AMOUNT_MISMATCH(400, "결제 금액 불일치"),
     PAYMENT_FAILED(502, "외부 결제 서비스 오류"),
+    PAYMENT_IDEMPOTENCY_CONFLICT(409, "동일한 멱등성 키로 이미 처리된 결제"),
+    PAYMENT_LOCK_CONFLICT(409, "동일한 주문에 대한 결제가 이미 진행 중"),
+    PAYMENT_WEBHOOK_INVALID_SIGNATURE(401, "웹훅 서명 검증 실패"),
+    PAYMENT_COUPON_TYPE_MISMATCH(400, "쿠폰 타입이 적용 위치와 불일치"),
+    PAYMENT_INVALID_STATUS(409, "현재 결제 상태에서 허용되지 않는 작업"),
     ;
 
     private final int httpStatus;

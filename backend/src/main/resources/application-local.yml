@@ -60,3 +60,15 @@ springdoc:
   swagger-ui:
     path: /swagger-ui
     enabled: true
+
+kakao:
+<<<<<<< HEAD
+  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:5173/oauth/kakao/callback}
+=======
+  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:3000/oauth/kakao/callback}
+# 포트원 샌드박스 로컬 개발 설정
+portone:
+  api-url: https://api.portone.io
+  api-secret: ${PORTONE_API_SECRET:local-portone-api-secret}
+  channel-key: ${PORTONE_CHANNEL_KEY:local-portone-channel-key}
+>>>>>>> 0eefb17e2f761f29da7da6fc63894608e8082e64
