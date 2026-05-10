@@ -26,8 +26,13 @@ jwt:
   access-token-expiry: 1800000      # 30분 (ms)
   refresh-token-expiry: 1209600000  # 14일 (ms)
 
-# 포트원 결제 설정
+# 포트원 결제 설정 (V2 멀티 채널 - 카드 + 간편결제 3종)
 portone:
   api-url: ${PORTONE_API_URL:https://api.portone.io}
   api-secret: ${PORTONE_API_SECRET}
-  channel-key: ${PORTONE_CHANNEL_KEY}
+  store-id: ${PORTONE_STORE_ID}
+  channel-keys:
+    card: ${PORTONE_CHANNEL_KEY_CARD}
+    kakao-pay: ${PORTONE_CHANNEL_KEY_KAKAOPAY}
+    naver-pay: ${PORTONE_CHANNEL_KEY_NAVERPAY}
+    toss-pay: ${PORTONE_CHANNEL_KEY_TOSSPAY}
