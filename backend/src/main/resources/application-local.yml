@@ -62,10 +62,7 @@ springdoc:
     enabled: true
 
 kakao:
-<<<<<<< HEAD
   redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:5173/oauth/kakao/callback}
-=======
-  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:3000/oauth/kakao/callback}
 # 포트원 샌드박스 로컬 개발 설정
 portone:
   api-url: https://api.portone.io
