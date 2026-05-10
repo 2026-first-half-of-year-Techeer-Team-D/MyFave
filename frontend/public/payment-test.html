@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>MyFave PortOne 결제 테스트</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; }
+    h1 { font-size: 22px; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    label { display: block; margin: 8px 0 4px; font-size: 14px; color: #555; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    button { padding: 12px 20px; background: #3182f6; color: white; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; margin-top: 16px; }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    pre { background: #f5f5f5; padding: 12px; border-radius: 6px; font-size: 12px; overflow-x: auto; }
+    .row { display: flex; gap: 8px; }
+    .row > * { flex: 1; }
+  </style>
+</head>
+<body>
+
+<h1>MyFave PortOne V2 결제 테스트</h1>
+
+<div class="card">
+  <h2 style="font-size:16px;margin-top:0">① 로그인 (JWT 발급)</h2>
+  <div class="row">
+    <input id="email" value="test@test.com" placeholder="이메일">
+    <input id="password" type="password" value="password" placeholder="비밀번호">
+  </div>
+  <button onclick="login()">로그인</button>
+  <pre id="loginResult">(미로그인)</pre>
+</div>
+
+<div class="card">
+  <h2 style="font-size:16px;margin-top:0">② 결제 정보 입력</h2>
+  <label>orderId (PENDING 상태 + 활성 결제 없는 주문)</label>
+  <input id="orderId" type="number" value="9">
+  <label>결제수단</label>
+  <select id="paymentMethod">
+    <option value="CARD">CARD (카드)</option>
+    <option value="KAKAO_PAY">KAKAO_PAY (카카오페이)</option>
+    <option value="NAVER_PAY">NAVER_PAY (네이버페이)</option>
+    <option value="TOSS_PAY">TOSS_PAY (토스페이)</option>
+  </select>
+  <button onclick="pay()">결제 시작</button>
+  <pre id="payResult">(대기)</pre>
+</div>
+
+<script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+<script>
+const API = "http://localhost:8080/api/v1";
+let TOKEN = null;
+
+async function login() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const res = await fetch(`${API}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const json = await res.json();
+  if (json.code === 200) {
+    TOKEN = json.data.accessToken;
+    document.getElementById('loginResult').textContent =
+      `userId=${json.data.userId}, nickname=${json.data.nickname}\ntoken=${TOKEN.slice(0,40)}...`;
+  } else {
+    document.getElementById('loginResult').textContent = JSON.stringify(json, null, 2);
+  }
+}
+
+async function pay() {
+  const out = document.getElementById('payResult');
+  if (!TOKEN) { out.textContent = '먼저 로그인하세요'; return; }
+
+  const orderId = Number(document.getElementById('orderId').value);
+  const paymentMethod = document.getElementById('paymentMethod').value;
+
+  // ── 1. 백엔드: 결제 준비 ─────────────────────────────────────────
+  out.textContent = '(1/3) 결제 준비 호출 중...';
+  const prepRes = await fetch(`${API}/payments/prepare`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+    body: JSON.stringify({ orderId, paymentMethod })
+  });
+  const prep = await prepRes.json();
+  if (prepRes.status !== 201) { out.textContent = '결제 준비 실패\n' + JSON.stringify(prep, null, 2); return; }
+
+  const { paymentId, idempotencyKey, storeId, channelKey, totalPaymentPrice } = prep.data;
+  out.textContent = `(2/3) 결제창 호출... storeId=${storeId}, channelKey=${channelKey?.slice(0,30)}...`;
+
+  // ── 2. PortOne SDK: 결제수단별 페이로드 분기 ─────────────────────
+  const sdkPayload = {
+    storeId,
+    channelKey,
+    paymentId: idempotencyKey,
+    orderName: `MyFave 주문 #${orderId}`,
+    totalAmount: totalPaymentPrice,
+    currency: 'CURRENCY_KRW',
+    customer: { fullName: '테스트', email: 'test@test.com' }
+  };
+
+  if (paymentMethod === 'CARD') {
+    sdkPayload.payMethod = 'CARD';
+  } else {
+    sdkPayload.payMethod = 'EASY_PAY';
+    const providerMap = {
+      KAKAO_PAY: 'EASY_PAY_PROVIDER_KAKAOPAY',
+      NAVER_PAY: 'EASY_PAY_PROVIDER_NAVERPAY',
+      TOSS_PAY:  'EASY_PAY_PROVIDER_TOSSPAY'
+    };
+    sdkPayload.easyPay = { easyPayProvider: providerMap[paymentMethod] };
+    if (paymentMethod === 'NAVER_PAY') {
+      // 네이버페이는 productItems 필수
+      sdkPayload.productItems = [{
+        id: String(orderId),
+        name: `MyFave 주문 #${orderId}`,
+        amount: totalPaymentPrice,
+        quantity: 1
+      }];
+    }
+  }
+
+  const sdkResult = await PortOne.requestPayment(sdkPayload);
+  if (sdkResult.code) {
+    out.textContent = '결제창 실패: ' + sdkResult.message + '\n' + JSON.stringify(sdkResult, null, 2);
+    return;
+  }
+
+  // ── 3. 백엔드: 결제 승인 ─────────────────────────────────────────
+  out.textContent = `(3/3) 결제 승인 호출... pgTx=${sdkResult.paymentId}`;
+  const confirmRes = await fetch(`${API}/payments/confirm`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+    body: JSON.stringify({ paymentId, pgTransactionId: sdkResult.paymentId })
+  });
+  const confirm = await confirmRes.json();
+  out.textContent = `[HTTP ${confirmRes.status}]\n` + JSON.stringify(confirm, null, 2);
+}
+</script>
+
+</body>
+</html>
