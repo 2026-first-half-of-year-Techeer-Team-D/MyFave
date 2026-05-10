@@ -41,7 +41,7 @@ public class ChatController {
             throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
         }
         if (size < 1 || size > 100) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(ErrorCode.COMMON_INVALID_INPUT));
+            return ResponseEntity.<ApiResponse<ChatHistoryResponse>>badRequest().body(ApiResponse.error(ErrorCode.COMMON_INVALID_INPUT));
         }
 
         return ResponseEntity.ok(ApiResponse.ok(chatService.getMessageHistory(size, before)));
@@ -51,7 +51,7 @@ public class ChatController {
     public ResponseEntity<ApiResponse<ChatPreviewResponse>> getChatPreview(
             @RequestParam(defaultValue = "5") int size) {
         if (size < 1 || size > 100) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(ErrorCode.COMMON_INVALID_INPUT));
+            return ResponseEntity.<ApiResponse<ChatPreviewResponse>>badRequest().body(ApiResponse.error(ErrorCode.COMMON_INVALID_INPUT));
         }
         return ResponseEntity.ok(ApiResponse.ok(chatService.getChatPreview(size)));
     }
