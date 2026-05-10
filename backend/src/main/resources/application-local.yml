@@ -61,8 +61,13 @@ springdoc:
     path: /swagger-ui
     enabled: true
 
-# 포트원 샌드박스 로컬 개발 설정
+# 포트원 샌드박스 로컬 개발 설정 (V2 멀티 채널)
 portone:
   api-url: https://api.portone.io
   api-secret: ${PORTONE_API_SECRET:local-portone-api-secret}
-  channel-key: ${PORTONE_CHANNEL_KEY:local-portone-channel-key}
+  store-id: ${PORTONE_STORE_ID:local-portone-store-id}
+  channel-keys:
+    card: ${PORTONE_CHANNEL_KEY_CARD:local-portone-channel-key-card}
+    kakao-pay: ${PORTONE_CHANNEL_KEY_KAKAOPAY:local-portone-channel-key-kakaopay}
+    naver-pay: ${PORTONE_CHANNEL_KEY_NAVERPAY:local-portone-channel-key-naverpay}
+    toss-pay: ${PORTONE_CHANNEL_KEY_TOSSPAY:local-portone-channel-key-tosspay}
