@@ -68,4 +68,3 @@ portone:
   api-url: https://api.portone.io
   api-secret: ${PORTONE_API_SECRET:local-portone-api-secret}
   channel-key: ${PORTONE_CHANNEL_KEY:local-portone-channel-key}
->>>>>>> 0eefb17e2f761f29da7da6fc63894608e8082e64

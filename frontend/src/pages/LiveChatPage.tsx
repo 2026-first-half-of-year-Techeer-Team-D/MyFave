@@ -4,6 +4,7 @@ import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { UserIcon } from '@/shared/components/UserIcon'
 import { useChatRoomInfo, useChatMessageHistory } from '@/features/chat/hooks'
+import { useAuthStore } from '@/features/auth/store'
 import type { ChatHistoryMessage } from '@/features/chat/types'
 
 const THROTTLE_MS = 3000
@@ -52,7 +53,7 @@ function InactiveRoomScreen() {
 
 export function LiveChatPage() {
   const { data: roomInfo, isLoading: isRoomLoading, isError: isRoomError } = useChatRoomInfo()
-  const { data: historyData } = useChatMessageHistory(roomInfo?.isActive === true)
+  const { data: historyData } = useChatMessageHistory(roomInfo?.id)
 
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
@@ -61,9 +62,11 @@ export function LiveChatPage() {
   const [isConnected, setIsConnected] = useState(false)
   const [isCooldown, setIsCooldown] = useState(false)
   const [isRoomClosed, setIsRoomClosed] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const stompClient = useRef<Client | null>(null)
   const lastSendTimeRef = useRef<number>(0)
+  const historyInitializedRef = useRef(false)
 
   useEffect(() => {
     if (roomInfo?.participantCount != null) {
@@ -72,7 +75,8 @@ export function LiveChatPage() {
   }, [roomInfo?.participantCount])
 
   useEffect(() => {
-    if (!historyData?.messages.length) return
+    if (!historyData?.messages.length || historyInitializedRef.current) return
+    historyInitializedRef.current = true
     setMessages(historyData.messages.map(historyToMessage))
   }, [historyData])
 
@@ -84,16 +88,19 @@ export function LiveChatPage() {
 
     const roomId = roomInfo.id
     const httpUrl = wsBaseUrl.replace('ws://', 'http://').replace('wss://', 'https://')
-    const token = localStorage.getItem('accessToken') ?? ''
 
     try {
       const client = new Client({
         webSocketFactory: () => new SockJS(httpUrl),
-        connectHeaders: { Authorization: `Bearer ${token}` },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
       })
+
+      client.beforeConnect = () => {
+        const token = useAuthStore.getState().accessToken ?? ''
+        client.connectHeaders = { Authorization: `Bearer ${token}` }
+      }
 
       client.onConnect = () => {
         setIsConnected(true)
@@ -126,6 +133,8 @@ export function LiveChatPage() {
             if (data.type === 'ROOM_CLOSED') {
               setIsRoomClosed(true)
               setIsConnected(false)
+              client.reconnectDelay = 0
+              client.deactivate()
             }
 
             if (data.type === 'RATE_LIMIT') {
@@ -172,21 +181,13 @@ export function LiveChatPage() {
           destination: `/app/chat/${roomInfo.id}`,
           body: JSON.stringify({ type: 'SEND_MESSAGE', payload: { content: inputText } }),
         })
+        setSendError(null)
+        setInputText('')
+        setIsCooldown(true)
+        setTimeout(() => setIsCooldown(false), THROTTLE_MS)
       } else {
-        const newMessage: Message = {
-          id: Date.now(),
-          user: '나',
-          text: inputText,
-          avatarType: 'human',
-          avatarVariant: 1,
-          timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
-        }
-        setMessages((prev) => [...prev, newMessage])
+        setSendError('서버와 연결이 끊어졌습니다. 잠시 후 다시 시도해주세요.')
       }
-
-      setInputText('')
-      setIsCooldown(true)
-      setTimeout(() => setIsCooldown(false), THROTTLE_MS)
     },
     [inputText, isRoomClosed, roomInfo?.id],
   )
@@ -300,6 +301,10 @@ export function LiveChatPage() {
             <p className="font-noto text-[12px] text-muted-text">채팅방이 종료되었습니다</p>
           </div>
         ) : (
+          <>
+          {sendError && (
+            <p className="mb-[6px] text-center font-noto text-[11px] text-red-400">{sendError}</p>
+          )}
           <form onSubmit={handleSend} className="flex items-center gap-[8px]">
             <div className="flex-1 h-[39px]">
               <input
@@ -318,6 +323,7 @@ export function LiveChatPage() {
               {isCooldown ? '대기중' : '보내기'}
             </button>
           </form>
+          </>
         )}
       </div>
     </div>

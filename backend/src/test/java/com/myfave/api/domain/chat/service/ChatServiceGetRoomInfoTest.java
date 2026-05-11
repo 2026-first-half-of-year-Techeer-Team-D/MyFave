@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +38,8 @@ class ChatServiceGetRoomInfoTest {
     @DisplayName("활성화된 채팅방이 있을 때 정보와 참가자 수를 반환한다")
     void getChatRoomInfo_success() {
         // given
-        ChatRoom chatRoom = buildActiveChatRoom(1L);
+        ZonedDateTime expectedCreatedAt = ZonedDateTime.parse("2026-01-01T00:00:00+09:00");
+        ChatRoom chatRoom = buildActiveChatRoom(1L, expectedCreatedAt);
         given(chatRoomRepository.findByIsActiveTrue()).willReturn(Optional.of(chatRoom));
         given(sessionRegistry.getParticipantCount(1L)).willReturn(42);
 
@@ -48,7 +50,7 @@ class ChatServiceGetRoomInfoTest {
         assertThat(response.getId()).isEqualTo(1L);
         assertThat(response.getIsActive()).isTrue();
         assertThat(response.getParticipantCount()).isEqualTo(42);
-        assertThat(response.getCreatedAt()).isNull(); // 테스트 빌더에서 createdAt 미설정 — 필드 존재 확인
+        assertThat(response.getCreatedAt()).isEqualTo(expectedCreatedAt);
     }
 
     @Test

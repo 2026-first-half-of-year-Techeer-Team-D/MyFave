@@ -39,8 +39,10 @@ public class ChatMessageController {
                             SimpMessageHeaderAccessor headerAccessor) throws JsonProcessingException {
 
         Long userId = (Long) headerAccessor.getSessionAttributes().get("userId");
-        // TODO: 테스트 후 제거 — JWT 인터셉터 활성화 시 아래 fallback 삭제
-        if (userId == null) userId = 1L;
+        if (userId == null) {
+            log.warn("WebSocket 메시지 처리 거부: 인증되지 않은 사용자");
+            return;
+        }
 
         if (request.getType() != ChatMessageType.SEND_MESSAGE) {
             log.warn("지원하지 않는 메시지 타입: {}", request.getType());
