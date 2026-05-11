@@ -53,7 +53,6 @@ function InactiveRoomScreen() {
 
 export function LiveChatPage() {
   const { data: roomInfo, isLoading: isRoomLoading, isError: isRoomError } = useChatRoomInfo()
-  const accessToken = useAuthStore((s) => s.accessToken)
   const { data: historyData } = useChatMessageHistory(roomInfo?.id)
 
   const [messages, setMessages] = useState<Message[]>([])
