@@ -9,6 +9,7 @@ import { FAQPage } from '@/pages/FAQPage'
 import { FindIdPage } from '@/pages/FindIdPage'
 import { FindPasswordPage } from '@/pages/FindPasswordPage'
 import { InquiryPage } from '@/pages/InquiryPage'
+import { KakaoCallbackPage } from '@/pages/KakaoCallbackPage'
 import { LiveChatPage } from '@/pages/LiveChatPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { MainPage } from '@/pages/MainPage'
@@ -37,6 +38,7 @@ const router = createBrowserRouter([
   { path: '/find-id', element: <FindIdPage /> },
   { path: '/find-password', element: <FindPasswordPage /> },
   { path: '/inquiry', element: <InquiryPage /> },
+  { path: '/auth/kakao/callback', element: <KakaoCallbackPage /> },
 
   // Pages with Header + Footer (Layout)
   {
