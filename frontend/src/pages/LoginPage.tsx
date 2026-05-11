@@ -34,6 +34,17 @@ export function LoginPage() {
     )
   }
 
+  const handleKakaoLogin = () => {
+    if (!window.Kakao?.isInitialized?.()) {
+      setErrorMessage('카카오 로그인을 사용할 수 없습니다.')
+      setIsErrorModalOpen(true)
+      return
+    }
+    window.Kakao.Auth.authorize({
+      redirectUri: `${window.location.origin}/auth/kakao/callback`,
+    })
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center bg-white">
       {/* Container - Figma Node 98:92 */}
@@ -80,6 +91,21 @@ export function LoginPage() {
             className="flex h-[43px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-medium text-white shadow-sm active:scale-[0.98] transition-transform disabled:opacity-60"
           >
             {isPending ? '로그인 중...' : '로그인'}
+          </button>
+
+          {/* Kakao Login Button */}
+          <button
+            type="button"
+            onClick={handleKakaoLogin}
+            className="flex h-[43px] w-full items-center justify-center gap-[8px] rounded-[5px] bg-[#FEE500] font-noto text-[16px] font-medium text-[rgba(0,0,0,0.85)] active:scale-[0.98] transition-transform"
+          >
+            <svg width="18" height="17" viewBox="0 0 18 17" fill="none" aria-hidden="true">
+              <path
+                d="M9 0C4.03 0 0 3.13 0 7c0 2.5 1.65 4.7 4.13 5.95-.18.65-.66 2.41-.75 2.78-.12.46.17.46.36.34.15-.1 2.4-1.62 3.36-2.27.61.09 1.24.13 1.9.13 4.97 0 9-3.13 9-7s-4.03-7-9-7z"
+                fill="currentColor"
+              />
+            </svg>
+            카카오로 시작하기
           </button>
 
           {/* Demo Account Info - added for demonstration */}
