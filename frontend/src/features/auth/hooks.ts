@@ -17,6 +17,21 @@ export function useLogin() {
   })
 }
 
+export function useKakaoLogin() {
+  const login = useAuthStore((s) => s.login)
+  return useMutation({
+    mutationFn: (authorizationCode: string) =>
+      authApi.socialLogin('kakao', { authorizationCode }),
+    onSuccess: (data) => {
+      login({
+        user: { id: data.userId, email: '', nickname: data.nickname },
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      })
+    },
+  })
+}
+
 export function useUser() {
   return useAuthStore((s) => s.user)
 }
