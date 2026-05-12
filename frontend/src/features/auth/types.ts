@@ -15,3 +15,15 @@ export interface User {
   email: string
   nickname: string
 }
+
+export interface SocialLoginRequest {
+  authorizationCode: string
+}
+
+export interface SocialLoginResponse {
+  accessToken: string
+  refreshToken: string
+  userId: number
+  nickname: string
+  isNewUser: boolean
+}
