@@ -27,7 +27,7 @@ export function Modal({ isOpen, onClose, children, buttonText, onButtonClick }: 
         {buttonText && (
           <button
             onClick={onButtonClick || onClose}
-            className="flex w-full items-center justify-center bg-point py-4 font-noto text-sm font-black text-white transition-colors hover:bg-[#ff7fa3] active:scale-[0.98]"
+            className="flex w-full items-center justify-center bg-point py-[18px] font-noto text-sm font-black text-white transition-colors hover:bg-[#ff7fa3] active:scale-[0.98]"
           >
             {buttonText}
           </button>

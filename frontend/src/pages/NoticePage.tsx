@@ -1,29 +1,25 @@
 interface NoticeItem {
   id: number
   title: string
-  date: string
   content: string
 }
 
-// TODO: React Query로 대체 - 공지사항 API 연동
 const NOTICES: NoticeItem[] = [
   {
     id: 1,
-    title: '2026년 3월 신상품 입고 안내',
-    date: '2026.03.15',
-    content: '새로운 봄 시즌 컬렉션이 입고되었습니다. MY FAVE에서 만나보세요!',
+    title: 'MyFave 마켓 오픈 안내',
+    content: 'MyFave 마켓이 2026년 5월 22일에 오픈 예정입니다!<br> 많은 관심 부탁드려요',
   },
   {
     id: 2,
-    title: '배송 일정 공지',
-    date: '2026.03.10',
-    content: '현재 1-2일 소요되던 배송이 주말을 제외하고 하루 만에 도착합니다.',
+    title: '라이브 채팅 안내',
+    content:
+      '쇼핑 시작 30분전에 쇼핑몰 홈페이지 메인에서 진행하는 라이브 채팅에서 무엇이든지 물어보세요! <br> 라이브 채팅에 참여하시는 모든 분들께 배송비 쿠폰을 드립니다!',
   },
   {
     id: 3,
-    title: '고객센터 운영 시간 안내',
-    date: '2026.03.05',
-    content: '평일 11:00-18:00 / 점심 12:30-14:00 휴무 / 토일공휴일 휴무',
+    title: '1:1 문의',
+    content: '1:1문의는 DM으로 부탁드립니다. <br> (Instagram @daonmoood)',
   },
 ]
 
@@ -40,17 +36,14 @@ export function NoticePage() {
               {notice.id === 1 && (
                 <span className="rounded bg-main-bg px-1.5 py-0.5 font-noto text-[10px] font-black text-point">NEW</span>
               )}
-              <span className="font-lexend text-[11px] font-bold text-muted-text/50">
-                NO. {notice.id.toString().padStart(2, '0')}
-              </span>
             </div>
             <h3 className="mb-2 font-noto text-base font-bold text-dark-text leading-snug group-hover:text-point transition-colors">
               {notice.title}
             </h3>
-            <p className="mb-3 font-lexend text-[11px] font-bold text-muted-text/60">{notice.date}</p>
-            <p className="font-noto text-[13px] leading-relaxed text-dark-text/70 line-clamp-2">
-              {notice.content}
-            </p>
+            <p
+              className="font-noto text-[13px] leading-relaxed text-dark-text/70"
+              dangerouslySetInnerHTML={{ __html: notice.content }}
+            />
           </div>
         ))}
       </div>

@@ -199,12 +199,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
         </div>
 
         {/* Footer in SideMenu */}
-        <div className="border-t border-separator p-6 bg-footer-bg/30">
-          <p className="font-noto text-[10px] text-muted-text leading-relaxed">
-            고객센터 1544-0000<br/>
-            평일 11:00 ~ 18:00 (토/일/공휴일 휴무)
-          </p>
-        </div>
+        <div className="border-t border-separator p-6 bg-footer-bg/30" />
       </div>
     </>
   )

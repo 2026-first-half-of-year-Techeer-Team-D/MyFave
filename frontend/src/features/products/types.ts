@@ -3,11 +3,14 @@ export interface ProductFeature {
   description: string
 }
 
+export type ProductCategory = 'top' | 'bottom' | 'outer' | 'accessory'
+
 export interface Product {
   id: number
   title: string
   image: string
   price: string
+  category: ProductCategory
 }
 
 export interface ProductDetail {

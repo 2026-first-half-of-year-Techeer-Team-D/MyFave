@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface PopUpProps {
   message: string
@@ -8,12 +8,15 @@ interface PopUpProps {
 }
 
 export function PopUp({ message, isOpen, onClose, duration = 3000 }: PopUpProps) {
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+
   useEffect(() => {
     if (isOpen) {
-      const timer = setTimeout(onClose, duration)
+      const timer = setTimeout(() => onCloseRef.current(), duration)
       return () => clearTimeout(timer)
     }
-  }, [isOpen, onClose, duration])
+  }, [isOpen, duration])
 
   if (!isOpen) return null
 
