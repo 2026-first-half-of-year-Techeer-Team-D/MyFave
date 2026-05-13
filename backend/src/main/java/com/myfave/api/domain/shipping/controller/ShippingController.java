@@ -1,27 +1,20 @@
 package com.myfave.api.domain.shipping.controller;
 
 import com.myfave.api.domain.shipping.service.ShippingService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.myfave.api.domain.shipping.dto.request.ShippingAddressRequest;
+import com.myfave.api.domain.shipping.dto.response.DefaultAddressResponse;
 import com.myfave.api.domain.shipping.dto.response.ShippingAddressResponse;
 import com.myfave.api.global.common.ApiResponse;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import com.myfave.api.domain.shipping.dto.request.ShippingAddressRequest;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import com.myfave.api.domain.shipping.dto.response.DefaultAddressResponse;
-import org.springframework.web.bind.annotation.PatchMapping;
 
 @RestController
 @RequestMapping("/shipping")
@@ -30,9 +23,10 @@ public class ShippingController {
 
     private final ShippingService shippingService;
 
+    // 7-1. 배송지 목록 조회
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ShippingAddressResponse>>> getShippingAddresses() {
-        Long userId = 1L;
+    public ResponseEntity<ApiResponse<List<ShippingAddressResponse>>> getShippingAddresses(
+            @AuthenticationPrincipal Long userId) {
         List<ShippingAddressResponse> response = shippingService.getShippingAddresses(userId);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
@@ -40,8 +34,8 @@ public class ShippingController {
     // 7-2. 배송지 추가
     @PostMapping
     public ResponseEntity<ApiResponse<ShippingAddressResponse>> addShippingAddress(
+            @AuthenticationPrincipal Long userId,
             @RequestBody @Valid ShippingAddressRequest request) {
-        Long userId = 1L;
         ShippingAddressResponse response = shippingService.addShippingAddress(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created("배송지가 등록되었습니다.", response));
@@ -50,8 +44,8 @@ public class ShippingController {
     // 7-3. 배송지 삭제
     @DeleteMapping("/{addressId}")
     public ResponseEntity<ApiResponse<Void>> deleteShippingAddress(
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long addressId) {
-        Long userId = 1L;
         shippingService.deleteShippingAddress(userId, addressId);
         return ResponseEntity.ok(ApiResponse.ok("배송지가 삭제되었습니다."));
     }
@@ -59,8 +53,8 @@ public class ShippingController {
     // 7-4. 기본 배송지 설정
     @PatchMapping("/{addressId}/default")
     public ResponseEntity<ApiResponse<DefaultAddressResponse>> setDefaultAddress(
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long addressId) {
-        Long userId = 1L;
         DefaultAddressResponse response = shippingService.setDefaultAddress(userId, addressId);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
