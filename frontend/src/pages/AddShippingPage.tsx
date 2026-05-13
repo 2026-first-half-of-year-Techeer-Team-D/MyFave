@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import DaumPostcodeEmbed from 'react-daum-postcode'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
@@ -129,6 +130,33 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
     navigate(fromPath)
   }
 
+  const postcodeModal = isOpenPost && createPortal(
+    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 p-4" onClick={() => setIsOpenPost(false)}>
+      <div className="relative w-full max-w-[460px] bg-white rounded-lg overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-4 border-b border-separator">
+          <h2 className="font-noto text-[16px] font-bold">주소 찾기</h2>
+          <button
+            type="button"
+            onClick={() => setIsOpenPost(false)}
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div className="w-full h-[480px]">
+          <DaumPostcodeEmbed
+            onComplete={handleComplete}
+            style={{ width: '100%', height: '100%' }}
+          />
+        </div>
+      </div>
+    </div>,
+    document.body
+  )
+
   return (
     <>
     <div className="flex-1 bg-white min-h-0 pb-10 overflow-y-auto">
@@ -250,32 +278,7 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
 
     </div>
 
-    {/* 주소 검색 모달 — overflow 컨테이너 외부에 렌더링 */}
-    {isOpenPost && (
-      <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 p-4" onClick={() => setIsOpenPost(false)}>
-        <div className="relative w-full max-w-[460px] bg-white rounded-lg overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center justify-between p-4 border-b border-separator">
-            <h2 className="font-noto text-[16px] font-bold">주소 찾기</h2>
-            <button
-              type="button"
-              onClick={() => setIsOpenPost(false)}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-          <div className="w-full h-[480px]">
-            <DaumPostcodeEmbed
-              onComplete={handleComplete}
-              style={{ width: '100%', height: '100%' }}
-            />
-          </div>
-        </div>
-      </div>
-    )}
+    {postcodeModal}
     </>
   )
 }
