@@ -212,6 +212,7 @@ export const INFLUENCER_PICKS: InfluencerPick[] = [
     title: '원오프 넘버링 티셔츠',
     image: '/images/products/top1_1.jpg',
     price: '29,000원',
+    category: 'top',
     rating: '4,283',
   },
   {
@@ -219,6 +220,7 @@ export const INFLUENCER_PICKS: InfluencerPick[] = [
     title: '브라운 무스탕 자켓',
     image: '/images/products/outer1_1.jpg',
     price: '89,000원',
+    category: 'outer',
     rating: '2,854',
   },
   {
@@ -226,6 +228,7 @@ export const INFLUENCER_PICKS: InfluencerPick[] = [
     title: '스트라이프 카디건',
     image: '/images/products/top2_1.jpg',
     price: '32,000원',
+    category: 'top',
     rating: '3,314',
   },
   {
@@ -233,6 +236,7 @@ export const INFLUENCER_PICKS: InfluencerPick[] = [
     title: '플라워 롱스커트',
     image: '/images/products/bottom1_1.jpg',
     price: '45,000원',
+    category: 'bottom',
     rating: '3,921',
   },
 ]
