@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import { KakaoPostcodeEmbed } from 'react-daum-postcode'
+import type { Address as DaumAddress } from 'react-daum-postcode'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useShippingStore } from '@/features/shipping/store'
@@ -13,68 +15,6 @@ interface AddressFormData {
   detailAddress: string
   request: string
   isDefault: boolean
-}
-
-interface DaumPostcodeData {
-  address: string
-  addressType: string
-  bname: string
-  buildingName: string
-  zonecode: string
-}
-
-const POSTCODE_SCRIPT_URL = 'https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
-const POSTCODE_SCRIPT_ID = 'kakao_postcode_script'
-
-function KakaoPostcodeEmbed({ onComplete }: { onComplete: (data: DaumPostcodeData) => void }) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const onCompleteRef = useRef(onComplete)
-  onCompleteRef.current = onComplete
-
-  useEffect(() => {
-    let cancelled = false
-
-    const embed = (PostcodeClass: new (options: object) => { embed: (el: HTMLElement) => void }) => {
-      if (cancelled || !containerRef.current) return
-      new PostcodeClass({
-        oncomplete: (data: DaumPostcodeData) => onCompleteRef.current(data),
-        width: '100%',
-        height: '100%',
-      }).embed(containerRef.current)
-    }
-
-    const getPostcodeClass = () =>
-      (window as unknown as Record<string, Record<string, unknown>>).daum?.Postcode as
-        | (new (options: object) => { embed: (el: HTMLElement) => void })
-        | undefined
-
-    if (getPostcodeClass()) {
-      embed(getPostcodeClass()!)
-      return
-    }
-
-    const existing = document.getElementById(POSTCODE_SCRIPT_ID)
-    if (existing) {
-      existing.addEventListener('load', () => {
-        const cls = getPostcodeClass()
-        if (cls) embed(cls)
-      })
-      return
-    }
-
-    const script = document.createElement('script')
-    script.id = POSTCODE_SCRIPT_ID
-    script.src = POSTCODE_SCRIPT_URL
-    script.onload = () => {
-      const cls = getPostcodeClass()
-      if (cls) embed(cls)
-    }
-    document.body.appendChild(script)
-
-    return () => { cancelled = true }
-  }, [])
-
-  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
 }
 
 const initialFormData: AddressFormData = {
@@ -114,7 +54,7 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
   const [isOpenPost, setIsOpenPost] = useState(false)
   const [formData, setFormData] = useState<AddressFormData>(() => buildInitialFormData(initialTarget))
 
-  const handleComplete = (data: DaumPostcodeData) => {
+  const handleComplete = (data: DaumAddress) => {
     let fullAddress = data.address
     let extraAddress = ''
 
@@ -200,7 +140,11 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
           </button>
         </div>
         <div className="w-full h-[480px]">
-          <KakaoPostcodeEmbed onComplete={handleComplete} />
+          <KakaoPostcodeEmbed
+            onComplete={handleComplete}
+            autoClose={false}
+            style={{ width: '100%', height: '100%' }}
+          />
         </div>
       </div>
     </div>,
