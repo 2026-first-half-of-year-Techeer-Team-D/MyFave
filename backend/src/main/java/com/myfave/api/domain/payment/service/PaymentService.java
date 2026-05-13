@@ -69,6 +69,9 @@ public class PaymentService {
     // ── 결제 준비 ────────────────────────────────────────────────────────────────
     @Transactional
     public PaymentPrepareResponse preparePayment(Long userId, PaymentPrepareRequest request) {
+        if (userId == null) {
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
@@ -125,6 +128,9 @@ public class PaymentService {
     // ── 결제 승인 ────────────────────────────────────────────────────────────────
     @Transactional
     public PaymentResponse confirmPayment(Long userId, PaymentConfirmRequest request) {
+        if (userId == null) {
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
+        }
         Payment payment = paymentRepository.findById(request.getPaymentId())
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
