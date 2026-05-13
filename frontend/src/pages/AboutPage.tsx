@@ -9,14 +9,6 @@ export function AboutPage() {
           </p>
         </section>
 
-        <section>
-          <h2 className="mb-3 font-noto text-lg font-bold text-dark-text">연락처</h2>
-          <p className="font-noto text-sm text-muted-text">
-            이메일: info@myfave.kr
-            <br />
-            전화: 02-1234-5678
-          </p>
-        </section>
       </div>
     </div>
   )
