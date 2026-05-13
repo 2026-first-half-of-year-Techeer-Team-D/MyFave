@@ -86,14 +86,7 @@ public class OrderService {
         ShippingAddress shippingAddress = shippingAddressRepository.findById(request.getShippingAddressId())
                 .orElseThrow(() -> new CustomException(ErrorCode.SHIPPING_ADDRESS_NOT_FOUND));
 
-        // ── 3. 배송지 소유자 확인 ──────────────────────────────────────
-        // 로그인한 사람(userId)과 배송지 등록자(shippingAddress.getUser())가 같아야 함
-        // 다르면 다른 사람의 배송지를 쓰려는 것이므로 403 반환
-        if (!shippingAddress.getUser().getUserId().equals(userId)) {
-            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
-        }
-
-        // ── 4. 주문 번호 생성 ──────────────────────────────────────────
+        // ── 3. 주문 번호 생성 ──────────────────────────────────────────
         // 형식: ORD-yyyyMMdd-UUID앞8자리 (예: ORD-20260405-A1B2C3D4)
         // UUID는 매번 랜덤하게 생성되어 중복될 확률이 사실상 0에 가까움
         String orderNumber = "ORD-"
