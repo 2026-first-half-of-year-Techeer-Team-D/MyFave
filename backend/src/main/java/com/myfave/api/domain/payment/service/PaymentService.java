@@ -10,6 +10,7 @@ import com.myfave.api.domain.order.entity.OrderItem;
 import com.myfave.api.domain.order.entity.OrderStatus;
 import com.myfave.api.domain.order.repository.OrderItemRepository;
 import com.myfave.api.domain.order.repository.OrderRepository;
+import com.myfave.api.domain.payment.dto.request.PaymentCancelRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentConfirmRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentPrepareRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentWebhookRequest;
@@ -199,6 +200,70 @@ public class PaymentService {
         saveAttempt(payment, attemptNo, PaymentStatus.COMPLETED, pgInfo.pgTransactionId(), null);
         log.info("[Payment] 결제 완료: paymentId={}, orderId={}", payment.getPaymentId(), payment.getOrder().getOrderId());
 
+        return PaymentResponse.from(payment);
+    }
+
+    // ── 결제 단건 조회 ────────────────────────────────────────────────────────────
+    public PaymentResponse getPayment(Long userId, Long paymentId) {
+        if (userId == null) {
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
+        }
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if (!payment.getOrder().getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+        return PaymentResponse.from(payment);
+    }
+
+    // ── 결제 취소/환불 ────────────────────────────────────────────────────────────
+    @Transactional
+    public PaymentResponse cancelPayment(Long userId, Long paymentId, PaymentCancelRequest request) {
+        if (userId == null) {
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
+        }
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if (!payment.getOrder().getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        if (payment.getPaymentStatus() == PaymentStatus.CANCELLED) {
+            throw new CustomException(ErrorCode.PAYMENT_CANCELLED);
+        }
+        if (payment.getPaymentStatus() != PaymentStatus.COMPLETED
+                && payment.getPaymentStatus() != PaymentStatus.PARTIAL_CANCELLED) {
+            throw new CustomException(ErrorCode.PAYMENT_INVALID_STATUS);
+        }
+
+        int remaining = payment.getTotalPaymentPrice() - payment.getRefundedAmount();
+        Integer requested = request.getRefundAmount();
+        boolean fullCancel = requested == null || requested >= remaining;
+        int cancelAmount = fullCancel ? remaining : requested;
+
+        if (cancelAmount <= 0) {
+            throw new CustomException(ErrorCode.PAYMENT_INVALID_STATUS);
+        }
+
+        paymentProvider.cancelPayment(payment.getPgTransactionId(), cancelAmount, request.getReason());
+
+        if (fullCancel) {
+            payment.partialCancel(cancelAmount);
+            payment.cancel();
+            if (payment.getDiscountCoupon() != null) {
+                couponService.restoreCoupon(payment.getDiscountCoupon().getCouponId(), userId);
+            }
+            if (payment.getShippingCoupon() != null) {
+                couponService.restoreCoupon(payment.getShippingCoupon().getCouponId(), userId);
+            }
+        } else {
+            payment.partialCancel(cancelAmount);
+        }
+
+        log.info("[Payment] 결제 취소: paymentId={}, cancelAmount={}, fullCancel={}",
+                payment.getPaymentId(), cancelAmount, fullCancel);
         return PaymentResponse.from(payment);
     }
 
