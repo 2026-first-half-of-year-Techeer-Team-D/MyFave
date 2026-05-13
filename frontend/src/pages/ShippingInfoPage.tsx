@@ -6,7 +6,6 @@ export function ShippingInfoPage() {
           <h2 className="mb-3 font-noto text-base font-bold text-dark-text">배송비 안내</h2>
           <ul className="space-y-1.5 font-noto text-sm leading-relaxed text-muted-text">
             <li>• 기본 배송비: 3,000원</li>
-            <li>• 50,000원 이상 구매 시 무료 배송</li>
             <li>• 제주 및 도서산간 지역은 추가 배송비가 발생할 수 있습니다.</li>
           </ul>
         </section>
