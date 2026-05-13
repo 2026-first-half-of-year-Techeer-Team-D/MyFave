@@ -73,10 +73,8 @@ public class OrderService {
     public OrderResponse createOrder(Long userId, OrderCreateRequest request) {
 
         // ── 1. 사용자 조회 ──────────────────────────────────────────────
-        // JWT 토큰이 없으면 userId가 null → 개발 테스트용으로 임시 1L 사용
-        // TODO: Auth API 완성 후 아래 줄 제거하고 AUTH_UNAUTHORIZED 예외로 교체
         if (userId == null) {
-            userId = 1L;
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
         }
         // JWT 토큰에서 꺼낸 userId로 User 엔티티를 DB에서 조회
         // 없으면 CustomException → GlobalExceptionHandler가 404 응답 반환
@@ -206,9 +204,8 @@ public class OrderService {
     public OrderListResponse getOrders(Long userId, Pageable pageable) {
 
         // ── 1. 사용자 조회 ──────────────────────────────────────────────
-        // TODO: Auth API 완성 후 null 체크를 AUTH_UNAUTHORIZED 예외로 교체
         if (userId == null) {
-            userId = 1L;
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -256,9 +253,8 @@ public class OrderService {
     public OrderDetailResponse getOrderDetail(Long userId, Long orderId) {
 
         // ── 1. userId null 체크 ──────────────────────────────────────────
-        // TODO: Auth API 완성 후 null 체크를 AUTH_UNAUTHORIZED 예외로 교체
         if (userId == null) {
-            userId = 1L;
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
         }
 
         // ── 2. orderId → Order 조회 ──────────────────────────────────────
@@ -294,9 +290,8 @@ public class OrderService {
     public OrderConfirmResponse confirmOrder(Long userId, Long orderId) {
 
         // ── 1. userId null 체크 ──────────────────────────────────────────
-        // TODO: Auth API 완성 후 null 체크를 AUTH_UNAUTHORIZED 예외로 교체
         if (userId == null) {
-            userId = 1L;
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
         }
 
         // ── 2. orderId → Order 조회 ──────────────────────────────────────
