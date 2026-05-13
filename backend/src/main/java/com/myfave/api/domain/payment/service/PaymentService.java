@@ -17,6 +17,7 @@ import com.myfave.api.domain.payment.dto.response.PaymentPrepareResponse;
 import com.myfave.api.domain.payment.dto.response.PaymentResponse;
 import com.myfave.api.domain.payment.entity.Payment;
 import com.myfave.api.domain.payment.entity.PaymentAttempt;
+import com.myfave.api.domain.payment.entity.PaymentMethod;
 import com.myfave.api.domain.payment.entity.PaymentStatus;
 import com.myfave.api.domain.payment.provider.PaymentProvider;
 import com.myfave.api.domain.payment.provider.PaymentProvider.PortOnePaymentInfo;
@@ -60,11 +61,32 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final PaymentProvider paymentProvider;
 
-    @Value("${portone.channel-key}")
-    private String channelKey;
+    @Value("${portone.store-id}")
+    private String storeId;
+
+    @Value("${portone.channel-key.card}")
+    private String cardChannelKey;
+
+    @Value("${portone.channel-key.kakao-pay}")
+    private String kakaoPayChannelKey;
+
+    @Value("${portone.channel-key.naver-pay}")
+    private String naverPayChannelKey;
+
+    @Value("${portone.channel-key.toss-pay}")
+    private String tossPayChannelKey;
 
     @Value("${portone.api-secret}")
     private String apiSecret;
+
+    private String resolveChannelKey(PaymentMethod method) {
+        return switch (method) {
+            case CARD -> cardChannelKey;
+            case KAKAO_PAY -> kakaoPayChannelKey;
+            case NAVER_PAY -> naverPayChannelKey;
+            case TOSS_PAY -> tossPayChannelKey;
+        };
+    }
 
     // ── 결제 준비 ────────────────────────────────────────────────────────────────
     @Transactional
@@ -122,7 +144,7 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_LOCK_CONFLICT);
         }
 
-        return PaymentPrepareResponse.of(payment, channelKey);
+        return PaymentPrepareResponse.of(payment, storeId, resolveChannelKey(request.getPaymentMethod()));
     }
 
     // ── 결제 승인 ────────────────────────────────────────────────────────────────
