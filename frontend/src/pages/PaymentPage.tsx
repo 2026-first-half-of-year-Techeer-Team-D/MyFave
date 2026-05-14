@@ -1,5 +1,5 @@
-import { format } from 'date-fns'
-import { ko } from 'date-fns/locale'
+import PortOne from '@portone/browser-sdk/v2'
+import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -7,8 +7,11 @@ import { useUser } from '@/features/auth/hooks'
 import { useCart } from '@/features/cart/hooks'
 import { useCartStore } from '@/features/cart/store'
 import { useCouponStore } from '@/features/coupons/store'
-import { useOrderStore } from '@/features/orders/store'
+import { useCreateOrder } from '@/features/orders/hooks'
+import { useConfirmPayment, usePreparePayment } from '@/features/payments/hooks'
 import { useCheckoutStore } from '@/features/payments/store'
+import { PAYMENT_METHOD_MAP } from '@/features/payments/types'
+import { shippingApi } from '@/features/shipping/api'
 import { getDefaultAddress, useShippingStore } from '@/features/shipping/store'
 import type { Address } from '@/features/shipping/types'
 
@@ -29,7 +32,16 @@ export function PaymentPage() {
   const appliedCoupon = useCouponStore((s) => s.applied)
   const applyCoupon = useCouponStore((s) => s.applyCoupon)
   const addresses = useShippingStore((s) => s.addresses)
-  const addOrder = useOrderStore((s) => s.addOrder)
+
+  const createOrder = useCreateOrder()
+  const preparePayment = usePreparePayment()
+  const confirmPayment = useConfirmPayment()
+
+  const { data: backendAddresses } = useQuery({
+    queryKey: ['shipping-addresses'],
+    queryFn: shippingApi.getAddresses,
+  })
+  const defaultBackendAddress = backendAddresses?.find((a) => a.isDefault)
 
   const [selectedMethod, setSelectedMethod] = useState('카드')
   const [shippingRequest, setShippingRequest] = useState('')
@@ -57,44 +69,65 @@ export function PaymentPage() {
   const discount = appliedCoupon ? appliedCoupon.discount : 0
   const total = subtotal + shippingFee - discount
 
-  const handlePayment = (e: React.FormEvent) => {
+  const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!address || checkoutItems.length === 0) return
+    if (!address || checkoutItems.length === 0 || !defaultBackendAddress) return
 
-    // 이벤트 핸들러 시점에만 실행되므로 컴포넌트 순수성과 무관
-    // eslint-disable-next-line react-hooks/purity
-    const orderId = Date.now().toString()
-    const orderDate = format(new Date(), 'yy.MM.dd (eee)', { locale: ko })
+    const backendMethod = PAYMENT_METHOD_MAP[selectedMethod]
+    if (!backendMethod) return
 
-    addOrder({
-      id: orderId,
-      date: orderDate,
-      items: checkoutItems.map((item) => ({
-        id: String(item.id),
-        name: item.title,
-        price: `${item.price.toLocaleString()}원`,
-        image: item.image,
-        actionLabel: '배송 조회',
-      })),
-      paymentInfo: {
-        productAmount: `${subtotal.toLocaleString()}원`,
-        discountAmount: `-${discount.toLocaleString()}원`,
-        shippingFee: `${shippingFee.toLocaleString()}원`,
-        totalAmount: `${total.toLocaleString()}원`,
-        paymentMethod: selectedMethod,
-      },
-      shipping: {
-        recipientName: address.name,
-        phone: address.phone,
-        address: address.address,
-        detailAddress: address.detailAddress,
-        request: shippingRequest,
-      },
-    })
+    try {
+      // 1. 주문 생성
+      const order = await createOrder.mutateAsync({
+        orderType: 'DIRECT',
+        productId: checkoutItems[0].id,
+        shippingAddressId: defaultBackendAddress.shippingId,
+      })
 
-    clearCart()
-    applyCoupon(null)
-    navigate('/order-success')
+      // 2. 결제 준비
+      const prepareRes = await preparePayment.mutateAsync({
+        orderId: order.orderId,
+        paymentMethod: backendMethod,
+      })
+
+      // 3. PortOne 결제창
+      const easyPayProvider = (
+        {
+          KAKAO_PAY: 'KAKAOPAY',
+          NAVER_PAY: 'NAVERPAY',
+          TOSS_PAY: 'TOSSPAY',
+        } as Record<string, string>
+      )[backendMethod]
+
+      const portoneRes = await PortOne.requestPayment({
+        storeId: prepareRes.storeId,
+        channelKey: prepareRes.channelKey,
+        paymentId: prepareRes.idempotencyKey,
+        orderName: `마이페이브 주문 ${checkoutItems.length}개`,
+        totalAmount: prepareRes.totalPaymentPrice,
+        currency: 'KRW',
+        payMethod: backendMethod === 'CARD' ? 'CARD' : 'EASY_PAY',
+        ...(easyPayProvider && { easyPay: { easyPayProvider } }),
+      })
+
+      if (!portoneRes || portoneRes.code) {
+        alert(`결제 실패: ${portoneRes?.message ?? '알 수 없는 오류'}`)
+        return
+      }
+
+      // 4. 결제 승인 (portoneRes.paymentId === prepareRes.idempotencyKey)
+      await confirmPayment.mutateAsync({
+        paymentId: prepareRes.paymentId,
+        pgTransactionId: portoneRes.paymentId,
+      })
+
+      clearCart()
+      applyCoupon(null)
+      navigate('/order-success')
+    } catch (err) {
+      console.error('결제 오류:', err)
+      alert('결제 처리 중 오류가 발생했습니다.')
+    }
   }
 
   return (
@@ -251,7 +284,7 @@ export function PaymentPage() {
       <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[376.04px] -translate-x-1/2 bg-white p-[19.99px] border-t border-[#F2EDEB] shadow-figma-popup">
         <button
           onClick={handlePayment}
-          disabled={!address || checkoutItems.length === 0}
+          disabled={!address || checkoutItems.length === 0 || !defaultBackendAddress || createOrder.isPending || preparePayment.isPending || confirmPayment.isPending}
           className="w-full h-[56px] rounded-[12px] bg-point flex flex-col items-center justify-center shadow-lg active:scale-[0.98] transition-all disabled:bg-gray-300"
         >
           {appliedCoupon && (
