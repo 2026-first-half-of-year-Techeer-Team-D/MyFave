@@ -103,6 +103,7 @@ export function PaymentPage() {
       const prepareRes = await preparePayment.mutateAsync({
         orderId: order.orderId,
         paymentMethod: backendMethod,
+        ...(appliedCoupon?.id && { discountCouponId: appliedCoupon.id }),
       })
 
       // 3. PortOne 결제창
