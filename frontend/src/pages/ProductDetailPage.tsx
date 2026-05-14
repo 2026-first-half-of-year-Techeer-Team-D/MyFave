@@ -15,6 +15,7 @@ export function ProductDetailPage() {
   const { data: product } = useProduct(productId)
   const addCartItem = useCartStore((s) => s.addItem)
   const setCheckoutItems = useCheckoutStore((s) => s.setItems)
+  const setOrderType = useCheckoutStore((s) => s.setOrderType)
   const isAuthenticated = useIsAuthenticated()
   const [isShippingOpen, setIsShippingOpen] = useState(false)
   const [isRefundOpen, setIsRefundOpen] = useState(false)
@@ -38,6 +39,7 @@ export function ProductDetailPage() {
     setCheckoutItems([
       { id: product.id, title: product.title, image: product.images[0], price: product.priceNumber },
     ])
+    setOrderType('DIRECT')
     navigate('/payment')
   }
 
