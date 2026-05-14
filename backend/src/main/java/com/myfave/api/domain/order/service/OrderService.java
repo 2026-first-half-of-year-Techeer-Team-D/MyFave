@@ -85,6 +85,10 @@ public class OrderService {
         // 요청으로 받은 shippingAddressId가 실제로 DB에 존재하는지 확인
         ShippingAddress shippingAddress = shippingAddressRepository.findById(request.getShippingAddressId())
                 .orElseThrow(() -> new CustomException(ErrorCode.SHIPPING_ADDRESS_NOT_FOUND));
+        // 본인 소유 배송지인지 검증
+        if (!shippingAddress.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.SHIPPING_ADDRESS_FORBIDDEN);
+        }
 
         // ── 3. 주문 번호 생성 ──────────────────────────────────────────
         // 형식: ORD-yyyyMMdd-UUID앞8자리 (예: ORD-20260405-A1B2C3D4)
