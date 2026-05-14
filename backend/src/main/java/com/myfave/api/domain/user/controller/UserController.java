@@ -26,7 +26,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponse>> getUser(
             @AuthenticationPrincipal Long currentUserId,
             @PathVariable Long userId) {
-        if (!currentUserId.equals(userId)) {
+        if (!userId.equals(userId)) {
             throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
         }
         UserResponse response = userService.getUser(userId);
@@ -39,7 +39,7 @@ public class UserController {
             @AuthenticationPrincipal Long currentUserId,
             @PathVariable Long userId,
             @RequestBody @Valid UserUpdateRequest request) {
-        if (!currentUserId.equals(userId)) {
+        if (!userId.equals(userId)) {
             throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
         }
         UserResponse response = userService.updateUser(userId, request);
