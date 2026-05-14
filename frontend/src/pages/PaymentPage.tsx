@@ -126,6 +126,7 @@ export function PaymentPage() {
         customer: {
           email: user?.email || 'buyer@myfave.com',
           fullName: user?.nickname || '구매자',
+          phoneNumber: address?.phone || defaultBackendAddress.receiverPhone,
         },
       })
 
