@@ -134,6 +134,7 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
           addressDetail: formData.detailAddress || undefined,
           zipCode: formData.zipcode,
           deliveryRequest: formData.request || undefined,
+          isDefault,
         })
 
         addAddress({
