@@ -106,6 +106,14 @@ export function PaymentPage() {
         ...(appliedCoupon?.id && { discountCouponId: appliedCoupon.id }),
       })
 
+      // 금액 일치 검증
+      const expectedTotal = subtotal + (prepareRes.deliveryFee ?? shippingFee) - (prepareRes.discountPrice ?? 0)
+      if (prepareRes.totalPaymentPrice !== expectedTotal) {
+        console.warn('금액 불일치', { frontend: expectedTotal, backend: prepareRes.totalPaymentPrice })
+        alert('주문 금액이 변경되었습니다. 다시 시도해주세요.')
+        return
+      }
+
       // 3. PortOne 결제창
       const easyPayProvider = (
         {
