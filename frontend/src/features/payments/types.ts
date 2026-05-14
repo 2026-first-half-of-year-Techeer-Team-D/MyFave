@@ -9,6 +9,7 @@ export interface CheckoutSession {
   address: Address | null
   appliedCoupon: Coupon | null
   paymentMethod: PaymentMethod | null
+  orderType: 'DIRECT' | 'CART'
 }
 
 export type BackendPaymentMethod = 'CARD' | 'KAKAO_PAY' | 'NAVER_PAY' | 'TOSS_PAY'
