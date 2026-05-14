@@ -140,7 +140,12 @@ export function PaymentPage() {
       })
 
       if (!portoneRes || portoneRes.code) {
-        alert(`결제 실패: ${portoneRes?.message ?? '알 수 없는 오류'}`)
+        const isUserCancel = portoneRes?.message?.includes('취소') || portoneRes?.message?.includes('cancel')
+        if (isUserCancel) {
+          alert('결제를 취소하셨습니다.')
+        } else {
+          alert(`결제 실패: ${portoneRes?.message ?? '알 수 없는 오류'}\n다시 시도하려면 페이지를 새로고침 해주세요.`)
+        }
         return
       }
 
