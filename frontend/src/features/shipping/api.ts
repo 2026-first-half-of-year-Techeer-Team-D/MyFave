@@ -11,9 +11,22 @@ export interface BackendShippingAddress {
   isDefault: boolean
 }
 
+export interface ShippingAddressCreateRequest {
+  receiverName: string
+  receiverPhone: string
+  address: string
+  addressDetail?: string
+  zipCode: string
+  deliveryRequest?: string
+}
+
 export const shippingApi = {
   getAddresses: async (): Promise<BackendShippingAddress[]> => {
     const res = await apiClient.get<{ data: BackendShippingAddress[] }>('/shipping')
+    return res.data.data
+  },
+  createAddress: async (data: ShippingAddressCreateRequest): Promise<BackendShippingAddress> => {
+    const res = await apiClient.post<{ data: BackendShippingAddress }>('/shipping', data)
     return res.data.data
   },
 }
