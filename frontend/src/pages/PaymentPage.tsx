@@ -11,6 +11,7 @@ import { useCreateOrder } from '@/features/orders/hooks'
 import { useConfirmPayment, usePreparePayment } from '@/features/payments/hooks'
 import { useCheckoutStore } from '@/features/payments/store'
 import { PAYMENT_METHOD_MAP } from '@/features/payments/types'
+import type { OrderCreateRequest } from '@/features/orders/api'
 import { shippingApi } from '@/features/shipping/api'
 import { getDefaultAddress, useShippingStore } from '@/features/shipping/store'
 import type { Address } from '@/features/shipping/types'
@@ -27,6 +28,7 @@ export function PaymentPage() {
   const user = useUser()
   const checkoutItems = useCheckoutStore((s) => s.items)
   const setCheckoutItems = useCheckoutStore((s) => s.setItems)
+  const orderType = useCheckoutStore((s) => s.orderType)
   const cartItems = useCart()
   const clearCart = useCartStore((s) => s.clear)
   const appliedCoupon = useCouponStore((s) => s.applied)
@@ -79,6 +81,8 @@ export function PaymentPage() {
 
   const greetingName = user ? `${user.nickname}님` : '비회원'
 
+  const resolvedShippingId = defaultBackendAddress?.shippingId ?? (address ? Number(address.id) : null)
+
   const subtotal = checkoutItems.reduce((sum, item) => sum + item.price, 0)
   const shippingFee = 3000
   const discount = appliedCoupon ? appliedCoupon.discount : 0
@@ -86,18 +90,18 @@ export function PaymentPage() {
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (checkoutItems.length === 0 || !defaultBackendAddress) return
+    if (checkoutItems.length === 0 || !address || !resolvedShippingId) return
 
     const backendMethod = PAYMENT_METHOD_MAP[selectedMethod]
     if (!backendMethod) return
 
     try {
       // 1. 주문 생성
-      const order = await createOrder.mutateAsync({
-        orderType: 'DIRECT',
-        productId: checkoutItems[0].id,
-        shippingAddressId: defaultBackendAddress.shippingId,
-      })
+      const orderPayload: OrderCreateRequest =
+        orderType === 'CART'
+          ? { orderType: 'CART', cartItemIds: checkoutItems.map((i) => i.id), shippingAddressId: resolvedShippingId }
+          : { orderType: 'DIRECT', productId: checkoutItems[0].id, shippingAddressId: resolvedShippingId }
+      const order = await createOrder.mutateAsync(orderPayload)
 
       // 2. 결제 준비
       const prepareRes = await preparePayment.mutateAsync({
@@ -123,7 +127,8 @@ export function PaymentPage() {
         } as Record<string, string>
       )[backendMethod]
 
-      const portoneRes = await PortOne.requestPayment({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const portoneRes = await (PortOne.requestPayment as (req: any) => ReturnType<typeof PortOne.requestPayment>)({
         storeId: prepareRes.storeId,
         channelKey: prepareRes.channelKey,
         paymentId: prepareRes.idempotencyKey,
@@ -135,7 +140,7 @@ export function PaymentPage() {
         customer: {
           email: user?.email || 'buyer@myfave.com',
           fullName: user?.nickname || '구매자',
-          phoneNumber: address?.phone || defaultBackendAddress.receiverPhone,
+          phoneNumber: address.phone,
         },
       })
 
@@ -320,7 +325,7 @@ export function PaymentPage() {
       <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[376.04px] -translate-x-1/2 bg-white p-[19.99px] border-t border-[#F2EDEB] shadow-figma-popup">
         <button
           onClick={handlePayment}
-          disabled={checkoutItems.length === 0 || !defaultBackendAddress || createOrder.isPending || preparePayment.isPending || confirmPayment.isPending}
+          disabled={checkoutItems.length === 0 || !address || !resolvedShippingId || createOrder.isPending || preparePayment.isPending || confirmPayment.isPending}
           className="w-full h-[56px] rounded-[12px] bg-point flex flex-col items-center justify-center shadow-lg active:scale-[0.98] transition-all disabled:bg-gray-300"
         >
           {appliedCoupon && (
