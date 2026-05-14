@@ -41,7 +41,7 @@ export function PaymentPage() {
     queryKey: ['shipping-addresses'],
     queryFn: shippingApi.getAddresses,
   })
-  const defaultBackendAddress = backendAddresses?.find((a) => a.isDefault)
+  const defaultBackendAddress = backendAddresses?.find((a) => a.isDefault) ?? backendAddresses?.[0]
 
   const [selectedMethod, setSelectedMethod] = useState('카드')
   const [shippingRequest, setShippingRequest] = useState('')
