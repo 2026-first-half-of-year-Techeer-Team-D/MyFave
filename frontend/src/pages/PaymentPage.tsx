@@ -123,6 +123,10 @@ export function PaymentPage() {
         currency: 'KRW',
         payMethod: backendMethod === 'CARD' ? 'CARD' : 'EASY_PAY',
         ...(easyPayProvider && { easyPay: { easyPayProvider } }),
+        customer: {
+          email: user?.email || 'buyer@myfave.com',
+          fullName: user?.nickname || '구매자',
+        },
       })
 
       if (!portoneRes || portoneRes.code) {
