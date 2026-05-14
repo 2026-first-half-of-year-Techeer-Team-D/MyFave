@@ -3,7 +3,7 @@ import { apiClient } from '@/shared/api/axios'
 export interface OrderCreateRequest {
   orderType: 'DIRECT' | 'CART'
   productId?: number
-  cartItemIds?: number[]
+  productIds?: number[]
   shippingAddressId: number
 }
 
