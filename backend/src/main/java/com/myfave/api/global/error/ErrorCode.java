@@ -50,6 +50,7 @@ public enum ErrorCode {
 
     // 배송지
     SHIPPING_ADDRESS_NOT_FOUND(404, "존재하지 않는 배송지"),
+    SHIPPING_ADDRESS_FORBIDDEN(403, "본인 소유의 배송지가 아닙니다"),
 
     // 쿠폰
     COUPON_NOT_FOUND(404, "존재하지 않는 쿠폰"),
