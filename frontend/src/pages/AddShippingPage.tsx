@@ -270,7 +270,8 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
           <div className="relative w-full max-w-[460px] bg-white rounded-lg overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-separator">
               <h2 className="font-noto text-[16px] font-bold">주소 찾기</h2>
-              <button 
+              <button
+                type="button"
                 onClick={() => setIsOpenPost(false)}
                 className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
