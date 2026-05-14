@@ -2,6 +2,7 @@ import { useState } from 'react'
 import DaumPostcodeEmbed from 'react-daum-postcode'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
+import { shippingApi } from '@/features/shipping/api'
 import { useShippingStore } from '@/features/shipping/store'
 import type { Address } from '@/features/shipping/types'
 
@@ -94,7 +95,7 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
     setFormData({ ...formData, phone: formatted })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!formData.name || !formData.phone || !formData.address) {
@@ -102,31 +103,47 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
       return
     }
 
-    if (editId) {
-      updateAddress(editId, {
-        name: formData.name,
-        phone: formData.phone,
-        zipcode: formData.zipcode,
-        address: formData.address,
-        detailAddress: formData.detailAddress,
-        request: formData.request,
-        isDefault: formData.isDefault,
-      })
-    } else {
-      const isFirstAddress = addresses.length === 0
-      addAddress({
-        id: Date.now().toString(),
-        name: formData.name,
-        phone: formData.phone,
-        zipcode: formData.zipcode,
-        address: formData.address,
-        detailAddress: formData.detailAddress,
-        request: formData.request,
-        isDefault: formData.isDefault || isFirstAddress,
-      })
-    }
+    try {
+      if (editId) {
+        updateAddress(editId, {
+          name: formData.name,
+          phone: formData.phone,
+          zipcode: formData.zipcode,
+          address: formData.address,
+          detailAddress: formData.detailAddress,
+          request: formData.request,
+          isDefault: formData.isDefault,
+        })
+      } else {
+        const isFirstAddress = addresses.length === 0
+        const isDefault = formData.isDefault || isFirstAddress
 
-    navigate(fromPath)
+        // 백엔드에 배송지 등록 → 반환된 shippingId를 로컬 id로 사용
+        const backendAddr = await shippingApi.createAddress({
+          receiverName: formData.name,
+          receiverPhone: formData.phone,
+          address: formData.address,
+          addressDetail: formData.detailAddress || undefined,
+          zipCode: formData.zipcode,
+          deliveryRequest: formData.request || undefined,
+        })
+
+        addAddress({
+          id: String(backendAddr.shippingId),
+          name: formData.name,
+          phone: formData.phone,
+          zipcode: formData.zipcode,
+          address: formData.address,
+          detailAddress: formData.detailAddress,
+          request: formData.request,
+          isDefault,
+        })
+      }
+
+      navigate(fromPath)
+    } catch {
+      alert('배송지 저장 중 오류가 발생했습니다.')
+    }
   }
 
   return (
