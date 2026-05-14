@@ -56,11 +56,26 @@ export function PaymentPage() {
 
   useEffect(() => {
     const defaultAddr = getDefaultAddress(addresses)
-    setAddress(defaultAddr)
-    if (defaultAddr?.request) {
-      setShippingRequest(defaultAddr.request)
+    if (defaultAddr) {
+      setAddress(defaultAddr)
+      if (defaultAddr.request) setShippingRequest(defaultAddr.request)
+    } else if (defaultBackendAddress) {
+      // 로컬 배송지 없을 때 백엔드 기본 배송지로 폴백
+      setAddress({
+        id: String(defaultBackendAddress.shippingId),
+        name: defaultBackendAddress.receiverName,
+        phone: defaultBackendAddress.receiverPhone,
+        address: defaultBackendAddress.address,
+        detailAddress: defaultBackendAddress.addressDetail,
+        zipcode: defaultBackendAddress.zipCode,
+        request: defaultBackendAddress.deliveryRequest,
+        isDefault: defaultBackendAddress.isDefault,
+      })
+      if (defaultBackendAddress.deliveryRequest) {
+        setShippingRequest(defaultBackendAddress.deliveryRequest)
+      }
     }
-  }, [addresses])
+  }, [addresses, defaultBackendAddress])
 
   const greetingName = user ? `${user.nickname}님` : '비회원'
 
@@ -71,7 +86,7 @@ export function PaymentPage() {
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!address || checkoutItems.length === 0 || !defaultBackendAddress) return
+    if (checkoutItems.length === 0 || !defaultBackendAddress) return
 
     const backendMethod = PAYMENT_METHOD_MAP[selectedMethod]
     if (!backendMethod) return
@@ -284,7 +299,7 @@ export function PaymentPage() {
       <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[376.04px] -translate-x-1/2 bg-white p-[19.99px] border-t border-[#F2EDEB] shadow-figma-popup">
         <button
           onClick={handlePayment}
-          disabled={!address || checkoutItems.length === 0 || !defaultBackendAddress || createOrder.isPending || preparePayment.isPending || confirmPayment.isPending}
+          disabled={checkoutItems.length === 0 || !defaultBackendAddress || createOrder.isPending || preparePayment.isPending || confirmPayment.isPending}
           className="w-full h-[56px] rounded-[12px] bg-point flex flex-col items-center justify-center shadow-lg active:scale-[0.98] transition-all disabled:bg-gray-300"
         >
           {appliedCoupon && (
