@@ -123,6 +123,9 @@ public class PaymentService {
                 ? discountCoupon.getCouponMaster().getDiscountPrice()
                 : 0;
         int totalPaymentPrice = totalProductPrice + deliveryFee - discountPrice;
+        if (totalPaymentPrice < 0) {
+            throw new CustomException(ErrorCode.PAYMENT_NEGATIVE_AMOUNT);
+        }
 
         String idempotencyKey = UUID.randomUUID().toString();
 
