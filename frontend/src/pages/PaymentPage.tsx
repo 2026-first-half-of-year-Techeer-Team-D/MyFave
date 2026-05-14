@@ -141,7 +141,9 @@ export function PaymentPage() {
       navigate('/order-success')
     } catch (err) {
       console.error('결제 오류:', err)
-      alert('결제 처리 중 오류가 발생했습니다.')
+      const axiosErr = err as { response?: { data?: { message?: string; code?: number } }; message?: string }
+      const msg = axiosErr.response?.data?.message ?? axiosErr.message ?? '알 수 없는 오류'
+      alert(`결제 오류: ${msg}`)
     }
   }
 
