@@ -98,7 +98,7 @@ public class PaymentService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        Order order = orderRepository.findById(request.getOrderId())
+        Order order = orderRepository.findByIdForUpdate(request.getOrderId())
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getUser().getUserId().equals(userId)) {
