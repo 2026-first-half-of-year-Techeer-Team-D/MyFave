@@ -18,6 +18,7 @@ export interface ShippingAddressCreateRequest {
   addressDetail?: string
   zipCode: string
   deliveryRequest?: string
+  isDefault?: boolean
 }
 
 export const shippingApi = {
