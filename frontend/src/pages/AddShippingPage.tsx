@@ -2,6 +2,8 @@ import { useState } from 'react'
 import DaumPostcodeEmbed from 'react-daum-postcode'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
+import type { AxiosError } from 'axios'
+
 import { shippingApi } from '@/features/shipping/api'
 import { useShippingStore } from '@/features/shipping/store'
 import type { Address } from '@/features/shipping/types'
@@ -98,8 +100,14 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.name || !formData.phone || !formData.address) {
-      alert('모든 필수 정보를 입력해주세요.')
+    if (!formData.name || !formData.phone || !formData.address || !formData.zipcode) {
+      alert('이름, 휴대폰 번호, 주소(주소 찾기 버튼 사용)는 필수입니다.')
+      return
+    }
+
+    const phonePattern = /^010-\d{4}-\d{4}$/
+    if (!phonePattern.test(formData.phone)) {
+      alert('휴대폰 번호를 010-XXXX-XXXX 형식으로 입력해주세요.')
       return
     }
 
@@ -141,8 +149,10 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
       }
 
       navigate(fromPath)
-    } catch {
-      alert('배송지 저장 중 오류가 발생했습니다.')
+    } catch (err) {
+      const axiosErr = err as AxiosError<{ message?: string }>
+      const msg = axiosErr.response?.data?.message ?? '배송지 저장 중 오류가 발생했습니다.'
+      alert(msg)
     }
   }
 
