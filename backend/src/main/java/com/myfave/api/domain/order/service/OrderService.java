@@ -143,37 +143,27 @@ public class OrderService {
 
         } else {
             // ── CART: 장바구니 상품 구매 ─────────────────────────────
+            // productIds는 프론트엔드 장바구니(Zustand 로컬)에 담긴 product_id 목록
 
-            // cartItemIds가 null이거나 비어있으면 요청이 잘못된 것
-            if (request.getCartItemIds() == null || request.getCartItemIds().isEmpty()) {
+            if (request.getProductIds() == null || request.getProductIds().isEmpty()) {
                 throw new CustomException(ErrorCode.ORDER_INVALID_ORDER_TYPE);
             }
 
-            // 요청한 장바구니 ID 목록으로 CartItem 전체 조회
-            // JpaRepository가 기본 제공하는 findAllById: IN 쿼리로 한 번에 조회
-            List<CartItem> cartItems = cartItemRepository.findAllById(request.getCartItemIds());
+            List<Product> products = productRepository.findAllById(request.getProductIds());
 
-            // 요청한 개수와 실제 조회된 개수가 다르면 없는 항목이 포함된 것
-            if (cartItems.size() != request.getCartItemIds().size()) {
-                throw new CustomException(ErrorCode.CART_ITEM_NOT_FOUND);
+            // 요청한 개수와 실제 조회된 개수가 다르면 존재하지 않는 상품이 포함된 것
+            if (products.size() != request.getProductIds().size()) {
+                throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
             }
 
-            // 각 장바구니 항목에 대해 처리
-            for (CartItem cartItem : cartItems) {
+            for (Product product : products) {
 
-                // 해당 장바구니 항목이 로그인한 사용자 것인지 확인
-                if (!cartItem.getUser().getUserId().equals(userId)) {
-                    throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
-                }
-
-                Product product = cartItem.getProduct();
-
-                // 삭제된 상품 확인: deletedAt이 세팅된 상품은 주문 불가
+                // 삭제된 상품 확인
                 if (product.isDeleted()) {
                     throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
                 }
 
-                // 각 상품 품절 확인
+                // 품절 확인
                 if (product.getIsSoldout()) {
                     throw new CustomException(ErrorCode.PRODUCT_SOLD_OUT);
                 }
