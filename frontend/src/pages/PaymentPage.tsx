@@ -99,7 +99,7 @@ export function PaymentPage() {
       // 1. 주문 생성
       const orderPayload: OrderCreateRequest =
         orderType === 'CART'
-          ? { orderType: 'CART', cartItemIds: checkoutItems.map((i) => i.id), shippingAddressId: resolvedShippingId }
+          ? { orderType: 'CART', productIds: checkoutItems.map((i) => i.id), shippingAddressId: resolvedShippingId }
           : { orderType: 'DIRECT', productId: checkoutItems[0].id, shippingAddressId: resolvedShippingId }
       const order = await createOrder.mutateAsync(orderPayload)
 
