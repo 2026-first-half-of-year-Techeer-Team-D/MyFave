@@ -1,6 +1,8 @@
 import axios from 'axios'
 import type { AxiosError, InternalAxiosRequestConfig } from 'axios'
 
+import { useAuthStore } from '@/features/auth/store'
+
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 10000,
@@ -47,17 +49,8 @@ apiClient.interceptors.response.use(
             `${import.meta.env.VITE_API_BASE_URL}/auth/reissue`,
             { refreshToken },
           )
-          // 갱신된 토큰을 zustand store에 반영 (myfave-auth 키 업데이트)
-          const stored = localStorage.getItem('myfave-auth')
-          if (stored) {
-            const parsed = JSON.parse(stored) as { state?: Record<string, unknown>; version?: number }
-            parsed.state = {
-              ...parsed.state,
-              accessToken: data.data.accessToken,
-              refreshToken: data.data.refreshToken,
-            }
-            localStorage.setItem('myfave-auth', JSON.stringify(parsed))
-          }
+          // 갱신된 토큰을 zustand store에 반영
+          useAuthStore.getState().updateTokens(data.data.accessToken, data.data.refreshToken)
           originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`
           return apiClient(originalRequest)
         } catch {
