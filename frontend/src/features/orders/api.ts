@@ -33,4 +33,8 @@ export const ordersApi = {
     const res = await apiClient.get<{ data: OrderDetailApiResponse }>(`/orders/${orderId}`)
     return res.data.data
   },
+
+  confirmPurchase: async (orderId: number): Promise<void> => {
+    await apiClient.patch(`/orders/${orderId}/confirm`)
+  },
 }
