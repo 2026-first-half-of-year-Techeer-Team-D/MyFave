@@ -1,13 +1,19 @@
-import { useMutation } from '@tanstack/react-query'
-import { useOrderStore } from './store'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { ordersApi } from './api'
 
-export function useOrders() {
-  return useOrderStore((s) => s.orders)
+export function useOrdersQuery() {
+  return useQuery({
+    queryKey: ['orders'],
+    queryFn: () => ordersApi.getOrders(),
+  })
 }
 
-export function useOrder(id: string | undefined) {
-  return useOrderStore((s) => (id ? s.orders.find((o) => o.id === id) : undefined))
+export function useOrderDetailQuery(orderId: number | undefined) {
+  return useQuery({
+    queryKey: ['order', orderId],
+    queryFn: () => ordersApi.getOrderDetail(orderId!),
+    enabled: orderId != null,
+  })
 }
 
 export function useCreateOrder() {
