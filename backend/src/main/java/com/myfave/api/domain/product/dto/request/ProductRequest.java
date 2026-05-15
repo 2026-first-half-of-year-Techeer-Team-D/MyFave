@@ -19,11 +19,13 @@ public class ProductRequest {
     @PositiveOrZero(message = "가격은 0 이상이어야 합니다")
     private Integer price;
 
+    @Size(max = 2000, message = "상품 설명은 2000자 이하입니다")
     private String description;
 
     @Size(max = 100, message = "한줄 소개는 100자 이하입니다")
     private String shortReview;
 
+    @Size(max = 50, message = "사이즈는 50자 이하입니다")
     private String size;
     //enum 타입, 문자열 자동 변환
     @NotNull(message = "상품 상태는 필수입니다")
