@@ -1,5 +1,10 @@
 package com.myfave.api.domain.shipping.service;
 
+import com.myfave.api.domain.order.entity.Order;
+import com.myfave.api.domain.order.repository.OrderRepository;
+import com.myfave.api.domain.shipping.client.TrackerDeliveryClient;
+import com.myfave.api.domain.shipping.dto.response.TrackingResponse;
+import com.myfave.api.domain.shipping.entity.Delivery;
 import com.myfave.api.domain.shipping.repository.DeliveryRepository;
 import com.myfave.api.domain.shipping.repository.ShippingAddressRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +31,8 @@ public class ShippingService {
     private final ShippingAddressRepository shippingAddressRepository;
     private final DeliveryRepository deliveryRepository;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
+    private final TrackerDeliveryClient trackerDeliveryClient;
 
     // 7-1. 배송지 목록 조회
     public List<ShippingAddressResponse> getShippingAddresses(Long userId) {
@@ -94,5 +101,35 @@ public class ShippingService {
         shippingAddress.setAsDefault();
 
         return DefaultAddressResponse.from(shippingAddress);
+    }
+
+    // 7-5. 배송 추적
+    @Transactional
+    public TrackingResponse trackDelivery(Long userId, Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (!order.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        Delivery delivery = deliveryRepository.findByOrder(order)
+                .orElseThrow(() -> new CustomException(ErrorCode.TRACKING_NOT_REGISTERED));
+
+        if (delivery.getTrackingNumber() == null || delivery.getCarrierId() == null) {
+            throw new CustomException(ErrorCode.TRACKING_NOT_REGISTERED);
+        }
+
+        TrackerDeliveryClient.TrackResult result =
+                trackerDeliveryClient.track(delivery.getCarrierId(), delivery.getTrackingNumber());
+
+        TrackerDeliveryClient.EventData lastEvent = result.getLastEvent();
+        if (lastEvent != null && lastEvent.getStatus() != null
+                && "DELIVERED".equals(lastEvent.getStatus().getCode())) {
+            delivery.deliver();
+            order.completeDelivery();
+        }
+
+        return TrackingResponse.from(delivery.getCarrierId(), result);
     }
 }
