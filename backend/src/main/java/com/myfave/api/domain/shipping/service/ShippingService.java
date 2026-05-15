@@ -95,7 +95,7 @@ public class ShippingService {
         User user = shippingAddress.getUser();
 
         // 기존 기본 배송지 해제
-        shippingAddressRepository.findByUserAndIsDefaultTrueForUpdate(user)
+        shippingAddressRepository.findByUserAndIsDefaultTrue(user)
                 .ifPresent(existing -> existing.unsetDefault());
 
         // 새 기본 배송지 설정
