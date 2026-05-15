@@ -107,6 +107,15 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
 
     try {
       if (editId) {
+        await shippingApi.updateAddress(Number(editId), {
+          receiverName: formData.name,
+          receiverPhone: formData.phone,
+          address: formData.address,
+          addressDetail: formData.detailAddress || undefined,
+          zipCode: formData.zipcode,
+          deliveryRequest: formData.request || undefined,
+          isDefault: formData.isDefault,
+        })
         updateAddress(editId, {
           name: formData.name,
           phone: formData.phone,
