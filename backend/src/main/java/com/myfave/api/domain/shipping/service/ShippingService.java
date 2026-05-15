@@ -43,14 +43,6 @@ public class ShippingService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        boolean hasNoAddress = shippingAddressRepository.findByUser(user).isEmpty();
-        boolean makeDefault = hasNoAddress || Boolean.TRUE.equals(request.getIsDefault());
-
-        if (makeDefault) {
-            shippingAddressRepository.findByUserAndIsDefaultTrue(user)
-                    .ifPresent(existing -> existing.unsetDefault());
-        }
-
         ShippingAddress shippingAddress = ShippingAddress.builder()
                 .user(user)
                 .receiverName(request.getReceiverName())
@@ -59,7 +51,7 @@ public class ShippingService {
                 .addressDetail(request.getAddressDetail())
                 .zipCode(request.getZipCode())
                 .deliveryRequest(request.getDeliveryRequest())
-                .isDefault(makeDefault)
+                .isDefault(false)
                 .build();
 
         shippingAddressRepository.save(shippingAddress);
