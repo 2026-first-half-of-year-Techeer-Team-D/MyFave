@@ -25,3 +25,13 @@ export function useCreateOrder() {
     },
   })
 }
+
+export function useConfirmPurchase() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (orderId: number) => ordersApi.confirmPurchase(orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
+}
