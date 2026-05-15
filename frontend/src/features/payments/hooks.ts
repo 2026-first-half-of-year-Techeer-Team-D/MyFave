@@ -1,10 +1,23 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { paymentsApi } from './api'
 
 export function usePreparePayment() {
-  return useMutation({ mutationFn: paymentsApi.prepare })
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: paymentsApi.prepare,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
 }
 
 export function useConfirmPayment() {
-  return useMutation({ mutationFn: paymentsApi.confirm })
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: paymentsApi.confirm,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      queryClient.invalidateQueries({ queryKey: ['payments'] })
+    },
+  })
 }
