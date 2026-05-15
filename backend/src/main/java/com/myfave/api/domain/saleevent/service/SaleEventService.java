@@ -10,6 +10,7 @@ import com.myfave.api.domain.saleevent.repository.SaleEventRepository;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,9 @@ import java.util.Optional;
 public class SaleEventService {
 
     private final SaleEventRepository saleEventRepository;
+
+    @Value("${influencer.user-id}")
+    private Long influencerUserId;
     //이벤트 조회
     public SaleEventResponse getCurrentEvent() {
         ZonedDateTime now = ZonedDateTime.now();
@@ -42,9 +46,14 @@ public class SaleEventService {
         // 3단계: 둘 다 없으면 404 에러
         throw new CustomException(ErrorCode.SALE_EVENT_NOT_FOUND);
     }
-    //이벤트 등록
+    //이벤트 등록 (인플루언서 전용)
     @Transactional //DB에 써야하니까 트랜잭션 처리
-    public SaleEventCreateResponse createEvent(SaleEventCreateRequest request) {
+    public SaleEventCreateResponse createEvent(Long userId, SaleEventCreateRequest request) {
+        // 인플루언서 권한 체크
+        if (!influencerUserId.equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
         // 검증 1 : 종료시간이 시작시간보다 뒤인지
         if (!request.getSaleEndAt().isAfter(request.getSaleStartAt())) {
             throw new CustomException(ErrorCode.COMMON_INVALID_INPUT);
@@ -64,9 +73,14 @@ public class SaleEventService {
         SaleEvent saved = saleEventRepository.save(saleEvent);
         return SaleEventCreateResponse.from(saved);
     }
-    //이벤트 수정
+    //이벤트 수정 (인플루언서 전용)
     @Transactional
-    public SaleEventUpdateResponse updateEvent(Long saleId, SaleEventUpdateRequest request) {
+    public SaleEventUpdateResponse updateEvent(Long userId, Long saleId, SaleEventUpdateRequest request) {
+        // 인플루언서 권한 체크
+        if (!influencerUserId.equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
         // 해당 이벤트가 DB에 있는지 확인, 없으면 404
         SaleEvent saleEvent = saleEventRepository.findById(saleId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SALE_EVENT_NOT_FOUND));
