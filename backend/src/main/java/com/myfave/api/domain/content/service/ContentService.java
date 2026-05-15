@@ -15,6 +15,8 @@ import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
 import com.myfave.api.global.util.S3UploadService;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -36,6 +38,9 @@ public class ContentService {
     private final StyleFeedRepository styleFeedRepository;
     private final ProductRepository productRepository;
     private final S3UploadService s3UploadService;
+
+    @Value("${influencer.user-id}")
+    private Long influencerUserId;
 
     // 9-1. 숏폼 목록 조회
     public List<ShortFormResponse> getShortForms(ShortFormType type, int size) {
@@ -66,9 +71,15 @@ public class ContentService {
     // 9-3. 콘텐츠 등록
     @Transactional
     public ContentRegisterResponse registerContent(
+            Long userId,
             ContentRegisterRequest request,
             MultipartFile mediaFile,
             MultipartFile thumbnailFile) {
+
+        // 0. 인플루언서 권한 검증
+        if (!influencerUserId.equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
 
         // 1. 상품 조회 (soft-delete된 상품 제외)
         Product product = productRepository.findByProductIdAndDeletedAtIsNull(request.getProductId())

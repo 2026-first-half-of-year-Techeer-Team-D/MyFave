@@ -44,6 +44,9 @@ public class SecurityConfig {
                                 "/payments/webhook"    // 외부 PG(PortOne) 콜백 - HMAC 서명으로 자체 보안
                         ).permitAll()
                         // 비로그인 공개 조회 (카탈로그·콘텐츠·이벤트)
+                        // /chat-room, /chat-room/preview, /chat-room/messages 는 의도적으로 공개:
+                        // 비로그인 사용자도 판매 이벤트 전 채팅 현황을 열람할 수 있어야 함.
+                        // 쓰기(WebSocket 발행)는 JWT 인증을 별도로 요구함.
                         .requestMatchers(HttpMethod.GET,
                                 "/products/**",
                                 "/content/short-forms",
