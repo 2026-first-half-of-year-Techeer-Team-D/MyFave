@@ -44,7 +44,11 @@ export const useShippingStore = create<ShippingState>()(
           addresses: state.addresses.map((a) => ({ ...a, isDefault: a.id === id })),
         })),
     }),
-    { name: 'myfave-shipping' },
+    {
+      name: 'myfave-shipping',
+      version: 1,
+      migrate: () => ({ addresses: [] }),
+    },
   ),
 )
 
