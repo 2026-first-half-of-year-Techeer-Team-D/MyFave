@@ -1,20 +1,34 @@
 import { useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
-import { useOrders } from '@/features/orders/hooks'
+import type { OrderPaymentInfo, OrderShippingInfo } from '@/features/orders/types'
+
+interface SuccessItem {
+  id: string
+  name: string
+  price: string
+  image: string
+}
+
+interface OrderSuccessState {
+  orderNumber: string
+  items: SuccessItem[]
+  paymentInfo?: OrderPaymentInfo
+  shipping?: OrderShippingInfo
+}
 
 export function OrderSuccessPage() {
   const navigate = useNavigate()
-  const orders = useOrders()
-  const lastOrder = orders[0]
+  const location = useLocation()
+  const state = location.state as OrderSuccessState | null
 
   useEffect(() => {
-    if (!lastOrder) {
-      navigate('/')
-    }
-  }, [lastOrder, navigate])
+    if (!state) navigate('/')
+  }, [state, navigate])
 
-  if (!lastOrder) return null
+  if (!state) return null
+
+  const { orderNumber, items, paymentInfo, shipping } = state
 
   const orderDate = new Date().toLocaleDateString('ko-KR', {
     year: 'numeric',
@@ -24,8 +38,6 @@ export function OrderSuccessPage() {
     minute: '2-digit',
     second: '2-digit',
   })
-
-  const { items, paymentInfo, shipping } = lastOrder
 
   return (
     <div className="flex-1 bg-white min-h-0 pb-32 overflow-y-auto">
@@ -43,7 +55,7 @@ export function OrderSuccessPage() {
         </h1>
         <p className="font-noto text-[14px] leading-[22px] text-chat-font whitespace-pre-line mb-[24px]">
           {orderDate}{'\n'}
-          주문번호 {lastOrder.id}
+          주문번호 {orderNumber}
         </p>
         <div className="w-full bg-footer-bg rounded-[12px] p-[16px] border border-separator/10">
           <p className="font-noto text-[12px] leading-[20px] text-muted-text opacity-80 text-center">
@@ -115,12 +127,7 @@ export function OrderSuccessPage() {
             </p>
             <p className="font-noto text-[12px] font-normal leading-[18.2px] text-[#322927]">
               {shipping.address}
-              {shipping.detailAddress ? (
-                <>
-                  <br />
-                  {shipping.detailAddress}
-                </>
-              ) : null}
+              {shipping.detailAddress ? <><br />{shipping.detailAddress}</> : null}
             </p>
             <div className="pt-2 border-t border-separator/10">
               <p className="font-noto text-[11px] text-[#8B7E74]">배송 요청사항: {shipping.request || '없음'}</p>
