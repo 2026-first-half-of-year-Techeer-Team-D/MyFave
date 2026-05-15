@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 
-import { useOrdersQuery } from '@/features/orders/hooks'
+import { useConfirmPurchase, useOrdersQuery } from '@/features/orders/hooks'
 import type { BackendOrderStatus } from '@/features/orders/types'
 import { PRODUCTS } from '@/features/products/mock'
 
@@ -27,19 +27,28 @@ function formatDate(iso: string) {
   })
 }
 
-function getProductImage(productId: number) {
-  return PRODUCTS.find((p) => p.id === productId)?.image ?? ''
+function getProductImage(item: { productId: number; thumbnailUrl: string | null }) {
+  return item.thumbnailUrl ?? PRODUCTS.find((p) => p.id === item.productId)?.image ?? ''
 }
 
 export function OrdersPage() {
   const navigate = useNavigate()
-  const { data, isLoading } = useOrdersQuery()
+  const confirmPurchase = useConfirmPurchase()
+  const { data, isLoading, isError } = useOrdersQuery()
   const orders = data?.content ?? []
 
   if (isLoading) {
     return (
       <div className="flex-1 bg-white p-12 text-center font-noto text-sm text-muted-text">
         불러오는 중...
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="flex-1 bg-white p-12 text-center font-noto text-sm text-muted-text">
+        주문 내역을 불러오지 못했습니다.
       </div>
     )
   }
@@ -67,11 +76,16 @@ export function OrdersPage() {
               <div
                 key={item.productId}
                 onClick={() => navigate(`/orders/${order.orderId}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') navigate(`/orders/${order.orderId}`)
+                }}
                 className="flex gap-[11.99px] p-[15.99px] rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white active:bg-gray-50 transition-colors cursor-pointer"
               >
                 <div className="w-[84px] h-[84px] flex-shrink-0 overflow-hidden rounded-[15px]">
                   <img
-                    src={getProductImage(item.productId)}
+                    src={getProductImage(item)}
                     alt={item.productName}
                     className="w-full h-full object-cover"
                   />
@@ -100,6 +114,8 @@ export function OrdersPage() {
                             e.stopPropagation()
                             if (order.orderStatus === 'SHIPPING') {
                               navigate(`/shipping-status/${order.orderId}`)
+                            } else if (order.orderStatus === 'DELIVERY_COMPLETED') {
+                              confirmPurchase.mutate(order.orderId)
                             }
                           }}
                         >
