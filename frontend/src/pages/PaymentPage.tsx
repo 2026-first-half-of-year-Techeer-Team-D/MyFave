@@ -162,7 +162,33 @@ export function PaymentPage() {
 
       clearCart()
       applyCoupon(null)
-      navigate('/order-success')
+      navigate('/order-success', {
+        state: {
+          orderNumber: order.orderNumber,
+          items: checkoutItems.map((item) => ({
+            id: String(item.id),
+            name: item.title,
+            price: item.price.toLocaleString() + '원',
+            image: item.image,
+          })),
+          paymentInfo: {
+            productAmount: subtotal.toLocaleString() + '원',
+            discountAmount: `-${discount.toLocaleString()}원`,
+            shippingFee: (prepareRes.deliveryFee ?? shippingFee).toLocaleString() + '원',
+            totalAmount: prepareRes.totalPaymentPrice.toLocaleString() + '원',
+            paymentMethod: selectedMethod,
+          },
+          shipping: address
+            ? {
+                recipientName: address.name,
+                phone: address.phone,
+                address: address.address,
+                detailAddress: address.detailAddress,
+                request: shippingRequest || undefined,
+              }
+            : undefined,
+        },
+      })
     } catch (err) {
       console.error('결제 오류:', err)
       const axiosErr = err as { response?: { data?: { message?: string; code?: number } }; message?: string }
