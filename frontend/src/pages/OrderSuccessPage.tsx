@@ -17,10 +17,17 @@ interface OrderSuccessState {
   shipping?: OrderShippingInfo
 }
 
+function isOrderSuccessState(value: unknown): value is OrderSuccessState {
+  if (!value || typeof value !== 'object') return false
+  const v = value as Record<string, unknown>
+  return typeof v.orderNumber === 'string' && Array.isArray(v.items)
+}
+
 export function OrderSuccessPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const state = location.state as OrderSuccessState | null
+  const rawState = location.state
+  const state = isOrderSuccessState(rawState) ? rawState : null
 
   useEffect(() => {
     if (!state) navigate('/')
