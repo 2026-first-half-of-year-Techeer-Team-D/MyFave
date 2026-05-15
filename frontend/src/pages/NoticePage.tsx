@@ -8,7 +8,7 @@ const NOTICES: NoticeItem[] = [
   {
     id: 1,
     title: 'MyFave 마켓 오픈 안내',
-    content: 'MyFave 마켓은 2026년 5월 25일 00시 오픈 예정입니다. 많은 관심 부탁드려요 !♥︎',
+    content: 'MyFave 마켓은 2026년 5월 25일 00시 오픈 예정입니다.<br>많은 관심 부탁드려요 !♥︎',
   },
   {
     id: 2,
@@ -19,7 +19,7 @@ const NOTICES: NoticeItem[] = [
   {
     id: 3,
     title: '1:1 문의',
-    content: '1:1 문의는 DM(@daonmoood)으로 부탁드립니다! 최대한 빠르게 답변 드릴게요 :)',
+    content: '1:1 문의는 DM(@daonmoood)으로 부탁드립니다!<br>최대한 빠르게 답변 드릴게요 :)',
   },
 ]
 
