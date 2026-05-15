@@ -30,8 +30,8 @@ public class SaleEventController {
 
     @PatchMapping("/{saleId}") //이벤트 수정
     public ApiResponse<SaleEventUpdateResponse> updateEvent(
-            @PathVariable Long saleId,                      // URL에서 saleId 추출
-            @RequestBody SaleEventUpdateRequest request) {  // JSON → Request DTO
+            @PathVariable Long saleId,                            // URL에서 saleId 추출
+            @RequestBody @Valid SaleEventUpdateRequest request) {  // JSON → Request DTO
         return ApiResponse.ok(saleEventService.updateEvent(saleId, request));
     }
 }
