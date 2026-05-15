@@ -43,6 +43,9 @@ public class Delivery extends BaseEntity {
     @Column(length = 50)
     private String trackingNumber;
 
+    @Column(length = 50)
+    private String carrierId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DeliveryStatus deliveryStatus = DeliveryStatus.PREPARING;
@@ -64,8 +67,9 @@ public class Delivery extends BaseEntity {
         this.deliveryStatus = DeliveryStatus.PREPARING;
     }
 
-    public void ship(String courierName, String trackingNumber) {
+    public void ship(String courierName, String carrierId, String trackingNumber) {
         this.courierName = courierName;
+        this.carrierId = carrierId;
         this.trackingNumber = trackingNumber;
         this.deliveryStatus = DeliveryStatus.SHIPPING;
         this.shippedAt = ZonedDateTime.now();

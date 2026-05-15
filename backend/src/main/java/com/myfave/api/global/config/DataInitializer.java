@@ -173,7 +173,7 @@ public class DataInitializer implements CommandLineRunner {
         deliveryRepository.save(delivery);
 
         // ship(): courierName, trackingNumber 세팅 + deliveryStatus = SHIPPING
-        delivery.ship("CJ대한통운", "1234567890");
+        delivery.ship("CJ대한통운", "kr.cjlogistics", "1234567890");
         deliveryRepository.save(delivery);
         log.info("[DataInitializer] 테스트 배송 생성 완료 (id={})", delivery.getDeliveryId());
 
@@ -233,7 +233,7 @@ public class DataInitializer implements CommandLineRunner {
                 .deliveryRequest("문 앞에 놓아주세요")
                 .build();
         deliveryRepository.save(delivery);
-        delivery.ship("CJ대한통운", "9876543210");
+        delivery.ship("CJ대한통운", "kr.cjlogistics", "9876543210");
         delivery.deliver(); // deliveryStatus = DELIVERED
         deliveryRepository.save(delivery);
 
