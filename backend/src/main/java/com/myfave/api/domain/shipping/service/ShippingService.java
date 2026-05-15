@@ -47,7 +47,7 @@ public class ShippingService {
         boolean makeDefault = hasNoAddress || Boolean.TRUE.equals(request.getIsDefault());
 
         if (makeDefault) {
-            shippingAddressRepository.findByUserAndIsDefaultTrueForUpdate(user)
+            shippingAddressRepository.findByUserAndIsDefaultTrue(user)
                     .ifPresent(existing -> existing.unsetDefault());
         }
 
