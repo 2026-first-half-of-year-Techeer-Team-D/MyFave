@@ -3,6 +3,22 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+interface PortOnePaymentRequest {
+  storeId: string
+  channelKey: string
+  paymentId: string
+  orderName: string
+  totalAmount: number
+  currency: string
+  payMethod: string
+  easyPay?: { easyPayProvider: string }
+  customer: {
+    email: string
+    fullName: string
+    phoneNumber: string
+  }
+}
+
 import { useUser } from '@/features/auth/hooks'
 import { useCart } from '@/features/cart/hooks'
 import { useCartStore } from '@/features/cart/store'
@@ -113,7 +129,6 @@ export function PaymentPage() {
       // 금액 일치 검증
       const expectedTotal = subtotal + (prepareRes.deliveryFee ?? shippingFee) - (prepareRes.discountPrice ?? 0)
       if (prepareRes.totalPaymentPrice !== expectedTotal) {
-        console.warn('금액 불일치', { frontend: expectedTotal, backend: prepareRes.totalPaymentPrice })
         alert('주문 금액이 변경되었습니다. 다시 시도해주세요.')
         return
       }
@@ -127,8 +142,7 @@ export function PaymentPage() {
         } as Record<string, string>
       )[backendMethod]
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const portoneRes = await (PortOne.requestPayment as (req: any) => ReturnType<typeof PortOne.requestPayment>)({
+      const portoneRes = await (PortOne.requestPayment as (req: PortOnePaymentRequest) => ReturnType<typeof PortOne.requestPayment>)({
         storeId: prepareRes.storeId,
         channelKey: prepareRes.channelKey,
         paymentId: prepareRes.idempotencyKey,
@@ -190,7 +204,6 @@ export function PaymentPage() {
         },
       })
     } catch (err) {
-      console.error('결제 오류:', err)
       const axiosErr = err as { response?: { data?: { message?: string; code?: number } }; message?: string }
       const msg = axiosErr.response?.data?.message ?? axiosErr.message ?? '알 수 없는 오류'
       alert(`결제 오류: ${msg}`)
