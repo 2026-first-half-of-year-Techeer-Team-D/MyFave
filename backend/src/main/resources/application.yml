@@ -31,3 +31,10 @@ portone:
   api-url: ${PORTONE_API_URL:https://api.portone.io}
   api-secret: ${PORTONE_API_SECRET}
   channel-key: ${PORTONE_CHANNEL_KEY}
+
+# Delivery Tracker API (tracker.delivery)
+tracker:
+  client-id: ${TRACKER_CLIENT_ID}
+  client-secret: ${TRACKER_CLIENT_SECRET}
+  api-url: https://api.tracker.delivery/graphql
+  timeout-seconds: 15

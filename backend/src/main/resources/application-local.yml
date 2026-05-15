@@ -68,3 +68,9 @@ portone:
   api-url: https://api.portone.io
   api-secret: ${PORTONE_API_SECRET:local-portone-api-secret}
   channel-key: ${PORTONE_CHANNEL_KEY:local-portone-channel-key}
+
+tracker:
+  client-id: local-client-id
+  client-secret: local-client-secret
+  api-url: https://api.tracker.delivery/graphql
+  timeout-seconds: 15
