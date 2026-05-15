@@ -10,6 +10,7 @@ interface AuthState {
   refreshToken: string | null
   login: (params: { user: User; accessToken: string; refreshToken: string }) => void
   logout: () => void
+  updateTokens: (accessToken: string, refreshToken: string) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -25,6 +26,9 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         queryClient.clear()
         set({ user: null, accessToken: null, refreshToken: null })
+      },
+      updateTokens: (accessToken, refreshToken) => {
+        set({ accessToken, refreshToken })
       },
     }),
     { name: 'myfave-auth' },
