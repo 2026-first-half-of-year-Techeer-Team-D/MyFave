@@ -255,6 +255,7 @@ public class PaymentService {
         if (fullCancel) {
             payment.partialCancel(cancelAmount);
             payment.cancel();
+            payment.getOrder().refund();
             if (payment.getDiscountCoupon() != null) {
                 couponService.restoreCoupon(payment.getDiscountCoupon().getCouponId(), userId);
             }
