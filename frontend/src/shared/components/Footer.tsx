@@ -32,13 +32,6 @@ export function Footer() {
         </a>
       </div>
 
-      {/* Customer service */}
-      <div className="mb-8 space-y-1.5">
-        <p className="font-noto text-sm font-bold text-chat-font">고객센터</p>
-        <p className="font-noto text-xs text-chat-font">평일 11:00 ~ 18:00 운영</p>
-        <p className="font-noto text-xs text-chat-font">점심 12:30 ~ 14:00 및 토/일/공휴일 휴무</p>
-      </div>
-
       {/* Links */}
       <div className="mb-6 flex items-center gap-3">
         <Link to="/shipping" className="font-noto text-xs text-chat-font hover:underline">

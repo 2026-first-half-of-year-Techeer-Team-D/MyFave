@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { PopUp } from '@/shared/components/PopUp'
-
 export function FindIdPage() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
-  const [isPopUpOpen, setIsPopUpOpen] = useState(false)
+  const [foundEmail, setFoundEmail] = useState<string | null>(null)
 
   const formatPhoneNumber = (value: string) => {
     const numbers = value.replace(/[^\d]/g, '')
@@ -16,11 +14,16 @@ export function FindIdPage() {
     return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`
   }
 
+  const maskEmail = (name: string): string => {
+    const lower = name.toLowerCase().replace(/\s/g, '')
+    const visible = lower.slice(0, 2)
+    return `${visible}***@gmail.com`
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name || !phone) return
-    setIsPopUpOpen(true)
-    setTimeout(() => navigate('/login'), 2200)
+    setFoundEmail(maskEmail(name))
   }
 
   return (
@@ -81,18 +84,26 @@ export function FindIdPage() {
           </button>
         </form>
 
+        {foundEmail && (
+          <div className="mt-[24px] rounded-[10px] border border-point/30 bg-main-bg px-[20px] py-[18px]">
+            <p className="mb-[6px] font-noto text-[12px] font-medium text-[#8B7E74]">등록된 아이디</p>
+            <p className="mb-[16px] font-noto text-[18px] font-bold text-dark-text">{foundEmail}</p>
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="flex h-[38px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[14px] font-medium text-white active:scale-[0.98] transition-transform"
+            >
+              로그인하기
+            </button>
+          </div>
+        )}
+
         <div className="mt-[20px] text-center">
           <Link to="/find-password" className="font-noto text-[12px] font-bold text-chat-font hover:underline decoration-chat-font/30">
             비밀번호 찾기
           </Link>
         </div>
       </div>
-
-      <PopUp
-        isOpen={isPopUpOpen}
-        message="등록된 이메일을 발송했습니다 ✉️"
-        onClose={() => setIsPopUpOpen(false)}
-      />
     </div>
   )
 }
