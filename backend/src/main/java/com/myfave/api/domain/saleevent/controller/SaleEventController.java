@@ -7,6 +7,7 @@ import com.myfave.api.domain.saleevent.dto.response.SaleEventResponse;
 import com.myfave.api.domain.saleevent.dto.response.SaleEventUpdateResponse;
 import com.myfave.api.domain.saleevent.service.SaleEventService;
 import com.myfave.api.global.common.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +24,7 @@ public class SaleEventController {
     }
 
     @PostMapping //이벤트 등록
-    public ApiResponse<SaleEventCreateResponse> createEvent(@RequestBody SaleEventCreateRequest request) { //JSON → Request DTO
+    public ApiResponse<SaleEventCreateResponse> createEvent(@RequestBody @Valid SaleEventCreateRequest request) { //JSON → Request DTO
         return ApiResponse.created("판매 이벤트가 등록되었습니다.", saleEventService.createEvent(request));
     }
 
