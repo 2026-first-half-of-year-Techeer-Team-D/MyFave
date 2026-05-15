@@ -12,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -29,6 +30,16 @@ public class TrackerDeliveryClient {
                   time
                   location { name }
                   description
+                }
+                events(first: 20) {
+                  edges {
+                    node {
+                      status { code name }
+                      time
+                      location { name }
+                      description
+                    }
+                  }
                 }
               }
             }
@@ -79,6 +90,17 @@ public class TrackerDeliveryClient {
     public static class TrackResult {
         private String trackingNumber;
         private EventData lastEvent;
+        private EventConnection events;
+    }
+
+    @Getter @Setter @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class EventConnection {
+        private List<EventEdge> edges;
+    }
+
+    @Getter @Setter @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class EventEdge {
+        private EventData node;
     }
 
     @Getter @Setter @JsonIgnoreProperties(ignoreUnknown = true)
