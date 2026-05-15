@@ -107,7 +107,12 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
 
     try {
       if (editId) {
-        await shippingApi.updateAddress(Number(editId), {
+        const shippingId = parseInt(editId, 10)
+        if (isNaN(shippingId)) {
+          alert('유효하지 않은 배송지 ID입니다.')
+          return
+        }
+        await shippingApi.updateAddress(shippingId, {
           receiverName: formData.name,
           receiverPhone: formData.phone,
           address: formData.address,
@@ -155,7 +160,8 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
       navigate(fromPath)
     } catch (err) {
       const axiosErr = err as AxiosError<{ message?: string }>
-      const msg = axiosErr.response?.data?.message ?? '배송지 저장 중 오류가 발생했습니다.'
+      const fallback = editId ? '배송지 수정 중 오류가 발생했습니다.' : '배송지 저장 중 오류가 발생했습니다.'
+      const msg = axiosErr.response?.data?.message ?? fallback
       alert(msg)
     }
   }
