@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ordersApi } from './api'
 
 export function useOrdersQuery() {
@@ -12,10 +12,16 @@ export function useOrderDetailQuery(orderId: number | undefined) {
   return useQuery({
     queryKey: ['order', orderId],
     queryFn: () => ordersApi.getOrderDetail(orderId!),
-    enabled: orderId != null,
+    enabled: Number.isFinite(orderId),
   })
 }
 
 export function useCreateOrder() {
-  return useMutation({ mutationFn: ordersApi.create })
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ordersApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
 }
