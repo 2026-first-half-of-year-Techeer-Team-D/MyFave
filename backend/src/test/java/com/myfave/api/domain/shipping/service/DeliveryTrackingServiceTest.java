@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -160,5 +161,23 @@ class DeliveryTrackingServiceTest {
                 .isInstanceOf(CustomException.class)
                 .satisfies(ex -> assertThat(((CustomException) ex).getErrorCode())
                         .isEqualTo(ErrorCode.TRACKING_NOT_REGISTERED));
+    }
+
+    @Test
+    @DisplayName("trackDelivery 성공 - 이미 DELIVERED 상태면 외부 API 호출 없이 반환")
+    void trackDelivery_alreadyDelivered_skipApiCall() {
+        Order order = mockOrder(USER_ID);
+        Delivery delivery = mock(Delivery.class);
+        lenient().when(delivery.getCarrierId()).thenReturn("kr.cupost");
+        lenient().when(delivery.getTrackingNumber()).thenReturn("1234567890");
+        lenient().when(delivery.getDeliveryStatus()).thenReturn(DeliveryStatus.DELIVERED);
+
+        given(orderRepository.findById(ORDER_ID)).willReturn(Optional.of(order));
+        given(deliveryRepository.findByOrder(order)).willReturn(Optional.of(delivery));
+
+        TrackingResponse response = shippingService.trackDelivery(USER_ID, ORDER_ID);
+
+        assertThat(response.getStatusCode()).isEqualTo("DELIVERED");
+        verify(trackerDeliveryClient, never()).track(anyString(), anyString());
     }
 }

@@ -76,6 +76,9 @@ public class Delivery extends BaseEntity {
     }
 
     public void deliver() {
+        if (this.deliveryStatus == DeliveryStatus.DELIVERED) {
+            return;
+        }
         this.deliveryStatus = DeliveryStatus.DELIVERED;
         this.deliveredAt = ZonedDateTime.now();
     }

@@ -19,6 +19,8 @@ import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
 import com.myfave.api.domain.shipping.dto.request.ShippingAddressRequest;
 
+import com.myfave.api.domain.shipping.entity.DeliveryStatus;
+
 import java.util.List;
 
 import com.myfave.api.domain.shipping.dto.response.DefaultAddressResponse;
@@ -104,6 +106,8 @@ public class ShippingService {
     }
 
     // 7-5. 배송 추적
+    // 외부 API 호출이 트랜잭션 범위에 포함되어 있으나, DELIVERED 조기 반환으로 평균 트랜잭션 시간을 최소화함
+    // 고트래픽 환경에서는 읽기/쓰기 분리 리팩토링 필요
     @Transactional
     public TrackingResponse trackDelivery(Long userId, Long orderId) {
         Order order = orderRepository.findById(orderId)
@@ -118,6 +122,16 @@ public class ShippingService {
 
         if (delivery.getTrackingNumber() == null || delivery.getCarrierId() == null) {
             throw new CustomException(ErrorCode.TRACKING_NOT_REGISTERED);
+        }
+
+        // 이미 배송 완료된 경우 외부 API 호출 스킵
+        if (delivery.getDeliveryStatus() == DeliveryStatus.DELIVERED) {
+            return TrackingResponse.builder()
+                    .trackingNumber(delivery.getTrackingNumber())
+                    .carrierId(delivery.getCarrierId())
+                    .statusCode("DELIVERED")
+                    .statusName("배송 완료")
+                    .build();
         }
 
         TrackerDeliveryClient.TrackResult result =
