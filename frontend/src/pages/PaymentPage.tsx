@@ -1,7 +1,7 @@
 import PortOne from '@portone/browser-sdk/v2'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { useUser } from '@/features/auth/hooks'
 import { useCart } from '@/features/cart/hooks'
@@ -278,12 +278,12 @@ export function PaymentPage() {
               </div>
             </div>
           ) : (
-            <button
-              onClick={() => navigate('/add-shipping?from=/payment')}
+            <Link
+              to="/add-shipping?from=/payment"
               className="w-full h-[32px] rounded-[12px] bg-point font-noto text-[12px] font-bold text-white shadow-md active:scale-[0.99] transition-all flex items-center justify-center gap-2"
             >
-              배송지 등록하기
-            </button>
+              배송지 등록하러가기
+            </Link>
           )}
         </section>
 
