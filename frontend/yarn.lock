@@ -347,6 +347,11 @@
   resolved "https://registry.npmjs.org/@pkgr/core/-/core-0.2.9.tgz"
   integrity sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==
 
+"@portone/browser-sdk@^0.1.6":
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/@portone/browser-sdk/-/browser-sdk-0.1.6.tgz#753f2bf0156d84c6a657493acde8048071e900b8"
+  integrity sha512-sTkIGP9ezYebXdA0eDvwL7lUsDpBoEydDeMBj1Kg+0PY52ZhgpRz55rykNcgw55luXAyUgRNEicZkNy/0F877A==
+
 "@rolldown/binding-android-arm64@1.0.0-rc.15":
   version "1.0.0-rc.15"
   resolved "https://registry.yarnpkg.com/@rolldown/binding-android-arm64/-/binding-android-arm64-1.0.0-rc.15.tgz#ca20574c469ade7b941f90c9af5e83e7c67f06b7"

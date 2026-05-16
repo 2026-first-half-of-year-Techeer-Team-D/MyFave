@@ -1,6 +1,7 @@
 package com.myfave.api.domain.payment.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.myfave.api.domain.payment.dto.request.PaymentCancelRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentConfirmRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentPrepareRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentWebhookRequest;
@@ -66,6 +67,42 @@ public class PaymentController {
             @RequestBody @Valid PaymentConfirmRequest request) {
 
         return ResponseEntity.ok(ApiResponse.ok(paymentService.confirmPayment(userId, request)));
+    }
+
+    @Operation(summary = "결제 단건 조회",
+            description = "본인 소유의 결제 한 건을 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "타인 결제 접근"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "결제 정보 없음")
+    })
+    @GetMapping("/{paymentId}")
+    public ResponseEntity<ApiResponse<PaymentResponse>> getPayment(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long paymentId) {
+
+        return ResponseEntity.ok(ApiResponse.ok(paymentService.getPayment(userId, paymentId)));
+    }
+
+    @Operation(summary = "결제 취소/환불",
+            description = "결제를 전액 또는 부분 취소합니다.\n\n" +
+                          "- refundAmount가 null이거나 잔액 이상이면 전액 취소\n" +
+                          "- 전액 취소 시 사용된 쿠폰은 복원됩니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "취소 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "타인 결제 접근"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "결제 정보 없음"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 취소되었거나 취소 불가 상태")
+    })
+    @PostMapping("/{paymentId}/cancel")
+    public ResponseEntity<ApiResponse<PaymentResponse>> cancelPayment(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long paymentId,
+            @RequestBody @Valid PaymentCancelRequest request) {
+
+        return ResponseEntity.ok(ApiResponse.ok(paymentService.cancelPayment(userId, paymentId, request)));
     }
 
     @Operation(summary = "PortOne 웹훅 수신",

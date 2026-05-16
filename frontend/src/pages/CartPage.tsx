@@ -12,6 +12,7 @@ export function CartPage() {
   const items = useCart()
   const removeCartItem = useCartStore((s) => s.removeItem)
   const setCheckoutItems = useCheckoutStore((s) => s.setItems)
+  const setOrderType = useCheckoutStore((s) => s.setOrderType)
   const isAuthenticated = useIsAuthenticated()
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
@@ -28,6 +29,7 @@ export function CartPage() {
     }
 
     setCheckoutItems(items)
+    setOrderType('CART')
     navigate('/payment')
   }
 

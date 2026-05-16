@@ -24,7 +24,7 @@ export function useKakaoLogin() {
       authApi.socialLogin('kakao', { authorizationCode }),
     onSuccess: (data) => {
       login({
-        user: { id: data.userId, email: '', nickname: data.nickname },
+        user: { id: data.userId, email: data.email, nickname: data.nickname },
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       })

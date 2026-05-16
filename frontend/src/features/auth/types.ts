@@ -25,5 +25,6 @@ export interface SocialLoginResponse {
   refreshToken: string
   userId: number
   nickname: string
+  email: string
   isNewUser: boolean
 }

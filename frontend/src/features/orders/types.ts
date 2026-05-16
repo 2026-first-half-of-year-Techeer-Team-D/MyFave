@@ -1,6 +1,5 @@
+// ── 프론트엔드 로컬 타입 (OrderSuccessPage 표시용) ──────────────────
 export type OrderActionLabel = '배송 조회' | '구매 확정'
-
-export type OrderStatus = '입금확인' | '배송준비' | '배송중' | '배송완료'
 
 export interface OrderItem {
   id: string
@@ -32,4 +31,59 @@ export interface Order {
   items: OrderItem[]
   paymentInfo?: OrderPaymentInfo
   shipping?: OrderShippingInfo
+}
+
+// ── 백엔드 API 응답 타입 ─────────────────────────────────────────────
+export type BackendOrderStatus =
+  | 'PENDING'
+  | 'PAID'
+  | 'SHIPPING'
+  | 'DELIVERY_COMPLETED'
+  | 'PURCHASE_CONFIRMED'
+  | 'CANCELLED'
+  | 'REFUNDED'
+
+export interface OrderItemApiResponse {
+  productId: number
+  productName: string
+  price: number
+  thumbnailUrl: string | null
+}
+
+export interface OrderSummaryApiResponse {
+  orderId: number
+  orderNumber: string
+  orderStatus: BackendOrderStatus
+  totalPaymentPrice: number
+  createdAt: string
+  orderItems: OrderItemApiResponse[]
+}
+
+export interface OrderDetailApiResponse {
+  orderId: number
+  orderNumber: string
+  orderStatus: BackendOrderStatus
+  createdAt: string
+  updatedAt: string
+  totalProductPrice: number | null
+  deliveryFee: number | null
+  discountPrice: number | null
+  totalPaymentPrice: number | null
+  paymentMethod: string | null
+  receiverName: string | null
+  receiverPhone: string | null
+  receiverAddress: string | null
+  deliveryRequest: string | null
+  trackingNumber: string | null
+  courierName: string | null
+  orderItems: OrderItemApiResponse[]
+}
+
+export interface OrderListApiResponse {
+  content: OrderSummaryApiResponse[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  hasNext: boolean
 }
