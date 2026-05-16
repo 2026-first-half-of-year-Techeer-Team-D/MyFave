@@ -68,8 +68,8 @@ class ChatServiceGetMessageHistoryTest {
         ChatHistoryResponse response = chatService.getMessageHistory(50, null);
 
         assertThat(response.getMessages()).hasSize(2);
-        assertThat(response.getMessages().get(0).isInfluencer()).isTrue();
-        assertThat(response.getMessages().get(1).isInfluencer()).isFalse();
+        assertThat(response.getMessages().get(0).getIsInfluencer()).isTrue();
+        assertThat(response.getMessages().get(1).getIsInfluencer()).isFalse();
         assertThat(response.isHasMore()).isFalse();
     }
 
