@@ -3,11 +3,15 @@ import { Link } from 'react-router-dom'
 import { useInfluencerPicks } from '@/features/products/hooks'
 import { LiveChatPreview } from '@/shared/components/LiveChatPreview'
 
-const LOCAL_PICKS = [
-  '/videos/pick1.mp4',
-  '/videos/pick4.mp4',
-  '/videos/pick3.mp4',
-  '/videos/pick4.mp4',
+const S3 = 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com'
+
+const MAIN_REEL = `${S3}/%E1%84%8E%E1%85%AC%E1%84%8C%E1%85%A9%E1%86%BC%E1%84%87%E1%85%A9%E1%86%AB.mp4`
+
+const DAON_PICKS = [
+  `${S3}/%E1%84%91%E1%85%B5%E1%86%A81.mp4`,
+  `${S3}/%E1%84%91%E1%85%B5%E1%86%A82.mp4`,
+  `${S3}/%E1%84%91%E1%85%B5%E1%86%A83.mp4`,
+  `${S3}/%E1%84%91%E1%85%B5%E1%86%A84.mp4`,
 ]
 
 export function MainPage() {
@@ -25,7 +29,7 @@ export function MainPage() {
             <div className="h-[12px] w-[12px] rounded-full bg-[#28C840] shadow-sm" />
           </div>
           <video
-            src="/videos/pick1.mp4"
+            src={MAIN_REEL}
             autoPlay
             muted
             loop
@@ -71,7 +75,7 @@ export function MainPage() {
             >
               <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-white border-0 shadow-sm">
                 <video
-                  src={LOCAL_PICKS[index % LOCAL_PICKS.length]}
+                  src={DAON_PICKS[index % DAON_PICKS.length]}
                   autoPlay
                   muted
                   loop

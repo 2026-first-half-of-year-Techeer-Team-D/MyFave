@@ -1,10 +1,57 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
-import { useOrders } from '@/features/orders/hooks'
+import { useConfirmPurchase, useOrdersQuery } from '@/features/orders/hooks'
+import type { BackendOrderStatus } from '@/features/orders/types'
+import { PRODUCTS } from '@/features/products/mock'
+
+const STATUS_LABEL: Record<BackendOrderStatus, string> = {
+  PENDING: '결제 대기',
+  PAID: '배송 준비중',
+  SHIPPING: '배송 중',
+  DELIVERY_COMPLETED: '배송 완료',
+  PURCHASE_CONFIRMED: '구매 확정',
+  CANCELLED: '주문 취소',
+  REFUNDED: '환불 완료',
+}
+
+const ACTION_LABEL: Partial<Record<BackendOrderStatus, string>> = {
+  SHIPPING: '배송 조회',
+  DELIVERY_COMPLETED: '구매 확정',
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+}
+
+function getProductImage(item: { productId: number; thumbnailUrl: string | null }) {
+  return item.thumbnailUrl ?? PRODUCTS.find((p) => p.id === item.productId)?.image ?? ''
+}
 
 export function OrdersPage() {
   const navigate = useNavigate()
-  const orders = useOrders()
+  const confirmPurchase = useConfirmPurchase()
+  const { data, isLoading, isError } = useOrdersQuery()
+  const orders = data?.content ?? []
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 bg-white p-12 text-center font-noto text-sm text-muted-text">
+        불러오는 중...
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="flex-1 bg-white p-12 text-center font-noto text-sm text-muted-text">
+        주문 내역을 불러오지 못했습니다.
+      </div>
+    )
+  }
 
   if (orders.length === 0) {
     return (
@@ -17,24 +64,32 @@ export function OrdersPage() {
   return (
     <div className="flex-1 bg-white">
       {orders.map((order) => (
-        <div key={order.id} className="pt-[28.01px]">
+        <div key={order.orderId} className="pt-[28.01px]">
           <div className="flex justify-center mb-[34.99px]">
             <span className="font-noto text-[16px] font-medium text-[#000000]">
-              {order.date}
+              {formatDate(order.createdAt)}
             </span>
           </div>
 
           <div className="flex flex-col gap-[11.99px] px-[19.99px] pb-[22.37px]">
-            {order.items.map((item) => (
-              <Link
-                key={item.id}
-                to={`/orders/${order.id}`}
-                className="flex gap-[11.99px] p-[15.99px] rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white active:bg-gray-50 transition-colors"
+            {order.orderItems.map((item) => (
+              <div
+                key={item.productId}
+                onClick={() => navigate(`/orders/${order.orderId}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    navigate(`/orders/${order.orderId}`)
+                  }
+                }}
+                className="flex gap-[11.99px] p-[15.99px] rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white active:bg-gray-50 transition-colors cursor-pointer"
               >
                 <div className="w-[84px] h-[84px] flex-shrink-0 overflow-hidden rounded-[15px]">
                   <img
-                    src={item.image}
-                    alt={item.name}
+                    src={getProductImage(item)}
+                    alt={item.productName}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -43,61 +98,48 @@ export function OrdersPage() {
                   <div className="flex flex-col gap-[21px]">
                     <div className="flex justify-between items-start">
                       <span className="font-noto text-[11px] font-bold text-[#322927] leading-[15.13px] max-w-[86px]">
-                        {item.name}
+                        {item.productName}
                       </span>
                       <span className="font-noto text-[16px] font-bold text-[#CF879B] leading-[24px]">
-                        {item.price}
+                        {item.price.toLocaleString()}원
                       </span>
                     </div>
 
-                    <button
-                      type="button"
-                      className="w-[204px] h-[35px] flex items-center justify-center border border-[#F2EDEB] rounded-[5px] font-noto text-[15px] font-medium text-[#949494] hover:bg-gray-100 active:scale-[0.98] transition-all"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        if (item.actionLabel === '배송 조회') {
-                          navigate(`/shipping-status/${order.id}`)
-                        }
-                      }}
-                    >
-                      {item.actionLabel}
-                    </button>
+                    <div className="flex items-center justify-between">
+                      <span className="font-noto text-[11px] text-[#949494]">
+                        {STATUS_LABEL[order.orderStatus]}
+                      </span>
+                      {ACTION_LABEL[order.orderStatus] && (
+                        <button
+                          type="button"
+                          className="w-[140px] h-[35px] flex items-center justify-center border border-[#F2EDEB] rounded-[5px] font-noto text-[15px] font-medium text-[#949494] hover:bg-gray-100 active:scale-[0.98] transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (order.orderStatus === 'SHIPPING') {
+                              navigate(`/shipping-status/${order.orderId}`)
+                            } else if (order.orderStatus === 'DELIVERY_COMPLETED') {
+                              confirmPurchase.mutate(order.orderId)
+                            }
+                          }}
+                        >
+                          {ACTION_LABEL[order.orderStatus]}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
 
-          {order.paymentInfo && (
-            <div className="px-[30px] pb-[24px]">
-              <h2 className="font-noto text-[16px] font-medium leading-[24px] text-[#000000] mb-[13px]">
-                결제 정보
-              </h2>
-
-              <div className="flex flex-col gap-[5px] px-[3px]">
-                <div className="flex justify-between items-center h-[24px]">
-                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000]">상품 금액</span>
-                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000] text-right">{order.paymentInfo.productAmount}</span>
-                </div>
-                <div className="flex justify-between items-center h-[24px]">
-                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000]">할인 금액</span>
-                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000] text-right">{order.paymentInfo.discountAmount}</span>
-                </div>
-                <div className="flex justify-between items-center h-[24px]">
-                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000]">배송비</span>
-                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000] text-right">{order.paymentInfo.shippingFee}</span>
-                </div>
-                <div className="flex justify-between items-center h-[24px]">
-                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000]">결제 금액</span>
-                  <span className="font-noto text-[12px] font-bold leading-[24px] text-[#CF879B] text-right">{order.paymentInfo.totalAmount}</span>
-                </div>
-                <div className="flex justify-between items-center h-[24px]">
-                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000]">결제 수단</span>
-                  <span className="font-noto text-[12px] font-normal leading-[24px] text-[#000000] text-right">{order.paymentInfo.paymentMethod}</span>
-                </div>
-              </div>
+          <div className="px-[30px] pb-[24px]">
+            <div className="flex justify-between items-center h-[24px]">
+              <span className="font-noto text-[12px] font-normal text-[#000000]">결제 금액</span>
+              <span className="font-noto text-[12px] font-bold text-[#CF879B]">
+                {order.totalPaymentPrice.toLocaleString()}원
+              </span>
             </div>
-          )}
+          </div>
 
           <div className="h-[8px] w-full bg-[#EFE9E0]" />
         </div>

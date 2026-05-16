@@ -1,8 +1,3 @@
-export interface ProductFeature {
-  title: string
-  description: string
-}
-
 export type ProductCategory = 'top' | 'bottom' | 'outer' | 'accessory'
 
 export interface Product {
@@ -10,7 +5,7 @@ export interface Product {
   title: string
   image: string
   price: string
-  category: ProductCategory
+  isSoldOut?: boolean
 }
 
 export interface ProductDetail {
@@ -20,11 +15,41 @@ export interface ProductDetail {
   price: string
   priceNumber: number
   images: string[]
-  features: ProductFeature[]
+  description: string
 }
 
 export interface InfluencerPick extends Product {
   rating: string
 }
 
-export type CategoryCode = 'all' | 'fashion' | 'beauty' | 'living' | 'food' | 'etc'
+// API 응답 타입
+export interface ProductApiItem {
+  id: number
+  productName: string
+  price: number
+  thumbnailUrl: string | null
+  isSoldOut: boolean
+}
+
+export interface ProductDetailApiResponse {
+  id: number
+  productName: string
+  shortReview: string | null
+  price: number
+  description: string | null
+  size: string | null
+  condition: string
+  categoryCode: string
+  isSoldOut: boolean
+  images: { imageId: number; imageUrl: string; sortOrder: number; isMain: boolean }[]
+  createdAt: string
+}
+
+export interface ProductListApiResponse {
+  content: ProductApiItem[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  hasNext: boolean
+}

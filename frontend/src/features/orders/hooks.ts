@@ -1,9 +1,37 @@
-import { useOrderStore } from './store'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ordersApi } from './api'
 
-export function useOrders() {
-  return useOrderStore((s) => s.orders)
+export function useOrdersQuery() {
+  return useQuery({
+    queryKey: ['orders'],
+    queryFn: () => ordersApi.getOrders(),
+  })
 }
 
-export function useOrder(id: string | undefined) {
-  return useOrderStore((s) => (id ? s.orders.find((o) => o.id === id) : undefined))
+export function useOrderDetailQuery(orderId: number | undefined) {
+  return useQuery({
+    queryKey: ['order', orderId],
+    queryFn: () => ordersApi.getOrderDetail(orderId!),
+    enabled: Number.isFinite(orderId),
+  })
+}
+
+export function useCreateOrder() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ordersApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
+}
+
+export function useConfirmPurchase() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (orderId: number) => ordersApi.confirmPurchase(orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
 }

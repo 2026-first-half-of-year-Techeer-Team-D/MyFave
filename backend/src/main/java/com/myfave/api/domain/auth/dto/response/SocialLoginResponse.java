@@ -12,7 +12,7 @@ public class SocialLoginResponse {
     private final Long userId;
     private final String nickname;
     private final String email;
-    @JsonProperty("isNewUser") // primitive boolean → Lombok이 isXxx() 생성. Boolean 참조형은 getIsXxx()만 생성되므로 주의.
+    @JsonProperty("isNewUser")// bool type의 is는 JAVA에서 제거하는 규칙이 있다.
     private final boolean isNewUser;
 
     private SocialLoginResponse(String accessToken, String refreshToken, Long userId,

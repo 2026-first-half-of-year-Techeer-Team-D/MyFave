@@ -30,4 +30,9 @@ jwt:
 portone:
   api-url: ${PORTONE_API_URL:https://api.portone.io}
   api-secret: ${PORTONE_API_SECRET}
-  channel-key: ${PORTONE_CHANNEL_KEY}
+  store-id: ${PORTONE_STORE_ID}
+  channel-key:
+    card: ${PORTONE_CHANNEL_KEY_CARD}
+    kakao-pay: ${PORTONE_CHANNEL_KEY_KAKAOPAY}
+    naver-pay: ${PORTONE_CHANNEL_KEY_NAVERPAY}
+    toss-pay: ${PORTONE_CHANNEL_KEY_TOSSPAY}
