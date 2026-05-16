@@ -17,6 +17,8 @@ services:
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
       KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
       KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI}
+      TRACKER_CLIENT_ID: ${TRACKER_CLIENT_ID}
+      TRACKER_CLIENT_SECRET: ${TRACKER_CLIENT_SECRET}
     depends_on:
       postgres:
         condition: service_healthy
