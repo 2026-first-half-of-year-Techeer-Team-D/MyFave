@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+import { queryClient } from '@/app/providers'
 import type { User } from './types'
 
 interface AuthState {
@@ -9,6 +10,7 @@ interface AuthState {
   refreshToken: string | null
   login: (params: { user: User; accessToken: string; refreshToken: string }) => void
   logout: () => void
+  updateTokens: (accessToken: string, refreshToken: string) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -17,9 +19,17 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       accessToken: null,
       refreshToken: null,
-      login: ({ user, accessToken, refreshToken }) =>
-        set({ user, accessToken, refreshToken }),
-      logout: () => set({ user: null, accessToken: null, refreshToken: null }),
+      login: ({ user, accessToken, refreshToken }) => {
+        queryClient.clear()
+        set({ user, accessToken, refreshToken })
+      },
+      logout: () => {
+        queryClient.clear()
+        set({ user: null, accessToken: null, refreshToken: null })
+      },
+      updateTokens: (accessToken, refreshToken) => {
+        set({ accessToken, refreshToken })
+      },
     }),
     { name: 'myfave-auth' },
   ),

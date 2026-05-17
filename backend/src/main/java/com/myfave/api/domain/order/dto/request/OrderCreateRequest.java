@@ -19,7 +19,8 @@ public class OrderCreateRequest {
     private Long productId;
 
     // CART 주문일 때만 값을 넣고, DIRECT이면 null로 전송
-    private List<Long> cartItemIds;
+    // 값은 product_id (상품 PK) 목록
+    private List<Long> productIds;
 
     // 배송지는 어떤 주문 유형이든 반드시 필요
     @NotNull(message = "배송지는 필수입니다.")

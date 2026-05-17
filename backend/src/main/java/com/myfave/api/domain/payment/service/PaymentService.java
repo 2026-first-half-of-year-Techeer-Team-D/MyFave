@@ -10,6 +10,7 @@ import com.myfave.api.domain.order.entity.OrderItem;
 import com.myfave.api.domain.order.entity.OrderStatus;
 import com.myfave.api.domain.order.repository.OrderItemRepository;
 import com.myfave.api.domain.order.repository.OrderRepository;
+import com.myfave.api.domain.payment.dto.request.PaymentCancelRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentConfirmRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentPrepareRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentWebhookRequest;
@@ -17,6 +18,7 @@ import com.myfave.api.domain.payment.dto.response.PaymentPrepareResponse;
 import com.myfave.api.domain.payment.dto.response.PaymentResponse;
 import com.myfave.api.domain.payment.entity.Payment;
 import com.myfave.api.domain.payment.entity.PaymentAttempt;
+import com.myfave.api.domain.payment.entity.PaymentMethod;
 import com.myfave.api.domain.payment.entity.PaymentStatus;
 import com.myfave.api.domain.payment.provider.PaymentProvider;
 import com.myfave.api.domain.payment.provider.PaymentProvider.PortOnePaymentInfo;
@@ -60,19 +62,43 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final PaymentProvider paymentProvider;
 
-    @Value("${portone.channel-key}")
-    private String channelKey;
+    @Value("${portone.store-id}")
+    private String storeId;
+
+    @Value("${portone.channel-key.card}")
+    private String cardChannelKey;
+
+    @Value("${portone.channel-key.kakao-pay}")
+    private String kakaoPayChannelKey;
+
+    @Value("${portone.channel-key.naver-pay}")
+    private String naverPayChannelKey;
+
+    @Value("${portone.channel-key.toss-pay}")
+    private String tossPayChannelKey;
 
     @Value("${portone.api-secret}")
     private String apiSecret;
 
+    private String resolveChannelKey(PaymentMethod method) {
+        return switch (method) {
+            case CARD -> cardChannelKey;
+            case KAKAO_PAY -> kakaoPayChannelKey;
+            case NAVER_PAY -> naverPayChannelKey;
+            case TOSS_PAY -> tossPayChannelKey;
+        };
+    }
+
     // ── 결제 준비 ────────────────────────────────────────────────────────────────
     @Transactional
     public PaymentPrepareResponse preparePayment(Long userId, PaymentPrepareRequest request) {
+        if (userId == null) {
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        Order order = orderRepository.findById(request.getOrderId())
+        Order order = orderRepository.findByIdForUpdate(request.getOrderId())
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getUser().getUserId().equals(userId)) {
@@ -97,6 +123,9 @@ public class PaymentService {
                 ? discountCoupon.getCouponMaster().getDiscountPrice()
                 : 0;
         int totalPaymentPrice = totalProductPrice + deliveryFee - discountPrice;
+        if (totalPaymentPrice < 0) {
+            throw new CustomException(ErrorCode.PAYMENT_NEGATIVE_AMOUNT);
+        }
 
         String idempotencyKey = UUID.randomUUID().toString();
 
@@ -119,12 +148,15 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_LOCK_CONFLICT);
         }
 
-        return PaymentPrepareResponse.of(payment, channelKey);
+        return PaymentPrepareResponse.of(payment, storeId, resolveChannelKey(request.getPaymentMethod()));
     }
 
     // ── 결제 승인 ────────────────────────────────────────────────────────────────
     @Transactional
     public PaymentResponse confirmPayment(Long userId, PaymentConfirmRequest request) {
+        if (userId == null) {
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
+        }
         Payment payment = paymentRepository.findById(request.getPaymentId())
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
@@ -171,6 +203,71 @@ public class PaymentService {
         saveAttempt(payment, attemptNo, PaymentStatus.COMPLETED, pgInfo.pgTransactionId(), null);
         log.info("[Payment] 결제 완료: paymentId={}, orderId={}", payment.getPaymentId(), payment.getOrder().getOrderId());
 
+        return PaymentResponse.from(payment);
+    }
+
+    // ── 결제 단건 조회 ────────────────────────────────────────────────────────────
+    public PaymentResponse getPayment(Long userId, Long paymentId) {
+        if (userId == null) {
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
+        }
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if (!payment.getOrder().getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+        return PaymentResponse.from(payment);
+    }
+
+    // ── 결제 취소/환불 ────────────────────────────────────────────────────────────
+    @Transactional
+    public PaymentResponse cancelPayment(Long userId, Long paymentId, PaymentCancelRequest request) {
+        if (userId == null) {
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
+        }
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if (!payment.getOrder().getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        if (payment.getPaymentStatus() == PaymentStatus.CANCELLED) {
+            throw new CustomException(ErrorCode.PAYMENT_CANCELLED);
+        }
+        if (payment.getPaymentStatus() != PaymentStatus.COMPLETED
+                && payment.getPaymentStatus() != PaymentStatus.PARTIAL_CANCELLED) {
+            throw new CustomException(ErrorCode.PAYMENT_INVALID_STATUS);
+        }
+
+        int remaining = payment.getTotalPaymentPrice() - payment.getRefundedAmount();
+        Integer requested = request.getRefundAmount();
+        boolean fullCancel = requested == null || requested >= remaining;
+        int cancelAmount = fullCancel ? remaining : requested;
+
+        if (cancelAmount <= 0) {
+            throw new CustomException(ErrorCode.PAYMENT_INVALID_STATUS);
+        }
+
+        paymentProvider.cancelPayment(payment.getPgTransactionId(), cancelAmount, request.getReason());
+
+        if (fullCancel) {
+            payment.partialCancel(cancelAmount);
+            payment.cancel();
+            payment.getOrder().refund();
+            if (payment.getDiscountCoupon() != null) {
+                couponService.restoreCoupon(payment.getDiscountCoupon().getCouponId(), userId);
+            }
+            if (payment.getShippingCoupon() != null) {
+                couponService.restoreCoupon(payment.getShippingCoupon().getCouponId(), userId);
+            }
+        } else {
+            payment.partialCancel(cancelAmount);
+        }
+
+        log.info("[Payment] 결제 취소: paymentId={}, cancelAmount={}, fullCancel={}",
+                payment.getPaymentId(), cancelAmount, fullCancel);
         return PaymentResponse.from(payment);
     }
 

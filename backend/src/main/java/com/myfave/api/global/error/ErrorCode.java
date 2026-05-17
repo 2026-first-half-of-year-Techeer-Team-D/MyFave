@@ -50,6 +50,7 @@ public enum ErrorCode {
 
     // 배송지
     SHIPPING_ADDRESS_NOT_FOUND(404, "존재하지 않는 배송지"),
+    SHIPPING_ADDRESS_FORBIDDEN(403, "본인 소유의 배송지가 아닙니다"),
 
     // 쿠폰
     COUPON_NOT_FOUND(404, "존재하지 않는 쿠폰"),
@@ -88,6 +89,7 @@ public enum ErrorCode {
     PAYMENT_WEBHOOK_INVALID_SIGNATURE(401, "웹훅 서명 검증 실패"),
     PAYMENT_COUPON_TYPE_MISMATCH(400, "쿠폰 타입이 적용 위치와 불일치"),
     PAYMENT_INVALID_STATUS(409, "현재 결제 상태에서 허용되지 않는 작업"),
+    PAYMENT_NEGATIVE_AMOUNT(400, "결제 금액은 0원 이상이어야 합니다"),
     ;
 
     private final int httpStatus;

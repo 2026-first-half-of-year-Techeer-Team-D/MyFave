@@ -15,11 +15,13 @@ export function ProductDetailPage() {
   const { data: product } = useProduct(productId)
   const addCartItem = useCartStore((s) => s.addItem)
   const setCheckoutItems = useCheckoutStore((s) => s.setItems)
+  const setOrderType = useCheckoutStore((s) => s.setOrderType)
   const isAuthenticated = useIsAuthenticated()
   const [isShippingOpen, setIsShippingOpen] = useState(false)
   const [isRefundOpen, setIsRefundOpen] = useState(false)
   const [isPopUpOpen, setIsPopUpOpen] = useState(false)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set())
 
   if (!product) {
     return (
@@ -38,6 +40,7 @@ export function ProductDetailPage() {
     setCheckoutItems([
       { id: product.id, title: product.title, image: product.images[0], price: product.priceNumber },
     ])
+    setOrderType('DIRECT')
     navigate('/payment')
   }
 
@@ -69,15 +72,22 @@ export function ProductDetailPage() {
       </Modal>
       <div className="relative w-full h-[455px] bg-[#F8F8F8]">
         <div className="flex h-full w-full overflow-x-auto snap-x snap-mandatory scrollbar-hide">
-          {product.images.map((img, idx) => (
-            <div key={idx} className="h-full w-full flex-shrink-0 snap-center">
-              <img src={img} alt={`${product.title}-${idx}`} className="h-full w-full object-cover" />
-            </div>
-          ))}
+          {product.images.map((img, idx) =>
+            failedImages.has(idx) ? null : (
+              <div key={idx} className="h-full w-full flex-shrink-0 snap-center">
+                <img
+                  src={img}
+                  alt={`${product.title}-${idx}`}
+                  className="h-full w-full object-cover"
+                  onError={() => setFailedImages((prev) => new Set(prev).add(idx))}
+                />
+              </div>
+            )
+          )}
         </div>
-        {product.images.length > 1 && (
+        {product.images.filter((_, idx) => !failedImages.has(idx)).length > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {product.images.map((_, idx) => (
+            {product.images.filter((_, idx) => !failedImages.has(idx)).map((_, idx) => (
               <div key={idx} className="w-1.5 h-1.5 rounded-full bg-black/20" />
             ))}
           </div>
