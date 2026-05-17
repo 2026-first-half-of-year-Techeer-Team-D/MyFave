@@ -114,9 +114,10 @@ public class ChatService {
 
     @Transactional
     public void openRoomForEvent(Long saleId) {
-        chatRoomRepository.findByIsActiveTrue().ifPresent(room -> {
-            throw new CustomException(ErrorCode.CHAT_ROOM_ALREADY_EXISTS);
-        });
+        if (chatRoomRepository.findByIsActiveTrue().isPresent()) {
+            log.info("채팅방 자동 개설 스킵: 이미 활성 채팅방 존재 (saleId={})", saleId);
+            return;
+        }
 
         User influencer = userRepository.findById(influencerUserId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));

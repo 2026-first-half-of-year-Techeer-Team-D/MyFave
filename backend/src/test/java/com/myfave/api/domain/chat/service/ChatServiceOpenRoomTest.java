@@ -72,15 +72,14 @@ class ChatServiceOpenRoomTest {
     }
 
     @Test
-    @DisplayName("이미 활성 채팅방이 있으면 CHAT_ROOM_ALREADY_EXISTS 예외")
-    void openRoomForEvent_alreadyExists() {
+    @DisplayName("이미 활성 채팅방이 있으면 저장 없이 반환한다")
+    void openRoomForEvent_alreadyExists_skips() {
         ChatRoom active = buildRoom(5L, true);
         given(chatRoomRepository.findByIsActiveTrue()).willReturn(Optional.of(active));
 
-        assertThatThrownBy(() -> chatService.openRoomForEvent(10L))
-                .isInstanceOf(CustomException.class)
-                .satisfies(ex -> assertThat(((CustomException) ex).getErrorCode())
-                        .isEqualTo(ErrorCode.CHAT_ROOM_ALREADY_EXISTS));
+        chatService.openRoomForEvent(10L);
+
+        then(chatRoomRepository).should(org.mockito.Mockito.never()).save(any(ChatRoom.class));
     }
 
     @Test
