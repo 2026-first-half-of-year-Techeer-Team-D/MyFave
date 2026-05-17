@@ -19,6 +19,10 @@ configurations {
     }
 }
 
+// Spring Boot 3.4.1 기본 testcontainers(1.20.4)는 docker-java 3.4.x 사용 → 최신 Docker Desktop(API 1.44+)과 호환 안 됨
+// io.spring.dependency-management 프로퍼티 override (2.0.x는 docker-java 새 버전 사용)
+ext['testcontainers.version'] = '1.21.4'
+
 repositories {
     mavenCentral()
 }
@@ -60,12 +64,22 @@ dependencies {
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+
+    // 통합 테스트용 TestContainers (PostgreSQL)
+    // 버전은 build.gradle 상단 ext['testcontainers.version']에서 관리
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+    // docker-java 3.4.x는 기본 API 1.32 사용 → 최신 Docker Desktop(1.44+ 필수)과 충돌. 명시적 버전 지정
+    environment 'DOCKER_API_VERSION', '1.45'
 }
