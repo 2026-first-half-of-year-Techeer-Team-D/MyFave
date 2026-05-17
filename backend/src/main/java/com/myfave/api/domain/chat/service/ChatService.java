@@ -113,28 +113,6 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatRoomInfoResponse openTempRoom() {
-        chatRoomRepository.findByIsActiveTrue().ifPresent(chatRoom -> {
-            throw new CustomException(ErrorCode.COMMON_INVALID_INPUT);
-        });
-
-        User user = userRepository.findById(influencerUserId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        SaleEvent saleEvent = saleEventRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new CustomException(ErrorCode.COMMON_INVALID_INPUT));
-
-        ChatRoom chatRoom = ChatRoom.builder()
-                .user(user)
-                .saleEvent(saleEvent)
-                .build();
-        
-        chatRoomRepository.save(chatRoom);
-        
-        return ChatRoomInfoResponse.from(chatRoom, 0);
-    }
-
-    @Transactional
     public void openRoomForEvent(Long saleId) {
         chatRoomRepository.findByIsActiveTrue().ifPresent(room -> {
             throw new CustomException(ErrorCode.CHAT_ROOM_ALREADY_EXISTS);
