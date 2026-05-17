@@ -3,6 +3,7 @@ package com.myfave.api.global.error;
 import com.myfave.api.global.common.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -37,6 +38,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(405)
                 .body(ApiResponse.error(ErrorCode.COMMON_METHOD_NOT_ALLOWED));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+        String message = e.getCause() != null ? e.getCause().getMessage() : ErrorCode.COMMON_INVALID_INPUT.getMessage();
+        return ResponseEntity
+                .status(400)
+                .body(new ApiResponse<>(400, message, null));
     }
 
     @ExceptionHandler(MissingServletRequestPartException.class)

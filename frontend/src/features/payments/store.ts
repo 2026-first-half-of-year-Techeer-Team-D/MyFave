@@ -11,6 +11,7 @@ interface CheckoutState extends CheckoutSession {
   setAddress: (address: Address | null) => void
   setCoupon: (coupon: Coupon | null) => void
   setPaymentMethod: (method: PaymentMethod | null) => void
+  setOrderType: (orderType: 'DIRECT' | 'CART') => void
   reset: () => void
 }
 
@@ -19,6 +20,7 @@ const initialSession: CheckoutSession = {
   address: null,
   appliedCoupon: null,
   paymentMethod: null,
+  orderType: 'DIRECT',
 }
 
 export const useCheckoutStore = create<CheckoutState>()((set) => ({
@@ -27,5 +29,6 @@ export const useCheckoutStore = create<CheckoutState>()((set) => ({
   setAddress: (address) => set({ address }),
   setCoupon: (appliedCoupon) => set({ appliedCoupon }),
   setPaymentMethod: (paymentMethod) => set({ paymentMethod }),
+  setOrderType: (orderType) => set({ orderType }),
   reset: () => set(initialSession),
 }))

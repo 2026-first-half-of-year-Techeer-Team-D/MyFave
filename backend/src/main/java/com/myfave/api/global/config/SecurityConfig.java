@@ -2,6 +2,7 @@ package com.myfave.api.global.config;
 
 import com.myfave.api.global.security.JwtAuthenticationFilter;
 import com.myfave.api.global.security.JwtTokenProvider;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,6 +57,16 @@ public class SecurityConfig {
                                 "/chat-room/messages"
                         ).permitAll()
                         .anyRequest().authenticated()  // 그 외 모든 요청은 JWT 인증 필수
+                )
+                .exceptionHandling(ex -> ex
+                        // JWT 인증 실패(토큰 없음·만료·블랙리스트) 시 Spring Security 기본값(403) 대신 401 반환
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"code\":401,\"message\":\"인증이 필요합니다.\"}"
+                            );
+                        })
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate),
                         UsernamePasswordAuthenticationFilter.class);

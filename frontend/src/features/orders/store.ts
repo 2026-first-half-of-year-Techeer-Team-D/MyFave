@@ -17,6 +17,10 @@ export const useOrderStore = create<OrderState>()(
         set((state) => ({ orders: [order, ...state.orders] })),
       reset: () => set({ orders: [] }),
     }),
-    { name: 'myfave-orders' },
+    {
+      name: 'myfave-orders',
+      version: 1,
+      migrate: () => ({ orders: [] }),
+    },
   ),
 )

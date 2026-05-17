@@ -2,7 +2,6 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import App from './app/App'
-import { initDemoData } from './shared/lib/demo'
 import './index.css'
 
 declare global {
@@ -27,9 +26,6 @@ const kakaoKey = import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY
 if (kakaoKey && window.Kakao && !window.Kakao.isInitialized()) {
   window.Kakao.init(kakaoKey)
 }
-
-// Initialize demo data for frontend-only demonstration
-initDemoData()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
