@@ -242,12 +242,24 @@ public class PaymentService {
         return PaymentResponse.from(payment);
     }
 
-    // ── 결제 취소/환불 ────────────────────────────────────────────────────────────
-    @Transactional
+    public record CancelContext(Long paymentId, String pgTransactionId, int cancelAmount, boolean fullCancel) {}
+
+    // ── 결제 취소/환불 (오케스트레이터: 외부 호출은 트랜잭션 밖) ─────────────────
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public PaymentResponse cancelPayment(Long userId, Long paymentId, PaymentCancelRequest request) {
         if (userId == null) {
             throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
         }
+
+        CancelContext ctx = self.validateForCancel(userId, paymentId, request);
+
+        paymentProvider.cancelPayment(ctx.pgTransactionId(), ctx.cancelAmount(), request.getReason());
+
+        return self.applyCancelResult(ctx.paymentId(), ctx.cancelAmount(), ctx.fullCancel(), userId);
+    }
+
+    @Transactional(readOnly = true)
+    public CancelContext validateForCancel(Long userId, Long paymentId, PaymentCancelRequest request) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
@@ -272,7 +284,13 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_INVALID_STATUS);
         }
 
-        paymentProvider.cancelPayment(payment.getPgTransactionId(), cancelAmount, request.getReason());
+        return new CancelContext(payment.getPaymentId(), payment.getPgTransactionId(), cancelAmount, fullCancel);
+    }
+
+    @Transactional
+    public PaymentResponse applyCancelResult(Long paymentId, int cancelAmount, boolean fullCancel, Long userId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
         if (fullCancel) {
             payment.partialCancel(cancelAmount);
@@ -289,7 +307,7 @@ public class PaymentService {
         }
 
         log.info("[Payment] 결제 취소: paymentId={}, cancelAmount={}, fullCancel={}",
-                payment.getPaymentId(), cancelAmount, fullCancel);
+                paymentId, cancelAmount, fullCancel);
         return PaymentResponse.from(payment);
     }
 
