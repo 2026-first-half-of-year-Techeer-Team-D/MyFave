@@ -70,7 +70,7 @@ portone:
   channel-key: ${PORTONE_CHANNEL_KEY:local-portone-channel-key}
 
 tracker:
-  client-id: local-client-id
-  client-secret: local-client-secret
-  api-url: https://api.tracker.delivery/graphql
+  client-id: ${TRACKER_CLIENT_ID:local-client-id}
+  client-secret: ${TRACKER_CLIENT_SECRET:local-client-secret}
+  api-url: https://apis.tracker.delivery/graphql
   timeout-seconds: 15

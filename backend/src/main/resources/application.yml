@@ -36,5 +36,5 @@ portone:
 tracker:
   client-id: ${TRACKER_CLIENT_ID}
   client-secret: ${TRACKER_CLIENT_SECRET}
-  api-url: https://api.tracker.delivery/graphql
+  api-url: https://apis.tracker.delivery/graphql
   timeout-seconds: 15
