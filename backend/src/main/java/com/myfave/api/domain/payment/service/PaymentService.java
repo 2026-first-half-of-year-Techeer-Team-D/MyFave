@@ -31,9 +31,11 @@ import com.myfave.api.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.Mac;
@@ -61,6 +63,9 @@ public class PaymentService {
     private final CouponService couponService;
     private final UserRepository userRepository;
     private final PaymentProvider paymentProvider;
+
+    @Lazy
+    private final PaymentService self;
 
     @Value("${portone.store-id}")
     private String storeId;
@@ -151,44 +156,53 @@ public class PaymentService {
         return PaymentPrepareResponse.of(payment, storeId, resolveChannelKey(request.getPaymentMethod()));
     }
 
-    // ── 결제 승인 ────────────────────────────────────────────────────────────────
-    @Transactional
+    public record ConfirmContext(Long paymentId, int totalPaymentPrice) {}
+
+    // ── 결제 승인 (오케스트레이터: 외부 호출은 트랜잭션 밖) ──────────────────────
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public PaymentResponse confirmPayment(Long userId, PaymentConfirmRequest request) {
         if (userId == null) {
             throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
         }
-        Payment payment = paymentRepository.findById(request.getPaymentId())
-                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
-        if (!payment.getOrder().getUser().getUserId().equals(userId)) {
-            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
-        }
+        ConfirmContext ctx = self.validateForConfirm(userId, request.getPaymentId());
 
-        if (payment.getPaymentStatus() != PaymentStatus.PENDING &&
-            payment.getPaymentStatus() != PaymentStatus.AUTHORIZED) {
-            throw new CustomException(ErrorCode.PAYMENT_INVALID_STATUS);
-        }
-
-        // PortOne API 조회
         PortOnePaymentInfo pgInfo = paymentProvider.getPaymentInfo(request.getPgTransactionId());
 
-        int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(payment.getPaymentId()) + 1;
-
-        // 금액 불일치 또는 PG 결제 실패
-        if (!"PAID".equals(pgInfo.status()) || pgInfo.totalAmount() != payment.getTotalPaymentPrice()) {
+        if (!"PAID".equals(pgInfo.status()) || pgInfo.totalAmount() != ctx.totalPaymentPrice()) {
             if ("PAID".equals(pgInfo.status())) {
-                // 금액 불일치 → 자동 환불
                 paymentProvider.cancelPayment(pgInfo.pgTransactionId(), pgInfo.totalAmount(), "금액 불일치 자동 환불");
             }
             String failReason = "PG상태: " + pgInfo.status() +
-                    ", 예상금액: " + payment.getTotalPaymentPrice() +
+                    ", 예상금액: " + ctx.totalPaymentPrice() +
                     ", 실제금액: " + pgInfo.totalAmount();
-            payment.fail(failReason);
-            saveAttempt(payment, attemptNo, PaymentStatus.FAILED, pgInfo.pgTransactionId(), failReason);
+            self.failConfirm(ctx.paymentId(), pgInfo.pgTransactionId(), failReason);
             throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
-        // 금액 일치 → 결제 완료
+        return self.completeConfirm(ctx.paymentId(), pgInfo, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public ConfirmContext validateForConfirm(Long userId, Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+        if (!payment.getOrder().getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+        if (payment.getPaymentStatus() != PaymentStatus.PENDING &&
+                payment.getPaymentStatus() != PaymentStatus.AUTHORIZED) {
+            throw new CustomException(ErrorCode.PAYMENT_INVALID_STATUS);
+        }
+        return new ConfirmContext(payment.getPaymentId(), payment.getTotalPaymentPrice());
+    }
+
+    @Transactional
+    public PaymentResponse completeConfirm(Long paymentId, PortOnePaymentInfo pgInfo, Long userId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+        int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(paymentId) + 1;
+
         payment.authorize(pgInfo.pgTransactionId());
         payment.complete(pgInfo.receiptUrl(), pgInfo.paidAt());
         payment.getOrder().completePay(payment);
@@ -201,9 +215,17 @@ public class PaymentService {
         }
 
         saveAttempt(payment, attemptNo, PaymentStatus.COMPLETED, pgInfo.pgTransactionId(), null);
-        log.info("[Payment] 결제 완료: paymentId={}, orderId={}", payment.getPaymentId(), payment.getOrder().getOrderId());
-
+        log.info("[Payment] 결제 완료: paymentId={}, orderId={}", paymentId, payment.getOrder().getOrderId());
         return PaymentResponse.from(payment);
+    }
+
+    @Transactional
+    public void failConfirm(Long paymentId, String pgTransactionId, String failReason) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+        int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(paymentId) + 1;
+        payment.fail(failReason);
+        saveAttempt(payment, attemptNo, PaymentStatus.FAILED, pgTransactionId, failReason);
     }
 
     // ── 결제 단건 조회 ────────────────────────────────────────────────────────────
