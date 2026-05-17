@@ -311,55 +311,86 @@ public class PaymentService {
         return PaymentResponse.from(payment);
     }
 
-    // ── 웹훅 처리 ────────────────────────────────────────────────────────────────
-    @Transactional
+    public record WebhookContext(Long paymentId, PaymentStatus status, int totalPaymentPrice) {}
+
+    // ── 웹훅 처리 (오케스트레이터: 외부 호출은 트랜잭션 밖) ──────────────────────
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void processWebhook(String webhookId, String timestamp, String signature,
                                String rawBody, PaymentWebhookRequest request) {
         verifyWebhookSignature(webhookId, timestamp, signature, rawBody);
 
         String pgTransactionId = request.getData().getPaymentId();
-        Payment payment = paymentRepository.findByPgTransactionId(pgTransactionId).orElse(null);
+        WebhookContext ctx = self.loadForWebhook(pgTransactionId);
 
-        if (payment == null) {
+        if (ctx == null) {
             log.warn("[Webhook] 결제 정보 없음: pgTransactionId={}", pgTransactionId);
             return;
         }
-
-        if (payment.getPaymentStatus() == PaymentStatus.COMPLETED) {
-            log.info("[Webhook] 이미 처리된 결제: paymentId={}", payment.getPaymentId());
+        if (ctx.status() == PaymentStatus.COMPLETED) {
+            log.info("[Webhook] 이미 처리된 결제: paymentId={}", ctx.paymentId());
             return;
         }
 
         if ("Transaction.Paid".equals(request.getType())) {
             PortOnePaymentInfo pgInfo = paymentProvider.getPaymentInfo(pgTransactionId);
-            int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(payment.getPaymentId()) + 1;
 
-            if (pgInfo.totalAmount() != payment.getTotalPaymentPrice()) {
+            if (pgInfo.totalAmount() != ctx.totalPaymentPrice()) {
                 paymentProvider.cancelPayment(pgTransactionId, pgInfo.totalAmount(), "웹훅: 금액 불일치 자동 환불");
-                payment.fail("웹훅 금액 불일치");
-                saveAttempt(payment, attemptNo, PaymentStatus.FAILED, pgTransactionId, "웹훅 금액 불일치");
+                self.failWebhook(ctx.paymentId(), pgTransactionId, "웹훅 금액 불일치");
                 return;
             }
 
-            payment.authorize(pgTransactionId);
-            payment.complete(pgInfo.receiptUrl(), pgInfo.paidAt());
-            payment.getOrder().completePay(payment);
-
-            Long userId = payment.getOrder().getUser().getUserId();
-            if (payment.getDiscountCoupon() != null) {
-                couponService.useCoupon(payment.getDiscountCoupon().getCouponId(), userId);
-            }
-            if (payment.getShippingCoupon() != null) {
-                couponService.useCoupon(payment.getShippingCoupon().getCouponId(), userId);
-            }
-
-            saveAttempt(payment, attemptNo, PaymentStatus.COMPLETED, pgTransactionId, null);
-            log.info("[Webhook] 결제 완료 처리: paymentId={}", payment.getPaymentId());
+            self.completeWebhook(ctx.paymentId(), pgInfo);
 
         } else if ("Transaction.Failed".equals(request.getType())) {
-            payment.fail("웹훅: PG 결제 실패");
-            log.info("[Webhook] 결제 실패 처리: paymentId={}", payment.getPaymentId());
+            self.recordWebhookFailed(ctx.paymentId());
         }
+    }
+
+    @Transactional(readOnly = true)
+    public WebhookContext loadForWebhook(String pgTransactionId) {
+        Payment payment = paymentRepository.findByPgTransactionId(pgTransactionId).orElse(null);
+        if (payment == null) return null;
+        return new WebhookContext(payment.getPaymentId(), payment.getPaymentStatus(), payment.getTotalPaymentPrice());
+    }
+
+    @Transactional
+    public void completeWebhook(Long paymentId, PortOnePaymentInfo pgInfo) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+        int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(paymentId) + 1;
+
+        payment.authorize(pgInfo.pgTransactionId());
+        payment.complete(pgInfo.receiptUrl(), pgInfo.paidAt());
+        payment.getOrder().completePay(payment);
+
+        Long userId = payment.getOrder().getUser().getUserId();
+        if (payment.getDiscountCoupon() != null) {
+            couponService.useCoupon(payment.getDiscountCoupon().getCouponId(), userId);
+        }
+        if (payment.getShippingCoupon() != null) {
+            couponService.useCoupon(payment.getShippingCoupon().getCouponId(), userId);
+        }
+
+        saveAttempt(payment, attemptNo, PaymentStatus.COMPLETED, pgInfo.pgTransactionId(), null);
+        log.info("[Webhook] 결제 완료 처리: paymentId={}", paymentId);
+    }
+
+    @Transactional
+    public void failWebhook(Long paymentId, String pgTransactionId, String failReason) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+        int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(paymentId) + 1;
+        payment.fail(failReason);
+        saveAttempt(payment, attemptNo, PaymentStatus.FAILED, pgTransactionId, failReason);
+    }
+
+    @Transactional
+    public void recordWebhookFailed(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+        payment.fail("웹훅: PG 결제 실패");
+        log.info("[Webhook] 결제 실패 처리: paymentId={}", paymentId);
     }
 
     // ── Reconciliation 스케줄러 (10분마다) ──────────────────────────────────────
