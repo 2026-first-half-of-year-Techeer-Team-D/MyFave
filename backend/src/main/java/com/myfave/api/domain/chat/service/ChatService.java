@@ -135,6 +135,27 @@ public class ChatService {
     }
 
     @Transactional
+    public void openRoomForEvent(Long saleId) {
+        chatRoomRepository.findByIsActiveTrue().ifPresent(room -> {
+            throw new CustomException(ErrorCode.CHAT_ROOM_ALREADY_EXISTS);
+        });
+
+        User influencer = userRepository.findById(influencerUserId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        SaleEvent saleEvent = saleEventRepository.findById(saleId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SALE_EVENT_NOT_FOUND));
+
+        ChatRoom chatRoom = ChatRoom.builder()
+                .user(influencer)
+                .saleEvent(saleEvent)
+                .build();
+
+        chatRoomRepository.save(chatRoom);
+        log.info("채팅방 자동 개설: saleId={}", saleId);
+    }
+
+    @Transactional
     public ChatRoomCloseResponse closeChatRoom(Long requestUserId) {
         ChatRoom chatRoom = chatRoomRepository.findTopByOrderByChatRoomIdDesc()
                 .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
