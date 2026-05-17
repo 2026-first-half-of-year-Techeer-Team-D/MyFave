@@ -17,6 +17,7 @@ import com.myfave.api.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 
@@ -69,8 +70,13 @@ public class CartService {
                 .user(user)
                 .product(product)
                 .build();
-
-        cartItemRepository.save(cartItem);
+        try {
+            cartItemRepository.saveAndFlush(cartItem);
+        } catch (DataIntegrityViolationException e) {
+            // 동시 요청으로 인한 unique constraint 위반
+            // 이미 check-then-act 패턴은 통과했지만, 다른 트랜잭션이 먼저 INSERT한 경우
+            throw new CustomException(ErrorCode.CART_ALREADY_EXISTS);
+        }
         return CartItemResponse.from(cartItem);
     }
 
