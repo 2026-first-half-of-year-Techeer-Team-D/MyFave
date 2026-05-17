@@ -393,37 +393,53 @@ public class PaymentService {
         log.info("[Webhook] 결제 실패 처리: paymentId={}", paymentId);
     }
 
-    // ── Reconciliation 스케줄러 (10분마다) ──────────────────────────────────────
+    public record ReconcileTarget(Long paymentId, String idempotencyKey, int totalPaymentPrice) {}
+
+    // ── Reconciliation 스케줄러 (10분마다, 오케스트레이터: 건당 독립 트랜잭션) ──
     @Scheduled(fixedDelay = 600_000)
-    @Transactional
     public void reconcile() {
         ZonedDateTime threshold = ZonedDateTime.now().minusMinutes(30);
-        List<Payment> pendingPayments = paymentRepository
-                .findByPaymentStatusAndCreatedAtBefore(PaymentStatus.PENDING, threshold);
+        List<ReconcileTarget> targets = self.findPendingReconcileTargets(threshold);
 
-        if (pendingPayments.isEmpty()) return;
+        if (targets.isEmpty()) return;
 
-        log.info("[Reconciliation] PENDING 결제 {} 건 처리 시작", pendingPayments.size());
+        log.info("[Reconciliation] PENDING 결제 {} 건 처리 시작", targets.size());
 
-        for (Payment payment : pendingPayments) {
+        for (ReconcileTarget target : targets) {
             try {
-                PortOnePaymentInfo pgInfo = paymentProvider.getPaymentInfo(payment.getIdempotencyKey());
-                int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(payment.getPaymentId()) + 1;
-
-                if ("PAID".equals(pgInfo.status()) && pgInfo.totalAmount() == payment.getTotalPaymentPrice()) {
-                    payment.authorize(pgInfo.pgTransactionId());
-                    payment.complete(pgInfo.receiptUrl(), pgInfo.paidAt());
-                    payment.getOrder().completePay(payment);
-                    saveAttempt(payment, attemptNo, PaymentStatus.COMPLETED, pgInfo.pgTransactionId(), null);
-                    log.info("[Reconciliation] 결제 완료 처리: paymentId={}", payment.getPaymentId());
-
-                } else if ("FAILED".equals(pgInfo.status()) || "CANCELLED".equals(pgInfo.status())) {
-                    payment.fail("Reconciliation: PG 상태=" + pgInfo.status());
-                    log.info("[Reconciliation] 결제 실패 처리: paymentId={}", payment.getPaymentId());
-                }
+                PortOnePaymentInfo pgInfo = paymentProvider.getPaymentInfo(target.idempotencyKey());
+                self.reconcileOne(target.paymentId(), target.totalPaymentPrice(), pgInfo);
             } catch (Exception e) {
-                log.warn("[Reconciliation] 조회 실패: paymentId={}, error={}", payment.getPaymentId(), e.getMessage());
+                log.warn("[Reconciliation] 조회 실패: paymentId={}, error={}", target.paymentId(), e.getMessage());
             }
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReconcileTarget> findPendingReconcileTargets(ZonedDateTime threshold) {
+        return paymentRepository
+                .findByPaymentStatusAndCreatedAtBefore(PaymentStatus.PENDING, threshold)
+                .stream()
+                .map(p -> new ReconcileTarget(p.getPaymentId(), p.getIdempotencyKey(), p.getTotalPaymentPrice()))
+                .toList();
+    }
+
+    @Transactional
+    public void reconcileOne(Long paymentId, int expectedAmount, PortOnePaymentInfo pgInfo) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+        int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(paymentId) + 1;
+
+        if ("PAID".equals(pgInfo.status()) && pgInfo.totalAmount() == expectedAmount) {
+            payment.authorize(pgInfo.pgTransactionId());
+            payment.complete(pgInfo.receiptUrl(), pgInfo.paidAt());
+            payment.getOrder().completePay(payment);
+            saveAttempt(payment, attemptNo, PaymentStatus.COMPLETED, pgInfo.pgTransactionId(), null);
+            log.info("[Reconciliation] 결제 완료 처리: paymentId={}", paymentId);
+
+        } else if ("FAILED".equals(pgInfo.status()) || "CANCELLED".equals(pgInfo.status())) {
+            payment.fail("Reconciliation: PG 상태=" + pgInfo.status());
+            log.info("[Reconciliation] 결제 실패 처리: paymentId={}", paymentId);
         }
     }
 
