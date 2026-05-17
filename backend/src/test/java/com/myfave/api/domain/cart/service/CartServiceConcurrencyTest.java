@@ -23,6 +23,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CyclicBarrier;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -79,12 +80,12 @@ class CartServiceConcurrencyTest {
     }
 
     @Test
-    @DisplayName("동시 addCartItem 호출 시 한 번만 성공하고 다른 한 번은 CART_ALREADY_EXISTS 예외가 발생해야 한다")
+    @DisplayName("동시 addCartItem 호출 시 한 번만 성공하고 나머지는 CART_ALREADY_EXISTS 예외가 발생해야 한다")
     void addCartItem_concurrentRequests_shouldSucceedOnceAndOtherShouldFailWithAlreadyExists() throws InterruptedException {
-        // given
-        int threadCount = 2;
+        // given - 더 많은 스레드 + CyclicBarrier로 모든 스레드가 동시에 시작하도록 강제
+        int threadCount = 10;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch ready = new CountDownLatch(1);
+        CyclicBarrier barrier = new CyclicBarrier(threadCount);  // 모든 스레드가 도달할 때까지 대기 후 동시 시작
         CountDownLatch done = new CountDownLatch(threadCount);
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger alreadyExistsCount = new AtomicInteger(0);
@@ -93,15 +94,14 @@ class CartServiceConcurrencyTest {
         Long userId = testUser.getUserId();
         Long productId = testProduct.getProductId();
 
-        // CartItemRequest는 setter/빌더가 없어서 ReflectionTestUtils로 private 필드 주입
         CartItemRequest request = new CartItemRequest();
         ReflectionTestUtils.setField(request, "productId", productId);
 
-        // when
+        // when - 모든 스레드 동시 실행
         for (int i = 0; i < threadCount; i++) {
             executor.submit(() -> {
                 try {
-                    ready.await();
+                    barrier.await();  // 모든 스레드가 여기 도달할 때까지 대기 → 동시 출발
                     cartService.addCartItem(userId, request);
                     successCount.incrementAndGet();
                 } catch (CustomException e) {
@@ -118,7 +118,6 @@ class CartServiceConcurrencyTest {
             });
         }
 
-        ready.countDown();
         done.await();
         executor.shutdown();
 
@@ -127,7 +126,7 @@ class CartServiceConcurrencyTest {
         System.out.println("CART_ALREADY_EXISTS 횟수: " + alreadyExistsCount.get());
         System.out.println("기타 예외 횟수: " + otherFailCount.get());
         assertThat(successCount.get()).isEqualTo(1);
-        assertThat(alreadyExistsCount.get()).isEqualTo(1);
+        assertThat(alreadyExistsCount.get()).isEqualTo(threadCount - 1);
         assertThat(otherFailCount.get()).isEqualTo(0);
     }
 }

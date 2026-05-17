@@ -15,6 +15,9 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.persistence.QueryHint;
+import org.springframework.data.jpa.repository.QueryHints;
+
 public interface CouponRepository extends JpaRepository<Coupon, Long> {
 
     // 사용자의 쿠폰 목록
@@ -26,6 +29,7 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     // 비관적 락 — 쿠폰 사용 시 동시성 제어용
     // SELECT ... FOR UPDATE 쿼리를 발행해서 트랜잭션이 끝날 때까지 행을 잠금
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000"))
     @Query("SELECT c FROM Coupon c WHERE c.couponId = :couponId")
     Optional<Coupon> findByIdForUpdate(@Param("couponId") Long couponId);
 
