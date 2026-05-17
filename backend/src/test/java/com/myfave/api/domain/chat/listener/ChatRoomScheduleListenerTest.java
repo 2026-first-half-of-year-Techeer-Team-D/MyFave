@@ -1,5 +1,7 @@
 package com.myfave.api.domain.chat.listener;
 
+import com.myfave.api.domain.chat.entity.ChatRoom;
+import com.myfave.api.domain.chat.repository.ChatRoomRepository;
 import com.myfave.api.domain.chat.service.ChatService;
 import com.myfave.api.domain.saleevent.entity.SaleEvent;
 import com.myfave.api.domain.saleevent.event.SaleEventCreatedEvent;
@@ -21,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class ChatRoomScheduleListenerTest {
@@ -28,12 +31,13 @@ class ChatRoomScheduleListenerTest {
     @Mock private TaskScheduler taskScheduler;
     @Mock private ChatService chatService;
     @Mock private SaleEventRepository saleEventRepository;
+    @Mock private ChatRoomRepository chatRoomRepository;
 
     private ChatRoomScheduleListener listener;
 
     @BeforeEach
     void setUp() {
-        listener = new ChatRoomScheduleListener(taskScheduler, chatService, saleEventRepository);
+        listener = new ChatRoomScheduleListener(taskScheduler, chatService, saleEventRepository, chatRoomRepository);
     }
 
     @Test
@@ -68,6 +72,7 @@ class ChatRoomScheduleListenerTest {
         ZonedDateTime startAt = ZonedDateTime.now().plusHours(3);
         SaleEvent saleEvent = buildSaleEvent(2L, startAt);
         given(saleEventRepository.findBySaleStartAtAfter(any())).willReturn(List.of(saleEvent));
+        given(chatRoomRepository.findBySaleEventAndIsActiveTrue(saleEvent)).willReturn(java.util.Optional.empty());
 
         listener.recoverSchedules();
 
@@ -78,6 +83,20 @@ class ChatRoomScheduleListenerTest {
     @DisplayName("recoverSchedules()에서 미래 이벤트가 없으면 스케줄 등록하지 않는다")
     void recoverSchedules_noFutureEvents_noSchedule() {
         given(saleEventRepository.findBySaleStartAtAfter(any())).willReturn(List.of());
+
+        listener.recoverSchedules();
+
+        then(taskScheduler).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("recoverSchedules()에서 이미 활성 채팅방이 있는 이벤트는 스케줄 등록하지 않는다")
+    void recoverSchedules_skipsIfChatRoomAlreadyExists() {
+        ZonedDateTime startAt = ZonedDateTime.now().plusHours(3);
+        SaleEvent saleEvent = buildSaleEvent(3L, startAt);
+        ChatRoom existingRoom = mock(ChatRoom.class);
+        given(saleEventRepository.findBySaleStartAtAfter(any())).willReturn(List.of(saleEvent));
+        given(chatRoomRepository.findBySaleEventAndIsActiveTrue(saleEvent)).willReturn(java.util.Optional.of(existingRoom));
 
         listener.recoverSchedules();
 

@@ -1,5 +1,6 @@
 package com.myfave.api.domain.chat.listener;
 
+import com.myfave.api.domain.chat.repository.ChatRoomRepository;
 import com.myfave.api.domain.chat.service.ChatService;
 import com.myfave.api.domain.saleevent.entity.SaleEvent;
 import com.myfave.api.domain.saleevent.event.SaleEventCreatedEvent;
@@ -22,6 +23,7 @@ public class ChatRoomScheduleListener {
     private final TaskScheduler taskScheduler;
     private final ChatService chatService;
     private final SaleEventRepository saleEventRepository;
+    private final ChatRoomRepository chatRoomRepository;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onSaleEventCreated(SaleEventCreatedEvent event) {
@@ -30,7 +32,8 @@ public class ChatRoomScheduleListener {
 
     @PostConstruct
     public void recoverSchedules() {
-        saleEventRepository.findBySaleStartAtAfter(ZonedDateTime.now())
+        saleEventRepository.findBySaleStartAtAfter(ZonedDateTime.now()).stream()
+                .filter(saleEvent -> chatRoomRepository.findBySaleEventAndIsActiveTrue(saleEvent).isEmpty())
                 .forEach(this::schedule);
     }
 
