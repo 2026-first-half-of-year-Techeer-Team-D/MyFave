@@ -11,11 +11,14 @@ import lombok.Getter;
 public class SignUpRequest {
 
     @NotBlank
-    @Email
+    @Email(message = "이메일 형식이 올바르지 않습니다.")
     private String email;
 
     @NotBlank
-    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[\\W_]).{8,20}$") //@pattern(regexp = "") <- 정규 표현식과 맞는지 검증하겠다.
+    @Pattern(
+            regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[\\W_]).{8,20}$",
+            message = "비밀번호는 영문·숫자·특수문자를 포함한 8~20자여야 합니다."
+    )
     private String password;
 
     @NotBlank
@@ -28,6 +31,6 @@ public class SignUpRequest {
     private String nickname;
 
     @NotBlank
-    @Pattern(regexp = "^010-\\d{4}-\\d{4}$")
+    @Pattern(regexp = "^010-\\d{4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다. (010-XXXX-XXXX)")
     private String phone;
 }
