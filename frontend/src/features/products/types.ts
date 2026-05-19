@@ -5,7 +5,13 @@ export interface Product {
   title: string
   image: string
   price: string
+  category?: ProductCategory
   isSoldOut?: boolean
+}
+
+export interface ProductFeature {
+  title: string
+  description: string
 }
 
 export interface ProductDetail {
@@ -15,7 +21,8 @@ export interface ProductDetail {
   price: string
   priceNumber: number
   images: string[]
-  description: string
+  features: ProductFeature[]
+  description?: string
 }
 
 export interface InfluencerPick extends Product {
