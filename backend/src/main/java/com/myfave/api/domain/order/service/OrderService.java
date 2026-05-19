@@ -44,31 +44,15 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true) // 기본적으로 읽기 전용. 변경이 필요한 메서드에 별도 @Transactional 추가
 public class OrderService {
 
-    // 주문 저장/조회용 Repository
     private final OrderRepository orderRepository;
-
-    // 주문 항목(상품 스냅샷) 저장용 Repository
     private final OrderItemRepository orderItemRepository;
-
-    // JWT에서 추출한 userId로 실제 User 엔티티를 조회하기 위한 Repository
     private final UserRepository userRepository;
-
-    // 상품 존재 여부 및 품절 여부 확인용 Repository
     private final ProductRepository productRepository;
-
-    // 장바구니 항목 조회용 Repository (CART 주문 시 사용)
     private final CartItemRepository cartItemRepository;
-
-    // 배송지 존재 여부 및 소유자 확인용 Repository
     private final ShippingAddressRepository shippingAddressRepository;
-
-    // 배송 정보 조회용 Repository (주문 상세 조회 시 사용)
     private final DeliveryRepository deliveryRepository;
 
-    /**
-     * 주문 생성 (5-1)
-     * @Transactional: DB에 실제로 데이터를 저장하므로 읽기 전용을 해제
-     */
+    // 주문 생성 (5-1)
     @Transactional
     public OrderResponse createOrder(Long userId, OrderCreateRequest request) {
 
@@ -207,15 +191,13 @@ public class OrderService {
             return OrderListResponse.from(Page.empty(pageable));
         }
 
-        // ── 4. OrderItem 배치 조회 (N+1 방지) ───────────────────────────
-        // findByOrderIn: 여러 주문의 OrderItem을 IN 쿼리 한 번으로 조회
-        // (orders 수만큼 개별 쿼리를 날리는 N+1 문제를 방지)
-        List<OrderItem> allOrderItems = orderItemRepository.findByOrderIn(orders);
-
-        // ── 5. OrderItem을 주문별로 그룹핑 ──────────────────────────────
-        // Map<orderId, List<OrderItem>>: 각 주문 ID에 해당하는 상품 목록으로 분류
-        Map<Long, List<OrderItem>> itemsByOrderId = allOrderItems.stream()
-                .collect(Collectors.groupingBy(item -> item.getOrder().getOrderId()));
+        // ── 4. OrderItem 주문별 단건 조회 (의도적 N+1 발생 — 부하 실측용) ─
+        // 운영에서는 findByOrderIn(orders)로 IN 쿼리 1회 사용. 실측을 위해 단건 루프로 교체.
+        Map<Long, List<OrderItem>> itemsByOrderId = orders.stream()
+                .collect(Collectors.toMap(
+                        Order::getOrderId,
+                        order -> orderItemRepository.findByOrder(order)
+                ));
 
         // ── 6. 주문별 DTO 변환 ──────────────────────────────────────────
         List<OrderSummaryResponse> summaries = orders.stream()
