@@ -79,7 +79,7 @@ public class ChatService {
                     .messageId(p.getMessageId())
                     .senderId(p.getUserId())
                     .senderNickname(p.getNickname())
-                    .isInfluencer(Objects.equals(p.getUserId(), influencerUserId))
+                    .influencer(Objects.equals(p.getUserId(), influencerUserId))
                     .content(p.getContent())
                     .createdAt(p.getSentAt())
                     .build());

@@ -52,6 +52,10 @@ public enum ErrorCode {
     SHIPPING_ADDRESS_NOT_FOUND(404, "존재하지 않는 배송지"),
     SHIPPING_ADDRESS_FORBIDDEN(403, "본인 소유의 배송지가 아닙니다"),
 
+    // 배송 추적
+    TRACKING_NOT_REGISTERED(400, "운송장이 등록되지 않은 주문"),
+    TRACKING_API_ERROR(502, "배송 추적 서비스 오류"),
+
     // 쿠폰
     COUPON_NOT_FOUND(404, "존재하지 않는 쿠폰"),
     COUPON_ALREADY_USED(409, "이미 사용된 쿠폰"),
