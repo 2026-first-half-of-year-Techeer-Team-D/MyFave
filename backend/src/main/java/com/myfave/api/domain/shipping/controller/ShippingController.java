@@ -12,6 +12,8 @@ import com.myfave.api.domain.shipping.dto.request.ShippingAddressRequest;
 import com.myfave.api.domain.shipping.dto.response.DefaultAddressResponse;
 import com.myfave.api.domain.shipping.dto.response.ShippingAddressResponse;
 import com.myfave.api.global.common.ApiResponse;
+import com.myfave.api.global.error.CustomException;
+import com.myfave.api.global.error.ErrorCode;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

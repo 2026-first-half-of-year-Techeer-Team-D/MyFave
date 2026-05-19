@@ -140,15 +140,17 @@ class ChatServiceGetMessageHistoryTest {
             var constructor = ChatRoom.class.getDeclaredConstructors()[0];
             constructor.setAccessible(true);
             ChatRoom room = (ChatRoom) constructor.newInstance();
-            var f1 = ChatRoom.class.getDeclaredField("chatRoomId");
-            f1.setAccessible(true);
-            f1.set(room, id);
-            var f2 = ChatRoom.class.getDeclaredField("isActive");
-            f2.setAccessible(true);
-            f2.set(room, true);
+            setField(room, "chatRoomId", id);
+            setField(room, "isActive", true);
             return room;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void setField(Object target, String fieldName, Object value) throws Exception {
+        var field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 }

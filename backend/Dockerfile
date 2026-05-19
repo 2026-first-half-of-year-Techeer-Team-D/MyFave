@@ -1,9 +1,9 @@
 # Stage 1: Build
 FROM gradle:8.11-jdk21 AS build
 WORKDIR /app
-COPY build.gradle settings.gradle ./
+COPY build.gradle settings.gradle lombok.config ./
 COPY src ./src
-RUN gradle build -x test --no-daemon
+RUN gradle bootJar --no-daemon
 
 # Stage 2: Run
 FROM eclipse-temurin:21-jre

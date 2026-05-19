@@ -36,3 +36,10 @@ portone:
     kakao-pay: ${PORTONE_CHANNEL_KEY_KAKAOPAY}
     naver-pay: ${PORTONE_CHANNEL_KEY_NAVERPAY}
     toss-pay: ${PORTONE_CHANNEL_KEY_TOSSPAY}
+
+# Delivery Tracker API (tracker.delivery)
+tracker:
+  client-id: ${TRACKER_CLIENT_ID}
+  client-secret: ${TRACKER_CLIENT_SECRET}
+  api-url: https://apis.tracker.delivery/graphql
+  timeout-seconds: 15
