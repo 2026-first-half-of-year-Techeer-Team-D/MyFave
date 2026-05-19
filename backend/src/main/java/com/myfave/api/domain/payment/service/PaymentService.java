@@ -179,13 +179,18 @@ public class PaymentService {
 
         //  3. 데이터 무결성 검증 및 롤백
         if (!"PAID".equals(pgInfo.status()) || pgInfo.totalAmount() != ctx.totalPaymentPrice()) {
-            if ("PAID".equals(pgInfo.status())) {
-                paymentProvider.cancelPayment(pgInfo.pgTransactionId(), pgInfo.totalAmount(), "금액 불일치 자동 환불");
-            }
             String failReason = "PG상태: " + pgInfo.status() +
                     ", 예상금액: " + ctx.totalPaymentPrice() +
                     ", 실제금액: " + pgInfo.totalAmount();
-            self.failConfirm(ctx.paymentId(), pgInfo.pgTransactionId(), failReason);
+            try {
+                if ("PAID".equals(pgInfo.status())) {
+                    paymentProvider.cancelPayment(pgInfo.pgTransactionId(), pgInfo.totalAmount(), "금액 불일치 자동 환불");
+                }
+            } catch (Exception ex) {
+                log.warn("PG 자동취소 실패: paymentId={}", ctx.paymentId(), ex);
+            } finally {
+                self.failConfirm(ctx.paymentId(), pgInfo.pgTransactionId(), failReason);
+            }
             throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
