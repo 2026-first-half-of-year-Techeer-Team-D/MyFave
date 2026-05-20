@@ -41,7 +41,9 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/ws/**",
-                                "/payments/webhook"    // 외부 PG(PortOne) 콜백 - HMAC 서명으로 자체 보안
+                                "/payments/webhook",   // 외부 PG(PortOne) 콜백 - HMAC 서명으로 자체 보안
+                                "/actuator/health",
+                                "/actuator/prometheus" // Prometheus scraper 접근 허용
                         ).permitAll()
                         // 비로그인 공개 조회 (카탈로그·콘텐츠·이벤트)
                         // /chat-room, /chat-room/preview, /chat-room/messages 는 의도적으로 공개:

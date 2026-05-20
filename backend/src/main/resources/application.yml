@@ -53,8 +53,3 @@ management:
   metrics:
     tags:
       application: myfave-api
-
-# 로그 패턴에 traceId 포함 (OTel Agent가 MDC에 trace_id 주입)
-logging:
-  pattern:
-    console: "%d{HH:mm:ss.SSS} [%thread] %-5level [traceId=%X{trace_id}] %logger{36} - %msg%n"
