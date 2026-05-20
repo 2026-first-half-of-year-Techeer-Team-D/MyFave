@@ -79,3 +79,9 @@ tracker:
   client-secret: ${TRACKER_CLIENT_SECRET:local-client-secret}
   api-url: https://apis.tracker.delivery/graphql
   timeout-seconds: 15
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
