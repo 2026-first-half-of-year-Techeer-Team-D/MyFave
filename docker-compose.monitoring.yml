@@ -50,11 +50,6 @@ services:
     networks:
       - myfave-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3100/ready"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
   promtail:
     image: grafana/promtail:latest
@@ -84,12 +79,6 @@ services:
     networks:
       - myfave-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3200/ready"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
 
 volumes:
   grafana-data:
@@ -98,4 +87,4 @@ volumes:
 
 networks:
   myfave-network:
-    external: true
+    driver: bridge
