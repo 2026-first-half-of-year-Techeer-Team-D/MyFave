@@ -7,6 +7,16 @@ postman
 # Talk with AI (로컬 학습 및 내부 문서 — 커밋 금지)
 Talk with AI/
 
+# AI agent context files (local only)
+backend/src/main/java/com/myfave/api/domain/order/*CONTEXT.md
+backend/src/main/java/com/myfave/api/domain/order/**/*CONTEXT.md
+backend/src/main/java/com/myfave/api/domain/order/*FLOW.md
+backend/src/main/java/com/myfave/api/domain/order/**/*FLOW.md
+backend/src/main/java/com/myfave/api/domain/payment/*CONTEXT.md
+backend/src/main/java/com/myfave/api/domain/payment/**/*CONTEXT.md
+backend/src/main/java/com/myfave/api/domain/payment/*FLOW.md
+backend/src/main/java/com/myfave/api/domain/payment/**/*FLOW.md
+
 # IDE 설정
 .idea/
 
@@ -21,3 +31,4 @@ meetings/
 backend/run.bat
 .vercel
 .env*.local
+AGENTS.md
