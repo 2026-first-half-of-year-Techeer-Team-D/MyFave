@@ -21,7 +21,7 @@ export interface ProductDetail {
   price: string
   priceNumber: number
   images: string[]
-  features: ProductFeature[]
+  features?: ProductFeature[]
   description?: string
 }
 

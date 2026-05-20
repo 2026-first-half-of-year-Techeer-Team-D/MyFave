@@ -114,6 +114,9 @@ public class ChatService {
 
     @Transactional
     public void openRoomForEvent(Long saleId) {
+        SaleEvent saleEvent = saleEventRepository.findByIdWithLock(saleId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SALE_EVENT_NOT_FOUND));
+
         if (chatRoomRepository.findByIsActiveTrue().isPresent()) {
             log.info("채팅방 자동 개설 스킵: 이미 활성 채팅방 존재 (saleId={})", saleId);
             return;
@@ -121,9 +124,6 @@ public class ChatService {
 
         User influencer = userRepository.findById(influencerUserId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        SaleEvent saleEvent = saleEventRepository.findById(saleId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SALE_EVENT_NOT_FOUND));
 
         ChatRoom chatRoom = ChatRoom.builder()
                 .user(influencer)

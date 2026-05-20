@@ -111,7 +111,7 @@ export function ProductDetailPage() {
       </div>
 
       <div className="px-[19.99px] pt-[23.99px] pb-[40px] space-y-[15.99px]">
-        {product.features.map((feature, idx) => (
+        {(product.features ?? []).map((feature, idx) => (
           <div key={idx} className="rounded-[12px] bg-footer-bg p-[19.99px] space-y-[4px]">
             <h3 className="font-noto text-[13px] font-medium leading-[24px] text-[#322927]">{feature.title}</h3>
             <p className="font-noto text-[13px] font-normal leading-[24px] text-[#322927] opacity-90">{feature.description}</p>
