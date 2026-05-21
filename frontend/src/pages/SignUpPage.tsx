@@ -257,7 +257,7 @@ export function SignUpPage() {
               <button
                 type="button"
                 onClick={isCodeSent ? handleVerifyCode : handleSendCode}
-                disabled={sendSignUpCode.isPending || verifySignUpCode.isPending}
+                disabled={(!isCodeSent && !formData.email) || sendSignUpCode.isPending || verifySignUpCode.isPending}
                 className="flex h-[35px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-bold text-white shadow-sm disabled:opacity-60"
               >
                 {isCodeSent ? '확인' : '인증번호 발송하기'}
