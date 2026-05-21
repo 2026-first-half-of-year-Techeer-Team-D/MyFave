@@ -15,14 +15,14 @@ import java.util.UUID;
 public class TraceIdFilter extends OncePerRequestFilter {
 
     private static final String TRACE_ID_HEADER = "X-Trace-Id";
-    private static final String MDC_KEY = "traceId";
+    private static final String MDC_KEY = "trace_id";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String traceId = request.getHeader(TRACE_ID_HEADER);
         if (traceId == null || traceId.isBlank()) {
-            traceId = UUID.randomUUID().toString();
+            traceId = UUID.randomUUID().toString().replace("-", "");
         }
         MDC.put(MDC_KEY, traceId);
         response.setHeader(TRACE_ID_HEADER, traceId);

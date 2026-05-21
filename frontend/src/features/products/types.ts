@@ -1,5 +1,10 @@
 export type ProductCategory = 'top' | 'bottom' | 'outer' | 'accessory'
 
+export interface ProductFeature {
+  title: string
+  description: string
+}
+
 export interface Product {
   id: number
   title: string
@@ -7,6 +12,7 @@ export interface Product {
   price: string
   category?: ProductCategory
   isSoldOut?: boolean
+  category: ProductCategory
 }
 
 export interface ProductFeature {
@@ -21,8 +27,7 @@ export interface ProductDetail {
   price: string
   priceNumber: number
   images: string[]
-  features?: ProductFeature[]
-  description?: string
+  features: ProductFeature[]
 }
 
 export interface InfluencerPick extends Product {

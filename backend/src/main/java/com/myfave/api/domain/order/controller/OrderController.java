@@ -6,6 +6,8 @@ import com.myfave.api.domain.order.dto.response.OrderDetailResponse;
 import com.myfave.api.domain.order.dto.response.OrderListResponse;
 import com.myfave.api.domain.order.dto.response.OrderResponse;
 import com.myfave.api.domain.order.service.OrderService;
+import com.myfave.api.domain.shipping.dto.response.TrackingResponse;
+import com.myfave.api.domain.shipping.service.ShippingService;
 import com.myfave.api.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderService orderService;
+    private final ShippingService shippingService;
 
     /**
      * 주문 생성 (5-1)
@@ -151,6 +154,31 @@ public class OrderController {
         OrderConfirmResponse response = orderService.confirmOrder(userId, orderId);
 
         // ApiResponse.ok(): code=200, message="OK", data=response
+        return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    /**
+     * 배송 추적 조회 (5-5)
+     * GET /api/v1/orders/{orderId}/tracking
+     */
+    @Operation(
+            summary = "배송 추적 조회",
+            description = "CU 편의점 택배 현재 배송 상태를 조회합니다.\n\n" +
+                          "- DELIVERED 감지 시 주문 상태가 DELIVERY_COMPLETED로 자동 갱신됩니다.\n" +
+                          "- 운송장 미등록(배송 준비 중) 상태이면 400 반환"
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "운송장 미등록"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 주문 아님"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "주문 없음"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "502", description = "배송 추적 서비스 오류")
+    })
+    @GetMapping("/{orderId}/tracking")
+    public ResponseEntity<ApiResponse<TrackingResponse>> trackDelivery(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long orderId) {
+        TrackingResponse response = shippingService.trackDelivery(userId, orderId);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 }
