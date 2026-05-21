@@ -73,9 +73,15 @@ portone:
     kakao-pay: ${PORTONE_CHANNEL_KEY_KAKAOPAY:local-kakao-key}
     naver-pay: ${PORTONE_CHANNEL_KEY_NAVERPAY:local-naver-key}
     toss-pay: ${PORTONE_CHANNEL_KEY_TOSSPAY:local-toss-key}
-    
- tracker:
+
+tracker:
   client-id: ${TRACKER_CLIENT_ID:local-client-id}
   client-secret: ${TRACKER_CLIENT_SECRET:local-client-secret}
   api-url: https://apis.tracker.delivery/graphql
   timeout-seconds: 15
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
