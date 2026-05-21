@@ -120,7 +120,6 @@ public class AuthService {
         if (storedEmail == null || !storedEmail.equals(request.getEmail())) {
             throw new CustomException(ErrorCode.AUTH_EMAIL_NOT_VERIFIED);
         }
-        redisTemplate.delete(tokenKey);
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new CustomException(ErrorCode.USER_DUPLICATE_EMAIL);
@@ -140,7 +139,9 @@ public class AuthService {
                 .phone(request.getPhone())
                 .build();
 
-        return SignUpResponse.from(userRepository.save(user));
+        SignUpResponse result = SignUpResponse.from(userRepository.save(user));
+        redisTemplate.delete(tokenKey);
+        return result;
     }
 
     public LoginResponse login(LoginRequest request) {

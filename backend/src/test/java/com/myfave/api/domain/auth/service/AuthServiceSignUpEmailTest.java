@@ -197,4 +197,40 @@ class AuthServiceSignUpEmailTest {
 
         verify(userRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("유효한 verifiedToken과 중복 없는 정보로 회원가입 성공")
+    void signUp_success() {
+        com.myfave.api.domain.auth.dto.request.SignUpRequest request =
+                new com.myfave.api.domain.auth.dto.request.SignUpRequest();
+        ReflectionTestUtils.setField(request, "email", "test@example.com");
+        ReflectionTestUtils.setField(request, "password", "Password1!");
+        ReflectionTestUtils.setField(request, "name", "테스터");
+        ReflectionTestUtils.setField(request, "nickname", "tester");
+        ReflectionTestUtils.setField(request, "phone", "010-1234-5678");
+        ReflectionTestUtils.setField(request, "verifiedToken", "valid-uuid");
+
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.get("signup-verified-token:valid-uuid")).willReturn("test@example.com");
+        given(userRepository.existsByEmail("test@example.com")).willReturn(false);
+        given(userRepository.existsByNickname("tester")).willReturn(false);
+        given(userRepository.existsByPhone("010-1234-5678")).willReturn(false);
+        given(passwordEncoder.encode("Password1!")).willReturn("encoded-password");
+
+        com.myfave.api.domain.user.entity.User savedUser =
+                com.myfave.api.domain.user.entity.User.builder()
+                        .email("test@example.com")
+                        .password("encoded-password")
+                        .name("테스터")
+                        .nickname("tester")
+                        .phone("010-1234-5678")
+                        .build();
+        given(userRepository.save(any())).willReturn(savedUser);
+
+        com.myfave.api.domain.auth.dto.response.SignUpResponse response = authService.signUp(request);
+
+        assertThat(response.getNickname()).isEqualTo("tester");
+        verify(redisTemplate).delete("signup-verified-token:valid-uuid");
+        verify(userRepository).save(any());
+    }
 }
