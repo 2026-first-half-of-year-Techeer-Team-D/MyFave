@@ -5,6 +5,8 @@ import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.PasswordResetSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.request.SignUpSendCodeRequest;
+import com.myfave.api.domain.auth.dto.request.SignUpVerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ResetPasswordRequest;
 import com.myfave.api.domain.auth.dto.request.SocialLoginRequest;
 import com.myfave.api.domain.auth.dto.request.VerifyCodeRequest;
@@ -12,6 +14,7 @@ import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.ReissueResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
+import com.myfave.api.domain.auth.dto.response.SignUpVerifyCodeResponse;
 import com.myfave.api.domain.auth.dto.response.SocialLoginResponse;
 import com.myfave.api.domain.auth.dto.response.VerifyCodeResponse;
 import com.myfave.api.domain.auth.service.AuthService;
@@ -28,6 +31,17 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+
+    @PostMapping("/signup/send-code")
+    public ApiResponse<Void> sendSignUpCode(@Valid @RequestBody SignUpSendCodeRequest request) {
+        authService.sendSignUpCode(request);
+        return new ApiResponse<>(200, "인증코드가 이메일로 발송되었습니다.", null);
+    }
+
+    @PostMapping("/signup/verify-code")
+    public ApiResponse<SignUpVerifyCodeResponse> verifySignUpCode(@Valid @RequestBody SignUpVerifyCodeRequest request) {
+        return new ApiResponse<>(200, "인증코드 확인 완료", authService.verifySignUpCode(request));
+    }
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
