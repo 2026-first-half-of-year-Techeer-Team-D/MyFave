@@ -16,6 +16,15 @@ server:
   servlet:
     context-path: /api/v1   # 모든 API: /api/v1/users, /api/v1/products 등
 
+# CORS 설정 (profile별 override: application-prod.yml)
+app:
+  cors:
+    allowed-origins: http://localhost:5173
+    allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age: 3600
+
 # 인플루언서 설정 (서비스 운영 인플루언서 1명 고정)
 influencer:
   user-id: 1
