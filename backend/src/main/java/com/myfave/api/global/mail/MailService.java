@@ -27,4 +27,14 @@ public class MailService {
         message.setText("인증코드: " + code + "\n\n5분 내로 입력해 주세요.");
         mailSender.send(message);
     }
+
+    @Async("emailExecutor")
+    public void sendSignUpCode(String to, String code) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(to);
+        message.setSubject("[MyFave] 회원가입 이메일 인증코드");
+        message.setText("인증코드: " + code + "\n\n5분 내로 입력해 주세요.");
+        mailSender.send(message);
+    }
 }
