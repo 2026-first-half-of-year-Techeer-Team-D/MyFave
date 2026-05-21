@@ -15,6 +15,8 @@ server:
   port: 8080
   servlet:
     context-path: /api/v1 # 모든 API: /api/v1/users, /api/v1/products 등
+  # Nginx 리버스 프록시 뒤에서 X-Forwarded-Proto 헤더 인식 → Swagger UI가 https URL 생성하도록
+  forward-headers-strategy: framework
 
 # CORS 설정 (profile별 override: application-prod.yml)
 app:
