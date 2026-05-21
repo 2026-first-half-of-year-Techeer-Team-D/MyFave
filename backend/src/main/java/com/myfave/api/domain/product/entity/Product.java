@@ -2,6 +2,8 @@ package com.myfave.api.domain.product.entity;
 
 import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.global.entity.BaseEntity;
+import com.myfave.api.global.error.CustomException;
+import com.myfave.api.global.error.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -51,11 +53,15 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private Boolean isSoldout = false;
 
+    @Column(name = "stock_quantity", nullable = false)
+    private Integer stockQuantity = 0;
+
     private ZonedDateTime deletedAt;
 
     @Builder
     private Product(User user, String productName, String shortReview, Integer price,
-                    String description, String size, ConditionCode conditionCode, CategoryCode categoryCode) {
+                    String description, String size, ConditionCode conditionCode, CategoryCode categoryCode,
+                    Integer stockQuantity) {
         this.user = user;
         this.productName = productName;
         this.shortReview = shortReview;
@@ -65,6 +71,7 @@ public class Product extends BaseEntity {
         this.conditionCode = conditionCode;
         this.categoryCode = categoryCode;
         this.isSoldout = false;
+        this.stockQuantity = stockQuantity != null ? stockQuantity : 0;
     }
 
     //patch 보낸 것만 변경
@@ -83,6 +90,18 @@ public class Product extends BaseEntity {
 
     public void markAsSoldout() {
         this.isSoldout = true;
+    }
+
+    // 재고 차감 — 부하 테스트 시나리오 D(매진 경쟁)의 핵심 동시성 진입점.
+    // PESSIMISTIC_WRITE 락으로 얻어온 엔티티에서만 호출되어야 함(ProductRepository.findByIdForUpdate).
+    public void decreaseStock(int quantity) {
+        if (this.stockQuantity == null || this.stockQuantity < quantity) {
+            throw new CustomException(ErrorCode.PRODUCT_SOLD_OUT);
+        }
+        this.stockQuantity -= quantity;
+        if (this.stockQuantity == 0) {
+            this.isSoldout = true;
+        }
     }
 
     public void softDelete() {

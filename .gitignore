@@ -26,6 +26,7 @@ Sprint_계획서.md
 .claude
 docs
 docs
+!backend/load-test/docs/
 .claude/
 meetings/
 backend/run.bat

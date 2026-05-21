@@ -34,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -92,67 +94,49 @@ public class OrderService {
                 .build();
         orderRepository.save(order); // INSERT INTO orders ... 실행
 
-        // ── 6. orderType에 따라 OrderItem 저장 ────────────────────────
+        // ── 6. orderType에 따라 재고 차감 + OrderItem 저장 ────────────
+        // 재고 차감은 PESSIMISTIC_WRITE 락으로 처리 → 동시 주문 시 over-selling 방지
+        // 락 획득 순서를 product_id ASC로 강제해 데드락 회피
         if (request.getOrderType() == OrderType.DIRECT) {
             // ── DIRECT: 단일 상품 바로 구매 ──────────────────────────
-
-            // productId가 null이면 요청 자체가 잘못된 것
             if (request.getProductId() == null) {
                 throw new CustomException(ErrorCode.ORDER_INVALID_ORDER_TYPE);
             }
 
-            // 상품 조회
-            Product product = productRepository.findById(request.getProductId())
+            Product product = productRepository.findByIdForUpdate(request.getProductId())
                     .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
-            // 삭제된 상품 확인: deletedAt이 세팅된 상품은 주문 불가
-            if (product.isDeleted()) {
-                throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
-            }
+            // 재고 차감 (실패 시 PRODUCT_SOLD_OUT) — isSoldout 동기화 포함
+            product.decreaseStock(1);
 
-            // 품절 확인: isSoldout이 true이면 주문 불가
-            if (product.getIsSoldout()) {
-                throw new CustomException(ErrorCode.PRODUCT_SOLD_OUT);
-            }
-
-            // OrderItem 저장
-            // price, productName을 현재 값으로 스냅샷 저장 → 나중에 상품 정보가 바뀌어도 주문 기록은 유지됨
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .product(product)
-                    .price(product.getPrice())             // 주문 당시 가격 스냅샷
-                    .productName(product.getProductName()) // 주문 당시 상품명 스냅샷
+                    .price(product.getPrice())
+                    .productName(product.getProductName())
                     .build();
             orderItemRepository.save(orderItem);
 
         } else {
             // ── CART: 장바구니 상품 구매 ─────────────────────────────
-            // productIds는 프론트엔드 장바구니(Zustand 로컬)에 담긴 product_id 목록
-
             if (request.getProductIds() == null || request.getProductIds().isEmpty()) {
                 throw new CustomException(ErrorCode.ORDER_INVALID_ORDER_TYPE);
             }
 
-            List<Product> products = productRepository.findAllById(request.getProductIds());
+            // 데드락 회피: 락 획득 순서를 product_id ASC로 정렬
+            List<Long> sortedProductIds = request.getProductIds().stream()
+                    .sorted(Comparator.naturalOrder())
+                    .toList();
 
-            // 요청한 개수와 실제 조회된 개수가 다르면 존재하지 않는 상품이 포함된 것
-            if (products.size() != request.getProductIds().size()) {
-                throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
+            List<Product> lockedProducts = new ArrayList<>();
+            for (Long pid : sortedProductIds) {
+                Product product = productRepository.findByIdForUpdate(pid)
+                        .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+                product.decreaseStock(1);
+                lockedProducts.add(product);
             }
 
-            for (Product product : products) {
-
-                // 삭제된 상품 확인
-                if (product.isDeleted()) {
-                    throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
-                }
-
-                // 품절 확인
-                if (product.getIsSoldout()) {
-                    throw new CustomException(ErrorCode.PRODUCT_SOLD_OUT);
-                }
-
-                // OrderItem 저장 (상품별 스냅샷)
+            for (Product product : lockedProducts) {
                 OrderItem orderItem = OrderItem.builder()
                         .order(order)
                         .product(product)
