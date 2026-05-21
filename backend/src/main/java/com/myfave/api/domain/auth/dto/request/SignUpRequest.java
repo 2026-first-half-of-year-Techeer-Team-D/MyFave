@@ -33,4 +33,7 @@ public class SignUpRequest {
     @NotBlank
     @Pattern(regexp = "^010-\\d{4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다. (010-XXXX-XXXX)")
     private String phone;
+
+    @NotBlank
+    private String verifiedToken;
 }
