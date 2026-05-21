@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PopUp } from '@/shared/components/PopUp'
+import { useSendSignUpCode, useVerifySignUpCode, useSignUp } from '@/features/auth/hooks'
 
 type SignUpStep = 'EMAIL' | 'PASSWORD' | 'NAME' | 'PHONE' | 'NICKNAME' | 'AGREEMENT'
 type TermsView = 'NONE' | 'TERMS' | 'PRIVACY_REQ' | 'PRIVACY_OPT' | 'MARKETING'
 
 export function SignUpPage() {
   const navigate = useNavigate()
+  const sendSignUpCode = useSendSignUpCode()
+  const verifySignUpCode = useVerifySignUpCode()
+  const signUpMutation = useSignUp()
+  const [verifiedToken, setVerifiedToken] = useState('')
   const [step, setStep] = useState<SignUpStep>('AGREEMENT')
   const [isPopUpOpen, setIsPopUpOpen] = useState(false)
   const [popUpMessage, setPopUpMessage] = useState('')
@@ -48,9 +53,67 @@ export function SignUpPage() {
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
   }
 
+  const getErrorMessage = (error: unknown): string => {
+    const errorCode = (error as { response?: { data?: { errorCode?: string } } })
+      ?.response?.data?.errorCode
+    switch (errorCode) {
+      case 'USER_DUPLICATE_EMAIL': return '이미 가입된 이메일입니다'
+      case 'AUTH_TOO_MANY_REQUESTS': return '잠시 후 다시 시도해주세요'
+      case 'AUTH_EXPIRED_VERIFICATION_CODE': return '인증코드가 만료되었습니다'
+      case 'AUTH_INVALID_VERIFICATION_CODE': return '인증코드가 일치하지 않습니다'
+      case 'AUTH_EMAIL_NOT_VERIFIED': return '이메일 인증이 필요합니다'
+      case 'USER_DUPLICATE_NICKNAME': return '이미 사용 중인 닉네임입니다'
+      case 'USER_DUPLICATE_PHONE': return '이미 등록된 전화번호입니다'
+      default: return '오류가 발생했습니다. 다시 시도해주세요'
+    }
+  }
+
   const showPopUp = (msg: string) => {
     setPopUpMessage(msg)
     setIsPopUpOpen(true)
+  }
+
+  const handleSendCode = async () => {
+    if (!formData.email) return
+    try {
+      await sendSignUpCode.mutateAsync({ email: formData.email })
+      setIsCodeSent(true)
+      setTimeLeft(180)
+      showPopUp('인증번호가 발송되었습니다 🎁')
+    } catch (error) {
+      showPopUp(getErrorMessage(error))
+    }
+  }
+
+  const handleVerifyCode = async () => {
+    if (!formData.verificationCode) return
+    try {
+      const res = await verifySignUpCode.mutateAsync({
+        email: formData.email,
+        verificationCode: formData.verificationCode,
+      })
+      setVerifiedToken(res.verifiedToken)
+      setStep('PASSWORD')
+    } catch (error) {
+      showPopUp(getErrorMessage(error))
+    }
+  }
+
+  const handleSignUp = async () => {
+    try {
+      await signUpMutation.mutateAsync({
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+        nickname: formData.nickname,
+        phone: formData.phone,
+        verifiedToken,
+      })
+      showPopUp('회원가입이 완료되었습니다 ✨')
+      setTimeout(() => navigate('/login'), 2000)
+    } catch (error) {
+      showPopUp(getErrorMessage(error))
+    }
   }
 
   const handleNext = () => {
@@ -180,9 +243,11 @@ export function SignUpPage() {
                   />
                   <div className="absolute right-[19px] flex items-center gap-[10px]">
                     <span className="font-noto text-[16px] font-bold text-[#999999]">{formatTime(timeLeft)}</span>
-                    <button 
-                      onClick={() => { setTimeLeft(180); showPopUp('인증번호가 재발송되었습니다 🎁') }}
-                      className="h-[25px] rounded-[5px] bg-point px-2 font-noto text-[10px] font-bold text-white"
+                    <button
+                      type="button"
+                      onClick={handleSendCode}
+                      disabled={sendSignUpCode.isPending}
+                      className="h-[25px] rounded-[5px] bg-point px-2 font-noto text-[10px] font-bold text-white disabled:opacity-60"
                     >
                       재발송
                     </button>
@@ -190,16 +255,10 @@ export function SignUpPage() {
                 </div>
               )}
               <button
-                onClick={() => {
-                  if (!isCodeSent) {
-                    setIsCodeSent(true)
-                    setTimeLeft(180)
-                    showPopUp('인증번호가 발송되었습니다 🎁')
-                  } else {
-                    handleNext()
-                  }
-                }}
-                className="flex h-[35px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-bold text-white shadow-sm"
+                type="button"
+                onClick={isCodeSent ? handleVerifyCode : handleSendCode}
+                disabled={(!isCodeSent && !formData.email) || sendSignUpCode.isPending || verifySignUpCode.isPending}
+                className="flex h-[35px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-bold text-white shadow-sm disabled:opacity-60"
               >
                 {isCodeSent ? '확인' : '인증번호 발송하기'}
               </button>
@@ -310,10 +369,12 @@ export function SignUpPage() {
                 />
               </div>
               <button
-                onClick={handleNext}
-                className="flex h-[35px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-medium text-white shadow-sm"
+                type="button"
+                onClick={handleSignUp}
+                disabled={signUpMutation.isPending}
+                className="flex h-[35px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-medium text-white shadow-sm disabled:opacity-60"
               >
-                다음
+                {signUpMutation.isPending ? '처리 중...' : '다음'}
               </button>
             </div>
           </div>

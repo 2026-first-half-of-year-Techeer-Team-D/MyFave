@@ -2,6 +2,11 @@ import { useMutation } from '@tanstack/react-query'
 
 import { authApi } from './api'
 import { useAuthStore } from './store'
+import type {
+  SignUpSendCodeRequest,
+  SignUpVerifyCodeRequest,
+  SignUpRequest,
+} from './types'
 
 export function useLogin() {
   const login = useAuthStore((s) => s.login)
@@ -42,4 +47,22 @@ export function useIsAuthenticated() {
 
 export function useLogout() {
   return useAuthStore((s) => s.logout)
+}
+
+export function useSendSignUpCode() {
+  return useMutation({
+    mutationFn: (body: SignUpSendCodeRequest) => authApi.sendSignUpCode(body),
+  })
+}
+
+export function useVerifySignUpCode() {
+  return useMutation({
+    mutationFn: (body: SignUpVerifyCodeRequest) => authApi.verifySignUpCode(body),
+  })
+}
+
+export function useSignUp() {
+  return useMutation({
+    mutationFn: (body: SignUpRequest) => authApi.signUp(body),
+  })
 }

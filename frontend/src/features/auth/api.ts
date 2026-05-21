@@ -4,11 +4,33 @@ import type { ApiResponse } from '@/shared/api/types'
 import type {
   LoginRequest,
   LoginResponse,
+  SignUpSendCodeRequest,
+  SignUpVerifyCodeRequest,
+  SignUpVerifyCodeResponse,
+  SignUpRequest,
+  SignUpResponse,
   SocialLoginRequest,
   SocialLoginResponse,
 } from './types'
 
 export const authApi = {
+  sendSignUpCode: async (body: SignUpSendCodeRequest): Promise<void> => {
+    await apiClient.post<ApiResponse<void>>('/auth/signup/send-code', body)
+  },
+
+  verifySignUpCode: async (body: SignUpVerifyCodeRequest): Promise<SignUpVerifyCodeResponse> => {
+    const { data } = await apiClient.post<ApiResponse<SignUpVerifyCodeResponse>>(
+      '/auth/signup/verify-code',
+      body,
+    )
+    return data.data
+  },
+
+  signUp: async (body: SignUpRequest): Promise<SignUpResponse> => {
+    const { data } = await apiClient.post<ApiResponse<SignUpResponse>>('/auth/signup', body)
+    return data.data
+  },
+
   login: async (body: LoginRequest) => {
     const { data } = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', body)
     return data.data
