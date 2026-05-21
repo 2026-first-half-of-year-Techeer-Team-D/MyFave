@@ -113,25 +113,25 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatRoomInfoResponse openTempRoom() {
-        chatRoomRepository.findByIsActiveTrue().ifPresent(chatRoom -> {
-            throw new CustomException(ErrorCode.COMMON_INVALID_INPUT);
-        });
+    public void openRoomForEvent(Long saleId) {
+        SaleEvent saleEvent = saleEventRepository.findByIdWithLock(saleId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SALE_EVENT_NOT_FOUND));
 
-        User user = userRepository.findById(influencerUserId)
+        if (chatRoomRepository.findByIsActiveTrue().isPresent()) {
+            log.info("채팅방 자동 개설 스킵: 이미 활성 채팅방 존재 (saleId={})", saleId);
+            return;
+        }
+
+        User influencer = userRepository.findById(influencerUserId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        SaleEvent saleEvent = saleEventRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new CustomException(ErrorCode.COMMON_INVALID_INPUT));
-
         ChatRoom chatRoom = ChatRoom.builder()
-                .user(user)
+                .user(influencer)
                 .saleEvent(saleEvent)
                 .build();
-        
+
         chatRoomRepository.save(chatRoom);
-        
-        return ChatRoomInfoResponse.from(chatRoom, 0);
+        log.info("채팅방 자동 개설: saleId={}", saleId);
     }
 
     @Transactional

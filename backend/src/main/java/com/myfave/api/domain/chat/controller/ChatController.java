@@ -52,11 +52,6 @@ public class ChatController {
         return ResponseEntity.ok(ApiResponse.ok(chatService.getChatPreview(size)));
     }
 
-    @PostMapping("/opentemp")
-    public ResponseEntity<ApiResponse<ChatRoomInfoResponse>> openTempRoom() {
-        return ResponseEntity.ok(ApiResponse.ok(chatService.openTempRoom()));
-    }
-
     @PatchMapping("/close")
     public ResponseEntity<ApiResponse<ChatRoomCloseResponse>> closeChatRoom(
             Authentication authentication) {

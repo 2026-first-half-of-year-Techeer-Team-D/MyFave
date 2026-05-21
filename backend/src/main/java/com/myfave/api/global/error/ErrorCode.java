@@ -70,6 +70,7 @@ public enum ErrorCode {
     // 채팅
     CHAT_ROOM_NOT_FOUND(404, "현재 활성화된 채팅방 없음"),
     CHAT_ROOM_ALREADY_CLOSED(409, "이미 종료된 채팅방"),
+    CHAT_ROOM_ALREADY_EXISTS(409, "이미 활성화된 채팅방이 존재함"),
     CHAT_RATE_LIMITED(429, "도배 방지 제한"),
     CHAT_INVALID_MESSAGE(400, "메시지 형식 오류"),
     CHAT_MESSAGE_TOO_LONG(400, "메시지 길이 초과"),

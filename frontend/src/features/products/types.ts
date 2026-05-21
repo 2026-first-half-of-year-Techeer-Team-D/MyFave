@@ -10,8 +10,14 @@ export interface Product {
   title: string
   image: string
   price: string
+  category?: ProductCategory
   isSoldOut?: boolean
   category: ProductCategory
+}
+
+export interface ProductFeature {
+  title: string
+  description: string
 }
 
 export interface ProductDetail {
