@@ -1,11 +1,9 @@
 package com.myfave.api.domain.chat.service;
 
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -39,13 +37,6 @@ public class RedisSubscriber implements MessageListener {
                     .description("Redis pub/sub → WebSocket broadcast 소요 시간")
                     .tag("room", String.valueOf(roomId))
                     .register(meterRegistry));
-
-            // Counter 증가: 메시지 발행 횟수
-            Counter.builder("myfave.chat.messages.broadcast")
-                    .description("WebSocket으로 broadcast된 채팅 메시지 누적 수")
-                    .tag("room", String.valueOf(roomId))
-                    .register(meterRegistry)
-                    .increment();
 
             log.debug("브로드캐스트: roomId={}", roomId);
         } catch (NumberFormatException e) {

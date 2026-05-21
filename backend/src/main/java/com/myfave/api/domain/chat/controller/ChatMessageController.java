@@ -9,6 +9,8 @@ import com.myfave.api.domain.chat.service.ChatMessageService;
 import com.myfave.api.domain.chat.service.RedisPublisher;
 import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.service.UserService;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,7 @@ public class ChatMessageController {
     private final RedisPublisher redisPublisher;
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;
+    private final MeterRegistry meterRegistry;
 
     @MessageMapping("/chat/{roomId}")
     public void sendMessage(@DestinationVariable Long roomId,
@@ -73,6 +76,13 @@ public class ChatMessageController {
         String json = objectMapper.writeValueAsString(response);
         chatMessageService.save(roomId, json);
         redisPublisher.publish(roomId, json);
+
+        // 메시지 발행 카운트 (k6 수신과 대조)
+        Counter.builder("myfave.chat.messages.published")
+                .description("클라이언트가 발행한 채팅 메시지 누적 수")
+                .tag("room", String.valueOf(roomId))
+                .register(meterRegistry)
+                .increment();
     }
 
     @MessageExceptionHandler

@@ -1,5 +1,7 @@
 package com.myfave.api.domain.chat.service;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,6 +24,7 @@ public class ChatMessageService {
     private static final Duration RATE_LIMIT_TTL = Duration.ofSeconds(3);
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final MeterRegistry meterRegistry;
 
     public void save(Long roomId, String json) {
         String key = CHAT_HISTORY_KEY + roomId;
@@ -47,6 +50,14 @@ public class ChatMessageService {
         if (count != null && count == 1) {
             redisTemplate.expire(key, RATE_LIMIT_TTL);
         }
-        return count != null && count > 1;
+        boolean limited = count != null && count > 1;
+        if (limited) {
+            // rate limit으로 거절된 메시지 카운트 (throttle 작동 검증)
+            Counter.builder("myfave.chat.ratelimit.rejected")
+                    .description("rate limit으로 거절된 채팅 메시지 누적 수")
+                    .register(meterRegistry)
+                    .increment();
+        }
+        return limited;
     }
 }
