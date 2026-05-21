@@ -26,6 +26,7 @@ public enum ErrorCode {
     AUTH_SOCIAL_PROVIDER_ERROR(502, "소셜 제공자 서버 오류"),
     AUTH_SOCIAL_EMAIL_REQUIRED(400, "카카오 계정에 이메일 제공 동의가 필요합니다"),
     AUTH_SOCIAL_ACCOUNT_CONFLICT(409, "이미 다른 카카오 계정과 연결된 이메일입니다"),
+    AUTH_EMAIL_NOT_VERIFIED(401, "이메일 인증이 완료되지 않았습니다"),
 
     // 사용자
     USER_NOT_FOUND(404, "회원 정보 없음"),
