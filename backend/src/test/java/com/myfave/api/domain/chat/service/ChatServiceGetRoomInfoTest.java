@@ -66,13 +66,14 @@ class ChatServiceGetRoomInfoTest {
                         .isEqualTo(ErrorCode.CHAT_ROOM_NOT_FOUND));
     }
 
-    private ChatRoom buildActiveChatRoom(Long id) {
+    private ChatRoom buildActiveChatRoom(Long id, ZonedDateTime createdAt) {
         try {
             var constructor = ChatRoom.class.getDeclaredConstructors()[0];
             constructor.setAccessible(true);
             ChatRoom room = (ChatRoom) constructor.newInstance();
             setField(room, "chatRoomId", id);
             setField(room, "isActive", true);
+            setField(room, "createdAt", createdAt);
             return room;
         } catch (Exception e) {
             throw new RuntimeException(e);

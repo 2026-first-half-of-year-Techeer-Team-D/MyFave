@@ -8,6 +8,8 @@ import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.PasswordResetSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpRequest;
+import com.myfave.api.domain.auth.dto.request.SignUpSendCodeRequest;
+import com.myfave.api.domain.auth.dto.request.SignUpVerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ResetPasswordRequest;
 import com.myfave.api.domain.auth.dto.request.SocialLoginRequest;
 import com.myfave.api.domain.auth.dto.request.VerifyCodeRequest;
@@ -15,6 +17,7 @@ import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.ReissueResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
+import com.myfave.api.domain.auth.dto.response.SignUpVerifyCodeResponse;
 import com.myfave.api.domain.auth.dto.response.SocialLoginResponse;
 import com.myfave.api.domain.auth.dto.response.VerifyCodeResponse;
 import com.myfave.api.domain.user.entity.SocialProvider;
@@ -57,10 +60,68 @@ public class AuthService {
     private static final long SEND_LIMIT_TTL_MINUTES = 5L;
     private static final long CODE_TTL_MINUTES = 5L;
     private static final long RESET_TOKEN_TTL_MINUTES = 10L;
+    private static final long SIGNUP_VERIFIED_TOKEN_TTL_MINUTES = 10L;
     private static final SecureRandom RANDOM = new SecureRandom();
+
+    public void sendSignUpCode(SignUpSendCodeRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new CustomException(ErrorCode.USER_DUPLICATE_EMAIL);
+        }
+
+        String countKey = "signup-code-count:" + request.getEmail();
+        Long sendCount = redisTemplate.opsForValue().increment(countKey);
+        if (sendCount == 1) {
+            redisTemplate.expire(countKey, SEND_LIMIT_TTL_MINUTES, TimeUnit.MINUTES);
+        }
+        if (sendCount > MAX_SEND_COUNT) {
+            throw new CustomException(ErrorCode.AUTH_TOO_MANY_REQUESTS);
+        }
+
+        String code = String.format("%06d", RANDOM.nextInt(1_000_000));
+        redisTemplate.opsForValue().set(
+                "signup-code:" + request.getEmail(),
+                code,
+                CODE_TTL_MINUTES,
+                TimeUnit.MINUTES
+        );
+
+        mailService.sendSignUpCode(request.getEmail(), code);
+    }
+
+    public SignUpVerifyCodeResponse verifySignUpCode(SignUpVerifyCodeRequest request) {
+        String codeKey = "signup-code:" + request.getEmail();
+        String storedCode = (String) redisTemplate.opsForValue().get(codeKey);
+
+        if (storedCode == null) {
+            throw new CustomException(ErrorCode.AUTH_EXPIRED_VERIFICATION_CODE);
+        }
+        if (!storedCode.equals(request.getVerificationCode())) {
+            throw new CustomException(ErrorCode.AUTH_INVALID_VERIFICATION_CODE);
+        }
+
+        redisTemplate.delete(codeKey);
+
+        String verifiedToken = UUID.randomUUID().toString();
+        redisTemplate.opsForValue().set(
+                "signup-verified-token:" + verifiedToken,
+                request.getEmail(),
+                SIGNUP_VERIFIED_TOKEN_TTL_MINUTES,
+                TimeUnit.MINUTES
+        );
+
+        return SignUpVerifyCodeResponse.of(verifiedToken);
+    }
 
     @Transactional
     public SignUpResponse signUp(SignUpRequest request) {
+        String tokenKey = "signup-verified-token:" + request.getVerifiedToken();
+        String storedEmail = (String) redisTemplate.opsForValue().get(tokenKey);
+
+        if (storedEmail == null || !storedEmail.equals(request.getEmail())) {
+            throw new CustomException(ErrorCode.AUTH_EMAIL_NOT_VERIFIED);
+        }
+        redisTemplate.delete(tokenKey);
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new CustomException(ErrorCode.USER_DUPLICATE_EMAIL);
         }

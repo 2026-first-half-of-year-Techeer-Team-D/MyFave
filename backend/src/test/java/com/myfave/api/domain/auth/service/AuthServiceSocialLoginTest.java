@@ -91,7 +91,7 @@ class AuthServiceSocialLoginTest {
         assertThat(response.isNewUser()).isTrue();
         assertThat(response.getAccessToken()).isEqualTo("access-token");
         assertThat(response.getUserId()).isEqualTo(10L);
-        assertThat(response.getEmail()).isEqualTo("user@kakao.com");
+        assertThat(response.getNickname()).isEqualTo("패션왕");
         verify(userRepository).save(any(User.class));
     }
 
@@ -116,6 +116,6 @@ class AuthServiceSocialLoginTest {
 
         assertThat(response.isNewUser()).isFalse();
         assertThat(response.getAccessToken()).isEqualTo("access-token");
-        assertThat(response.getEmail()).isEqualTo("user@kakao.com");
+        assertThat(response.getNickname()).isEqualTo("패션왕");
     }
 }
