@@ -17,3 +17,8 @@ spring:
 springdoc:
   swagger-ui:
     enabled: false
+
+# CORS 설정 (prod profile override)
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:https://www.myfave.shop,https://myfave.shop}
