@@ -28,3 +28,30 @@ export interface SocialLoginResponse {
   email: string
   isNewUser: boolean
 }
+
+export interface SignUpSendCodeRequest {
+  email: string
+}
+
+export interface SignUpVerifyCodeRequest {
+  email: string
+  verificationCode: string
+}
+
+export interface SignUpVerifyCodeResponse {
+  verifiedToken: string
+}
+
+export interface SignUpRequest {
+  email: string
+  password: string
+  name: string
+  nickname: string
+  phone: string
+  verifiedToken: string
+}
+
+export interface SignUpResponse {
+  userId: number
+  nickname: string
+}
