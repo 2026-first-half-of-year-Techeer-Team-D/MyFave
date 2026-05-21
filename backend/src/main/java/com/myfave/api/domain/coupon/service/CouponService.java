@@ -89,7 +89,7 @@ public class CouponService {
     // 8-3. 쿠폰 사용 (Payment/Order 도메인 트랜잭션 내에서 호출)
     @Transactional
     public void useCoupon(Long couponId, Long userId) {
-        Coupon coupon = couponRepository.findById(couponId)
+        Coupon coupon = couponRepository.findByIdForUpdate(couponId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COUPON_NOT_FOUND));
 
         if (!coupon.getUser().getUserId().equals(userId)) {
