@@ -32,4 +32,10 @@ public class SessionRegistry {
         Set<String> sessions = roomSessions.get(roomId);
         return sessions == null ? 0 : sessions.size();
     }
+
+    public int totalActiveSessions() {
+        return roomSessions.values().stream()
+                .mapToInt(Set::size)
+                .sum();
+    }
 }
