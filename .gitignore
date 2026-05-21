@@ -31,4 +31,4 @@ meetings/
 backend/run.bat
 .vercel
 .env*.local
-AGENTS.md
+AGENTS.md.DS_Store
