@@ -56,6 +56,8 @@ dependencies {
 
     // Swagger (SpringDoc)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0'
+    // SpringDoc 2.8.0이 KotlinDeprecatedPropertyCustomizer에서 kotlin.reflect.full.KClasses를 호출 → kotlin-reflect 의존성 필수
+    runtimeOnly 'org.jetbrains.kotlin:kotlin-reflect'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
