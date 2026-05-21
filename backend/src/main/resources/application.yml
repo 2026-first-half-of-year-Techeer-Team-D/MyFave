@@ -60,8 +60,6 @@ management:
     mail:
       enabled: false
 
-    prometheus:
-      enabled: true
   metrics:
     tags:
       application: ${spring.application.name:myfave-api}
