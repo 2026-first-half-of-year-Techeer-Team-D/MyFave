@@ -4,7 +4,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate   # 테이블은 DDL SQL로 직접 생성. JPA는 검증만 수행
+      ddl-auto: validate # 테이블은 DDL SQL로 직접 생성. JPA는 검증만 수행
     show-sql: false
     properties:
       hibernate:
@@ -14,7 +14,7 @@ spring:
 server:
   port: 8080
   servlet:
-    context-path: /api/v1   # 모든 API: /api/v1/users, /api/v1/products 등
+    context-path: /api/v1 # 모든 API: /api/v1/users, /api/v1/products 등
 
 # 인플루언서 설정 (서비스 운영 인플루언서 1명 고정)
 influencer:
@@ -23,8 +23,8 @@ influencer:
 # JWT 설정
 jwt:
   secret: ${JWT_SECRET:local-dev-jwt-secret-key-must-be-at-least-256-bits-long-here}
-  access-token-expiry: 1800000      # 30분 (ms)
-  refresh-token-expiry: 1209600000  # 14일 (ms)
+  access-token-expiry: 1800000 # 30분 (ms)
+  refresh-token-expiry: 1209600000 # 14일 (ms)
 
 # 포트원 결제 설정
 portone:
@@ -44,12 +44,37 @@ tracker:
   api-url: https://apis.tracker.delivery/graphql
   timeout-seconds: 15
 
-# Observability
+# Observability - Actuator + Micrometer (모니터링)
 management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health, info, prometheus, metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    mail:
+      enabled: false
+
   metrics:
     tags:
-      application: myfave-api
+      application: ${spring.application.name:myfave-api}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms, 1s, 2s
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${TEMPO_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
