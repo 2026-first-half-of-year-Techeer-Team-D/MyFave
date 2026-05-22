@@ -24,6 +24,8 @@ import com.myfave.api.domain.payment.provider.PaymentProvider;
 import com.myfave.api.domain.payment.provider.PaymentProvider.PortOnePaymentInfo;
 import com.myfave.api.domain.payment.repository.PaymentAttemptRepository;
 import com.myfave.api.domain.payment.repository.PaymentRepository;
+import com.myfave.api.domain.product.entity.Product;
+import com.myfave.api.domain.product.repository.ProductRepository;
 import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
@@ -62,6 +64,7 @@ public class PaymentService {
     private final CouponRepository couponRepository;
     private final CouponService couponService;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
     private final PaymentProvider paymentProvider;
 
     @Lazy
@@ -227,6 +230,20 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
         int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(paymentId) + 1;
+
+        // 결제 직전 재고 재검증 (이중 안전망) — 비관적 락 미사용 (k6 부하 테스트 후 도입 검토).
+        // 이미 Order 생성 시점에 차감됐기 때문에 정상 흐름에서는 통과해야 함.
+        // 통과 실패 = 데이터 부정합 → PAYMENT_STOCK_RECHECK_FAILED로 명시적 노출.
+        List<OrderItem> orderItems = orderItemRepository.findByOrder(payment.getOrder());
+        for (OrderItem item : orderItems) {
+            Product product = productRepository.findById(item.getProduct().getProductId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+            try {
+                product.validateStock(1);
+            } catch (CustomException e) {
+                throw new CustomException(ErrorCode.PAYMENT_STOCK_RECHECK_FAILED);
+            }
+        }
 
         payment.authorize(pgInfo.pgTransactionId());
         payment.complete(pgInfo.receiptUrl(), pgInfo.paidAt());
