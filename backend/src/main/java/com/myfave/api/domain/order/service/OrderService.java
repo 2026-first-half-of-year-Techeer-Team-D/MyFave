@@ -274,4 +274,49 @@ public class OrderService {
         // OrderConfirmResponse.from(order): orderId, orderStatus(PURCHASE_CONFIRMED) 반환
         return OrderConfirmResponse.from(order);
     }
+
+    /**
+     * 주문 취소 (PENDING 상태에 한해 허용) — 재고 복구 동반
+     * - PAID 이후 단계의 취소·환불은 PaymentService.cancelPayment 경로를 사용한다.
+     * - 동시성 보호(비관적 락)는 이번 작업 범위에서 제외. k6 부하 테스트 결과에 따라 후속 이슈에서 도입 검토.
+     */
+    @Transactional
+    public void cancelOrder(Long userId, Long orderId) {
+
+        // ── 1. userId null 체크 ──────────────────────────────────────────
+        if (userId == null) {
+            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
+        }
+
+        // ── 2. orderId → Order 조회 ──────────────────────────────────────
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        // ── 3. 본인 주문 확인 ────────────────────────────────────────────
+        if (!order.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        // ── 4. 취소 가능 상태 확인 ───────────────────────────────────────
+        OrderStatus status = order.getOrderStatus();
+        if (status == OrderStatus.CANCELLED || status == OrderStatus.REFUNDED) {
+            throw new CustomException(ErrorCode.ORDER_ALREADY_CANCELLED);
+        }
+        if (status != OrderStatus.PENDING) {
+            // PAID 이후 단계는 PaymentService.cancelPayment 경로로 유도
+            throw new CustomException(ErrorCode.ORDER_CANCEL_FORBIDDEN);
+        }
+
+        // ── 5. OrderItem 조회 후 재고 복구 ───────────────────────────────
+        // 수량은 1 고정 정책 유지 (OrderItem.quantity 필드 미도입). 비관적 락 미사용.
+        List<OrderItem> items = orderItemRepository.findByOrder(order);
+        for (OrderItem item : items) {
+            Product product = productRepository.findById(item.getProduct().getProductId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+            product.increaseStock(1);
+        }
+
+        // ── 6. 주문 상태 CANCELLED 전환 ─────────────────────────────────
+        order.cancel();
+    }
 }
