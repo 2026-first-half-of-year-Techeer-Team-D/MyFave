@@ -466,7 +466,9 @@ public class PaymentService {
                     product.increaseStock(1);
                 } catch (CustomException e) {
                     // 데이터 불일치 위험 — 즉시 알람 + 보상 영속화 트리거
-                    meterRegistry.counter("myfave.payment.stock.restore.failed").increment();
+                    // reason 라벨: deduct 실패와 동일 패턴(ErrorCode.name())으로 원인 분류
+                    meterRegistry.counter("myfave.payment.stock.restore.failed",
+                            "reason", e.getErrorCode().name()).increment();
                     throw new CustomException(ErrorCode.PAYMENT_STOCK_RESTORE_FAILED);
                 }
             }
