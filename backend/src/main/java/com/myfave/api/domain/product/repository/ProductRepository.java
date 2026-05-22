@@ -39,4 +39,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Product p where p.productId = :productId and p.deletedAt is null")
     Optional<Product> findByIdForUpdate(@Param("productId") Long productId);
+
+    // myfave.stock.snapshot: 부하테스트 시드 상품(reset.sql 기준 productId 1~10) 재고 합계 Gauge용
+    @Query("select coalesce(sum(p.stockQuantity), 0) from Product p where p.productId in :productIds")
+    long sumStockQuantityByProductIds(@Param("productIds") List<Long> productIds);
 }

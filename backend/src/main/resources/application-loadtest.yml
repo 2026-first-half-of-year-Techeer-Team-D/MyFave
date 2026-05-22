@@ -14,6 +14,8 @@ spring:
       hibernate:
         format_sql: false
         default_batch_fetch_size: 100
+        # 500ms 초과 쿼리만 SQL_SLOW 로거로 출력 — slow query 분포 + Loki LogQL 검색용
+        session.events.log.LOG_QUERIES_SLOWER_THAN_MS: 500
 
   data:
     redis:
@@ -91,3 +93,8 @@ management:
   metrics:
     tags:
       application: myfave-api-loadtest
+
+# Hibernate slow query 로깅 — Round별 비교 + slow query 분포 측정
+logging:
+  level:
+    org.hibernate.SQL_SLOW: INFO

@@ -25,7 +25,9 @@ import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +43,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true) // 기본적으로 읽기 전용. 변경이 필요한 메서드에 별도 @Transactional 추가
@@ -53,10 +56,15 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final ShippingAddressRepository shippingAddressRepository;
     private final DeliveryRepository deliveryRepository;
+    private final MeterRegistry meterRegistry;
 
     // 주문 생성 (5-1)
     @Transactional
     public OrderResponse createOrder(Long userId, OrderCreateRequest request) {
+
+        String type = request.getOrderType() != null ? request.getOrderType().name() : "UNKNOWN";
+        String outcome = "failure";
+        try {
 
         // ── 1. 사용자 조회 ──────────────────────────────────────────────
         if (userId == null) {
@@ -149,7 +157,15 @@ public class OrderService {
 
         // ── 7. 응답 반환 ───────────────────────────────────────────────
         // OrderResponse.from(order): order 엔티티에서 필요한 필드만 뽑아 DTO로 변환
+        int itemCount = orderItemRepository.findByOrder(order).size();
+        log.info("[Order] 주문 생성: orderId={}, userId={}, type={}, itemCount={}",
+                order.getOrderId(), userId, type, itemCount);
+        outcome = "success";
         return OrderResponse.from(order);
+        } finally {
+            meterRegistry.counter("myfave.order.created",
+                    "type", type, "outcome", outcome).increment();
+        }
     }
 
     /**
@@ -269,6 +285,9 @@ public class OrderService {
         // order.confirm(): orderStatus를 PURCHASE_CONFIRMED로 변경
         // @Transactional이므로 메서드 종료 시 JPA가 변경 감지 → UPDATE 쿼리 자동 실행
         order.confirm();
+        meterRegistry.counter("myfave.order.status.transition",
+                "from", "DELIVERY_COMPLETED", "to", "PURCHASE_CONFIRMED").increment();
+        log.info("[Order] 구매확정: orderId={}, userId={}", orderId, userId);
 
         // ── 6. 응답 반환 ─────────────────────────────────────────────────
         // OrderConfirmResponse.from(order): orderId, orderStatus(PURCHASE_CONFIRMED) 반환
@@ -311,5 +330,8 @@ public class OrderService {
         // ── 5. 주문 상태 CANCELLED 전환 ─────────────────────────────────
         // 재고 복구 로직 없음 — Order 생성 시점에 차감하지 않는 정책
         order.cancel();
+        meterRegistry.counter("myfave.order.status.transition",
+                "from", status.name(), "to", "CANCELLED").increment();
+        log.info("[Order] 주문 취소: orderId={}, userId={}, fromStatus={}", orderId, userId, status);
     }
 }

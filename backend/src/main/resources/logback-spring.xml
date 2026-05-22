@@ -4,7 +4,7 @@
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] traceId=%X{trace_id:-no-trace} %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] traceId=%X{trace_id:-no-trace} loadtest=%X{loadtest_scenario:-}:%X{loadtest_round:-}:%X{loadtest_run_id:-} %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
