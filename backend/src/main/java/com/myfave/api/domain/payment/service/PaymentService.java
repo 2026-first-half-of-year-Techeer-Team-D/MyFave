@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -273,9 +274,29 @@ public class PaymentService {
                 .toList();
 
         for (Long pid : sortedProductIds) {
-            Product product = productRepository.findByIdForUpdate(pid)
-                    .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
-            product.decreaseStock(1); // stockQuantity-- + isSoldout 동기화
+            // 락 획득 대기시간 측정 — PESSIMISTIC_WRITE 경합 강도 시나리오 D 검증
+            Timer.Sample lockSample = Timer.start(meterRegistry);
+            Product product;
+            try {
+                product = productRepository.findByIdForUpdate(pid)
+                        .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+            } catch (PessimisticLockingFailureException e) {
+                // 데드락/락 타임아웃 (Hibernate가 Spring DataAccessException으로 변환).
+                // PostgreSQL deadlock_timeout(기본 1s) 초과나 40P01 발생 시 진입.
+                meterRegistry.counter("myfave.stock.deadlock").increment();
+                meterRegistry.counter("myfave.stock.deduct.attempt", "outcome", "deadlock").increment();
+                throw e;
+            } finally {
+                lockSample.stop(Timer.builder("myfave.stock.lock.wait.duration").register(meterRegistry));
+            }
+            try {
+                product.decreaseStock(1); // stockQuantity-- + isSoldout 동기화
+                meterRegistry.counter("myfave.stock.deduct.attempt", "outcome", "success").increment();
+            } catch (CustomException e) {
+                String outcome = ErrorCode.PRODUCT_SOLD_OUT.equals(e.getErrorCode()) ? "sold_out" : "insufficient";
+                meterRegistry.counter("myfave.stock.deduct.attempt", "outcome", outcome).increment();
+                throw e;
+            }
         }
     }
 
