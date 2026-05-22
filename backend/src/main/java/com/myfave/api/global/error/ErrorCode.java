@@ -38,6 +38,9 @@ public enum ErrorCode {
     // 상품
     PRODUCT_NOT_FOUND(404, "존재하지 않는 상품"),
     PRODUCT_SOLD_OUT(409, "품절된 상품"),
+    PRODUCT_STOCK_INSUFFICIENT(409, "재고 수량 부족"),
+    PRODUCT_STOCK_INVALID(400, "유효하지 않은 재고 수량"),
+    PRODUCT_STOCK_RESTORE_OVERFLOW(409, "재고 복구 한계 초과"),
 
     // 장바구니
     CART_ALREADY_EXISTS(409, "이미 장바구니에 있는 상품"),
@@ -48,6 +51,8 @@ public enum ErrorCode {
     ORDER_INVALID_STATUS(409, "주문 상태 변경 불가"),
     ORDER_INVALID_ORDER_TYPE(400, "유효하지 않은 주문 유형"),
     ORDER_PAYMENT_FAILED(502, "외부 결제 서비스 오류"),
+    ORDER_ALREADY_CANCELLED(409, "이미 취소된 주문"),
+    ORDER_CANCEL_FORBIDDEN(409, "취소 불가능한 주문 상태"),
 
     // 배송지
     SHIPPING_ADDRESS_NOT_FOUND(404, "존재하지 않는 배송지"),
@@ -96,6 +101,8 @@ public enum ErrorCode {
     PAYMENT_COUPON_TYPE_MISMATCH(400, "쿠폰 타입이 적용 위치와 불일치"),
     PAYMENT_INVALID_STATUS(409, "현재 결제 상태에서 허용되지 않는 작업"),
     PAYMENT_NEGATIVE_AMOUNT(400, "결제 금액은 0원 이상이어야 합니다"),
+    PAYMENT_STOCK_RECHECK_FAILED(409, "결제 직전 재고 재검증 실패"),
+    PAYMENT_STOCK_RESTORE_FAILED(500, "결제 취소 시 재고 복구 실패"),
     ;
 
     private final int httpStatus;
