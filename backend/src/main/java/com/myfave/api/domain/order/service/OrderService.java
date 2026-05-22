@@ -94,20 +94,20 @@ public class OrderService {
                 .build();
         orderRepository.save(order); // INSERT INTO orders ... 실행
 
-        // ── 6. orderType에 따라 재고 차감 + OrderItem 저장 ────────────
-        // 재고 차감은 PESSIMISTIC_WRITE 락으로 처리 → 동시 주문 시 over-selling 방지
-        // 락 획득 순서를 product_id ASC로 강제해 데드락 회피
+        // ── 6. orderType에 따라 재고 검증 + OrderItem 저장 ────────────
+        // 차감 시점 정책: 결제 완료(completeConfirm)로 이동. Order 생성 단계는 validateStock만 수행.
+        // 자세한 보상 흐름은 PaymentService.completeConfirm 참고.
         if (request.getOrderType() == OrderType.DIRECT) {
             // ── DIRECT: 단일 상품 바로 구매 ──────────────────────────
             if (request.getProductId() == null) {
                 throw new CustomException(ErrorCode.ORDER_INVALID_ORDER_TYPE);
             }
 
-            Product product = productRepository.findByIdForUpdate(request.getProductId())
+            Product product = productRepository.findById(request.getProductId())
                     .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
-            // 재고 차감 (실패 시 PRODUCT_SOLD_OUT) — isSoldout 동기화 포함
-            product.decreaseStock(1);
+            // 재고 검증만 수행 (실제 차감은 결제 승인 시점). 실패 시 PRODUCT_SOLD_OUT/STOCK_INSUFFICIENT.
+            product.validateStock(1);
 
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
@@ -123,20 +123,20 @@ public class OrderService {
                 throw new CustomException(ErrorCode.ORDER_INVALID_ORDER_TYPE);
             }
 
-            // 데드락 회피: 락 획득 순서를 product_id ASC로 정렬
+            // 정렬은 결정적인 처리 순서(로그 가독성·테스트 안정성)를 위해 유지. 락 미사용.
             List<Long> sortedProductIds = request.getProductIds().stream()
                     .sorted(Comparator.naturalOrder())
                     .toList();
 
-            List<Product> lockedProducts = new ArrayList<>();
+            List<Product> validatedProducts = new ArrayList<>();
             for (Long pid : sortedProductIds) {
-                Product product = productRepository.findByIdForUpdate(pid)
+                Product product = productRepository.findById(pid)
                         .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
-                product.decreaseStock(1);
-                lockedProducts.add(product);
+                product.validateStock(1);
+                validatedProducts.add(product);
             }
 
-            for (Product product : lockedProducts) {
+            for (Product product : validatedProducts) {
                 OrderItem orderItem = OrderItem.builder()
                         .order(order)
                         .product(product)
@@ -276,9 +276,10 @@ public class OrderService {
     }
 
     /**
-     * 주문 취소 (PENDING 상태에 한해 허용) — 재고 복구 동반
+     * 주문 취소 (PENDING 상태에 한해 허용) — 단순 상태 전환
+     * - 차감 시점 정책이 "결제 완료(completeConfirm) 시점"으로 이동했기 때문에
+     *   PENDING 주문은 재고를 차지하지 않는다 → 재고 복구 로직 불필요.
      * - PAID 이후 단계의 취소·환불은 PaymentService.cancelPayment 경로를 사용한다.
-     * - 동시성 보호(비관적 락)는 이번 작업 범위에서 제외. k6 부하 테스트 결과에 따라 후속 이슈에서 도입 검토.
      */
     @Transactional
     public void cancelOrder(Long userId, Long orderId) {
@@ -307,16 +308,8 @@ public class OrderService {
             throw new CustomException(ErrorCode.ORDER_CANCEL_FORBIDDEN);
         }
 
-        // ── 5. OrderItem 조회 후 재고 복구 ───────────────────────────────
-        // 수량은 1 고정 정책 유지 (OrderItem.quantity 필드 미도입). 비관적 락 미사용.
-        List<OrderItem> items = orderItemRepository.findByOrder(order);
-        for (OrderItem item : items) {
-            Product product = productRepository.findById(item.getProduct().getProductId())
-                    .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
-            product.increaseStock(1);
-        }
-
-        // ── 6. 주문 상태 CANCELLED 전환 ─────────────────────────────────
+        // ── 5. 주문 상태 CANCELLED 전환 ─────────────────────────────────
+        // 재고 복구 로직 없음 — Order 생성 시점에 차감하지 않는 정책
         order.cancel();
     }
 }
