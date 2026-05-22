@@ -95,12 +95,50 @@ public class Product extends BaseEntity {
     // 재고 차감 — 부하 테스트 시나리오 D(매진 경쟁)의 핵심 동시성 진입점.
     // PESSIMISTIC_WRITE 락으로 얻어온 엔티티에서만 호출되어야 함(ProductRepository.findByIdForUpdate).
     public void decreaseStock(int quantity) {
-        if (this.stockQuantity == null || this.stockQuantity < quantity) {
+        if (quantity <= 0) {
+            throw new CustomException(ErrorCode.PRODUCT_STOCK_INVALID);
+        }
+        if (this.stockQuantity == null || this.stockQuantity == 0) {
             throw new CustomException(ErrorCode.PRODUCT_SOLD_OUT);
+        }
+        if (this.stockQuantity < quantity) {
+            throw new CustomException(ErrorCode.PRODUCT_STOCK_INSUFFICIENT);
         }
         this.stockQuantity -= quantity;
         if (this.stockQuantity == 0) {
             this.isSoldout = true;
+        }
+    }
+
+    // 재고 복구 — 주문 취소·전액 환불 등 보상 트랜잭션에서 호출.
+    // 동시성 보호(비관적 락)는 이번 작업 범위에서 제외 — k6 부하 테스트 결과에 따라 별도 이슈에서 도입 검토.
+    public void increaseStock(int quantity) {
+        if (quantity <= 0) {
+            throw new CustomException(ErrorCode.PRODUCT_STOCK_INVALID);
+        }
+        if (this.stockQuantity == null) {
+            this.stockQuantity = 0;
+        }
+        // 오버플로우 방어 (Integer.MAX_VALUE 근접 시)
+        if ((long) this.stockQuantity + quantity > Integer.MAX_VALUE) {
+            throw new CustomException(ErrorCode.PRODUCT_STOCK_RESTORE_OVERFLOW);
+        }
+        this.stockQuantity += quantity;
+        if (this.stockQuantity > 0 && Boolean.TRUE.equals(this.isSoldout)) {
+            this.isSoldout = false; // 재고 복구 시 품절 플래그 동기화
+        }
+    }
+
+    // 재고 검증 전용 — 상태 변경 없이 결제 직전 재검증 등 read-only 흐름에서 사용.
+    public void validateStock(int quantity) {
+        if (quantity <= 0) {
+            throw new CustomException(ErrorCode.PRODUCT_STOCK_INVALID);
+        }
+        if (this.stockQuantity == null || this.stockQuantity == 0) {
+            throw new CustomException(ErrorCode.PRODUCT_SOLD_OUT);
+        }
+        if (this.stockQuantity < quantity) {
+            throw new CustomException(ErrorCode.PRODUCT_STOCK_INSUFFICIENT);
         }
     }
 
