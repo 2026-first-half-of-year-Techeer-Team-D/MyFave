@@ -101,7 +101,6 @@ public enum ErrorCode {
     PAYMENT_COUPON_TYPE_MISMATCH(400, "쿠폰 타입이 적용 위치와 불일치"),
     PAYMENT_INVALID_STATUS(409, "현재 결제 상태에서 허용되지 않는 작업"),
     PAYMENT_NEGATIVE_AMOUNT(400, "결제 금액은 0원 이상이어야 합니다"),
-    PAYMENT_STOCK_RECHECK_FAILED(409, "결제 직전 재고 재검증 실패"),
     PAYMENT_STOCK_RESTORE_FAILED(500, "결제 취소 시 재고 복구 실패"),
     ;
 
