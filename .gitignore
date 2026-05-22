@@ -16,6 +16,8 @@ backend/src/main/java/com/myfave/api/domain/payment/*CONTEXT.md
 backend/src/main/java/com/myfave/api/domain/payment/**/*CONTEXT.md
 backend/src/main/java/com/myfave/api/domain/payment/*FLOW.md
 backend/src/main/java/com/myfave/api/domain/payment/**/*FLOW.md
+backend/load-test/*CONTEXT.md
+backend/load-test/**/*CONTEXT.md
 
 # IDE 설정
 .idea/
