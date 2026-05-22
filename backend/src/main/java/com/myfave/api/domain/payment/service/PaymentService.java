@@ -129,10 +129,15 @@ public class PaymentService {
 
 
         // 3. 쿠폰 적용 및 최종 결제 금액 산정
-        // 재고 검증은 createOrder 시점에 PESSIMISTIC_WRITE + decreaseStock 으로 이미 완료되었으므로
-        // preparePayment 단계에서 추가 validateStock 호출하지 않음
-        // (자기 차감분 때문에 stockQuantity=0 상태에서 잘못 SOLD_OUT을 던지는 문제 발생 — CodeRabbit 지적).
         List<OrderItem> items = orderItemRepository.findByOrder(order);
+
+        // 결제 진입 전 재고 사전 검증 — 차감 X, 검증만 수행.
+        // 차감 시점이 completeConfirm으로 이동했으므로 자기 차감분으로 인한
+        // false-positive(SOLD_OUT 오인) 발생할 여지 없음.
+        for (OrderItem item : items) {
+            item.getProduct().validateStock(1);
+        }
+
         int totalProductPrice = items.stream().mapToInt(OrderItem::getPrice).sum();
         int deliveryFee = shippingCoupon != null ? 0 : DELIVERY_FEE;
         int discountPrice = discountCoupon != null
