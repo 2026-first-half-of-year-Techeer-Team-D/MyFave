@@ -45,6 +45,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
@@ -205,8 +206,51 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
-        // 4. 최종 성공 반영
+        // 4. 결제 승인 직전 재고 확정 차감 — over-selling 방지 + 보상 트랜잭션
+        try {
+            self.decreaseStockForConfirm(ctx.paymentId());
+        } catch (CustomException e) {
+            // PG는 이미 PAID 처리됨 → 자동 환불 보상 + Payment FAILED + 원본 에러 전파
+            String failReason = "재고 차감 실패: " + e.getErrorCode().name();
+            try {
+                paymentProvider.cancelPayment(
+                        pgInfo.pgTransactionId(),
+                        pgInfo.totalAmount(),
+                        "재고 차감 실패 자동 환불 (" + e.getErrorCode().name() + ")");
+            } catch (Exception ex) {
+                // PG 환불 자체가 실패 — 운영 알람 대상
+                log.error("[Payment] 재고 실패 후 PG 자동 환불 실패: paymentId={}, pgTxId={}, error={}",
+                        ctx.paymentId(), pgInfo.pgTransactionId(), ex.getMessage(), ex);
+            }
+            self.failConfirm(ctx.paymentId(), pgInfo.pgTransactionId(), failReason);
+            log.warn("[Payment] 결제 후 재고 차감 실패: paymentId={}, errorCode={}",
+                    ctx.paymentId(), e.getErrorCode());
+            throw e; // 원본 PRODUCT_SOLD_OUT / PRODUCT_STOCK_INSUFFICIENT 그대로 전파
+        }
+
+        // 5. 최종 성공 반영
         return self.completeConfirm(ctx.paymentId(), pgInfo, userId);
+    }
+
+    // 결제 승인 직전 재고 확정 차감 — over-selling 방지를 위해 PESSIMISTIC_WRITE 락 사용
+    @Transactional
+    public void decreaseStockForConfirm(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        List<OrderItem> orderItems = orderItemRepository.findByOrder(payment.getOrder());
+
+        // 데드락 회피: productId ASC 정렬 후 순차 락 획득
+        List<Long> sortedProductIds = orderItems.stream()
+                .map(item -> item.getProduct().getProductId())
+                .sorted(Comparator.naturalOrder())
+                .toList();
+
+        for (Long pid : sortedProductIds) {
+            Product product = productRepository.findByIdForUpdate(pid)
+                    .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+            product.decreaseStock(1); // stockQuantity-- + isSoldout 동기화
+        }
     }
 
     // DB에서 유저와 결제 상태 확인
