@@ -414,6 +414,31 @@ public class PaymentService {
         return PaymentResponse.from(payment);
     }
 
+    // 전액 취소 시 PG 환불 성공 후 재고 복구 실패에 대비한 보상 영속화 경로.
+    // applyCancelResult 가 PAYMENT_STOCK_RESTORE_FAILED 로 롤백된 직후에만 호출된다.
+    // PG 환불은 비가역이므로 Payment / Order 상태를 CANCELLED 로 확정시키고
+    // PaymentAttempt 에 실패 사유를 남겨 운영이 재고만 수동 복구할 수 있게 한다.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordCancelCompensation(Long paymentId,
+                                         int cancelAmount,
+                                         String pgTransactionId,
+                                         String errorMessage) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        payment.partialCancel(cancelAmount);
+        payment.cancel();
+        payment.getOrder().refund();
+
+        int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(paymentId) + 1;
+        saveAttempt(payment, attemptNo, PaymentStatus.CANCELLED, pgTransactionId,
+                "PG 환불 완료 / 재고 복구 실패 — 운영 수동 복구 필요: " + errorMessage);
+
+        log.error("[Payment] PG 환불 완료 후 재고 복구 실패 — 운영 복구 필요: "
+                        + "paymentId={}, pgTxId={}, cancelAmount={}, error={}",
+                paymentId, pgTransactionId, cancelAmount, errorMessage);
+    }
+
     public record WebhookContext(Long paymentId, PaymentStatus status, int totalPaymentPrice) {}
 
     // 5. 웹훅 처리 (오케스트레이터: 외부 호출은 트랜잭션 밖) ──────────────────────
