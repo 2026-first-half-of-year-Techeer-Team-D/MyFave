@@ -129,15 +129,10 @@ public class PaymentService {
 
 
         // 3. 쿠폰 적용 및 최종 결제 금액 산정
+        // 재고 검증은 createOrder 시점에 PESSIMISTIC_WRITE + decreaseStock 으로 이미 완료되었으므로
+        // preparePayment 단계에서 추가 validateStock 호출하지 않음
+        // (자기 차감분 때문에 stockQuantity=0 상태에서 잘못 SOLD_OUT을 던지는 문제 발생 — CodeRabbit 지적).
         List<OrderItem> items = orderItemRepository.findByOrder(order);
-
-        // 결제 진입 전 재고 사전 검증 — 상태 변경 없이 검증만 수행.
-        // Order 생성 시점과 결제 준비 시점 사이에 다른 경로로 재고가 빠질 가능성에 대한 사전 안내.
-        // 비관적 락 미사용 (k6 부하 테스트 결과에 따라 후속 이슈에서 도입 검토).
-        for (OrderItem item : items) {
-            item.getProduct().validateStock(1);
-        }
-
         int totalProductPrice = items.stream().mapToInt(OrderItem::getPrice).sum();
         int deliveryFee = shippingCoupon != null ? 0 : DELIVERY_FEE;
         int discountPrice = discountCoupon != null
@@ -231,19 +226,10 @@ public class PaymentService {
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
         int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(paymentId) + 1;
 
-        // 결제 직전 재고 재검증 (이중 안전망) — 비관적 락 미사용 (k6 부하 테스트 후 도입 검토).
-        // 이미 Order 생성 시점에 차감됐기 때문에 정상 흐름에서는 통과해야 함.
-        // 통과 실패 = 데이터 부정합 → PAYMENT_STOCK_RECHECK_FAILED로 명시적 노출.
-        List<OrderItem> orderItems = orderItemRepository.findByOrder(payment.getOrder());
-        for (OrderItem item : orderItems) {
-            Product product = productRepository.findById(item.getProduct().getProductId())
-                    .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
-            try {
-                product.validateStock(1);
-            } catch (CustomException e) {
-                throw new CustomException(ErrorCode.PAYMENT_STOCK_RECHECK_FAILED);
-            }
-        }
+        // 결제 직전 재고 재검증은 제거됨 — Order 생성 시 차감 정책 하에서 자기 차감분 때문에
+        // 정상 흐름이 PRODUCT_SOLD_OUT을 던지는 문제가 발견되어 CodeRabbit 권고에 따라 제거.
+        // 동시성/정합성 보호가 필요하면 quantity 기반 예약 모델로 전환하거나
+        // product.isDeleted() 같은 정합성 전용 검증으로 대체할 것.
 
         payment.authorize(pgInfo.pgTransactionId());
         payment.complete(pgInfo.receiptUrl(), pgInfo.paidAt());
