@@ -80,6 +80,9 @@ management:
     distribution:
       percentiles-histogram:
         http.server.requests: true
+        myfave.payment.confirm.duration: true
+        myfave.portone.call.duration: true
+        myfave.stock.lock.wait.duration: true
       slo:
         http.server.requests: 50ms, 100ms, 200ms, 500ms, 1s, 2s
   prometheus:
