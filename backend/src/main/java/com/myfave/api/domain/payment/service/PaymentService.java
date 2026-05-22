@@ -24,6 +24,8 @@ import com.myfave.api.domain.payment.provider.PaymentProvider;
 import com.myfave.api.domain.payment.provider.PaymentProvider.PortOnePaymentInfo;
 import com.myfave.api.domain.payment.repository.PaymentAttemptRepository;
 import com.myfave.api.domain.payment.repository.PaymentRepository;
+import com.myfave.api.domain.product.entity.Product;
+import com.myfave.api.domain.product.repository.ProductRepository;
 import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
@@ -43,6 +45,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
@@ -62,6 +65,7 @@ public class PaymentService {
     private final CouponRepository couponRepository;
     private final CouponService couponService;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
     private final PaymentProvider paymentProvider;
 
     @Lazy
@@ -127,6 +131,14 @@ public class PaymentService {
 
         // 3. 쿠폰 적용 및 최종 결제 금액 산정
         List<OrderItem> items = orderItemRepository.findByOrder(order);
+
+        // 결제 진입 전 재고 사전 검증 — 차감 X, 검증만 수행.
+        // 차감 시점이 completeConfirm으로 이동했으므로 자기 차감분으로 인한
+        // false-positive(SOLD_OUT 오인) 발생할 여지 없음.
+        for (OrderItem item : items) {
+            item.getProduct().validateStock(1);
+        }
+
         int totalProductPrice = items.stream().mapToInt(OrderItem::getPrice).sum();
         int deliveryFee = shippingCoupon != null ? 0 : DELIVERY_FEE;
         int discountPrice = discountCoupon != null
@@ -194,8 +206,51 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
-        // 4. 최종 성공 반영
+        // 4. 결제 승인 직전 재고 확정 차감 — over-selling 방지 + 보상 트랜잭션
+        try {
+            self.decreaseStockForConfirm(ctx.paymentId());
+        } catch (CustomException e) {
+            // PG는 이미 PAID 처리됨 → 자동 환불 보상 + Payment FAILED + 원본 에러 전파
+            String failReason = "재고 차감 실패: " + e.getErrorCode().name();
+            try {
+                paymentProvider.cancelPayment(
+                        pgInfo.pgTransactionId(),
+                        pgInfo.totalAmount(),
+                        "재고 차감 실패 자동 환불 (" + e.getErrorCode().name() + ")");
+            } catch (Exception ex) {
+                // PG 환불 자체가 실패 — 운영 알람 대상
+                log.error("[Payment] 재고 실패 후 PG 자동 환불 실패: paymentId={}, pgTxId={}, error={}",
+                        ctx.paymentId(), pgInfo.pgTransactionId(), ex.getMessage(), ex);
+            }
+            self.failConfirm(ctx.paymentId(), pgInfo.pgTransactionId(), failReason);
+            log.warn("[Payment] 결제 후 재고 차감 실패: paymentId={}, errorCode={}",
+                    ctx.paymentId(), e.getErrorCode());
+            throw e; // 원본 PRODUCT_SOLD_OUT / PRODUCT_STOCK_INSUFFICIENT 그대로 전파
+        }
+
+        // 5. 최종 성공 반영
         return self.completeConfirm(ctx.paymentId(), pgInfo, userId);
+    }
+
+    // 결제 승인 직전 재고 확정 차감 — over-selling 방지를 위해 PESSIMISTIC_WRITE 락 사용
+    @Transactional
+    public void decreaseStockForConfirm(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        List<OrderItem> orderItems = orderItemRepository.findByOrder(payment.getOrder());
+
+        // 데드락 회피: productId ASC 정렬 후 순차 락 획득
+        List<Long> sortedProductIds = orderItems.stream()
+                .map(item -> item.getProduct().getProductId())
+                .sorted(Comparator.naturalOrder())
+                .toList();
+
+        for (Long pid : sortedProductIds) {
+            Product product = productRepository.findByIdForUpdate(pid)
+                    .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+            product.decreaseStock(1); // stockQuantity-- + isSoldout 동기화
+        }
     }
 
     // DB에서 유저와 결제 상태 확인
@@ -219,6 +274,11 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
         int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(paymentId) + 1;
+
+        // 결제 직전 재고 재검증은 제거됨 — Order 생성 시 차감 정책 하에서 자기 차감분 때문에
+        // 정상 흐름이 PRODUCT_SOLD_OUT을 던지는 문제가 발견되어 CodeRabbit 권고에 따라 제거.
+        // 동시성/정합성 보호가 필요하면 quantity 기반 예약 모델로 전환하거나
+        // product.isDeleted() 같은 정합성 전용 검증으로 대체할 것.
 
         payment.authorize(pgInfo.pgTransactionId());
         payment.complete(pgInfo.receiptUrl(), pgInfo.paidAt());
@@ -275,8 +335,30 @@ public class PaymentService {
 
         paymentProvider.cancelPayment(ctx.pgTransactionId(), ctx.cancelAmount(), request.getReason());
 
-        // 2. 환불
-        return self.applyCancelResult(ctx.paymentId(), ctx.cancelAmount(), ctx.fullCancel(), userId);
+        // 2. 환불 — PG 환불은 이미 비가역으로 완료된 상태이므로,
+        // applyCancelResult 가 PAYMENT_STOCK_RESTORE_FAILED 로 롤백되면
+        // 독립 트랜잭션(REQUIRES_NEW)으로 Payment/Order CANCELLED 확정 + 운영 복구 단서를 영속화한다.
+        try {
+            return self.applyCancelResult(ctx.paymentId(), ctx.cancelAmount(), ctx.fullCancel(), userId);
+        } catch (CustomException e) {
+            if (ctx.fullCancel() && e.getErrorCode() == ErrorCode.PAYMENT_STOCK_RESTORE_FAILED) {
+                try {
+                    self.recordCancelCompensation(
+                            ctx.paymentId(),
+                            ctx.cancelAmount(),
+                            ctx.pgTransactionId(),
+                            e.getMessage());
+                } catch (Exception compensationEx) {
+                    // 보상 트랜잭션 자체가 실패해도 PG 환불은 이미 완료된 상태이므로
+                    // 운영 추적이 가능하도록 ERROR 로그를 반드시 남긴다.
+                    log.error("[Payment] PG 환불 완료 + 재고 복구 실패 + 보상 영속화까지 실패: "
+                                    + "paymentId={}, pgTxId={}, cancelAmount={}, compensationError={}",
+                            ctx.paymentId(), ctx.pgTransactionId(), ctx.cancelAmount(),
+                            compensationEx.getMessage(), compensationEx);
+                }
+            }
+            throw e;
+        }
     }
 
     // 결제 취소
@@ -319,6 +401,26 @@ public class PaymentService {
             payment.partialCancel(cancelAmount);
             payment.cancel();
             payment.getOrder().refund();
+
+            // 전액 취소 보상: OrderItem 순회하며 재고 복구 — PESSIMISTIC_WRITE 락 적용 (lost update 방지).
+            // 데드락 회피: decreaseStockForConfirm과 동일하게 productId ASC 정렬 후 순차 락 획득.
+            // increaseStock 실패(오버플로우 등)는 데이터 부정합이므로 PAYMENT_STOCK_RESTORE_FAILED로
+            // 명시적 노출하여 운영 알람 대상이 되도록 함. 부분 취소는 OrderItem 단위가 아니므로 복구 제외.
+            List<OrderItem> orderItems = orderItemRepository.findByOrder(payment.getOrder());
+            List<Long> sortedProductIds = orderItems.stream()
+                    .map(item -> item.getProduct().getProductId())
+                    .sorted(Comparator.naturalOrder())
+                    .toList();
+            for (Long pid : sortedProductIds) {
+                Product product = productRepository.findByIdForUpdate(pid)
+                        .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+                try {
+                    product.increaseStock(1);
+                } catch (CustomException e) {
+                    throw new CustomException(ErrorCode.PAYMENT_STOCK_RESTORE_FAILED);
+                }
+            }
+
             if (payment.getDiscountCoupon() != null) {
                 couponService.restoreCoupon(payment.getDiscountCoupon().getCouponId(), userId);
             }
@@ -332,6 +434,31 @@ public class PaymentService {
         log.info("[Payment] 결제 취소: paymentId={}, cancelAmount={}, fullCancel={}",
                 paymentId, cancelAmount, fullCancel);
         return PaymentResponse.from(payment);
+    }
+
+    // 전액 취소 시 PG 환불 성공 후 재고 복구 실패에 대비한 보상 영속화 경로.
+    // applyCancelResult 가 PAYMENT_STOCK_RESTORE_FAILED 로 롤백된 직후에만 호출된다.
+    // PG 환불은 비가역이므로 Payment / Order 상태를 CANCELLED 로 확정시키고
+    // PaymentAttempt 에 실패 사유를 남겨 운영이 재고만 수동 복구할 수 있게 한다.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordCancelCompensation(Long paymentId,
+                                         int cancelAmount,
+                                         String pgTransactionId,
+                                         String errorMessage) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        payment.partialCancel(cancelAmount);
+        payment.cancel();
+        payment.getOrder().refund();
+
+        int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(paymentId) + 1;
+        saveAttempt(payment, attemptNo, PaymentStatus.CANCELLED, pgTransactionId,
+                "PG 환불 완료 / 재고 복구 실패 — 운영 수동 복구 필요: " + errorMessage);
+
+        log.error("[Payment] PG 환불 완료 후 재고 복구 실패 — 운영 복구 필요: "
+                        + "paymentId={}, pgTxId={}, cancelAmount={}, error={}",
+                paymentId, pgTransactionId, cancelAmount, errorMessage);
     }
 
     public record WebhookContext(Long paymentId, PaymentStatus status, int totalPaymentPrice) {}
