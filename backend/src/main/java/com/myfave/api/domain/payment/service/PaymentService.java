@@ -380,12 +380,17 @@ public class PaymentService {
             payment.cancel();
             payment.getOrder().refund();
 
-            // 전액 취소 보상: OrderItem 순회하며 재고 복구 — 비관적 락 미사용.
+            // 전액 취소 보상: OrderItem 순회하며 재고 복구 — PESSIMISTIC_WRITE 락 적용 (lost update 방지).
+            // 데드락 회피: decreaseStockForConfirm과 동일하게 productId ASC 정렬 후 순차 락 획득.
             // increaseStock 실패(오버플로우 등)는 데이터 부정합이므로 PAYMENT_STOCK_RESTORE_FAILED로
             // 명시적 노출하여 운영 알람 대상이 되도록 함. 부분 취소는 OrderItem 단위가 아니므로 복구 제외.
             List<OrderItem> orderItems = orderItemRepository.findByOrder(payment.getOrder());
-            for (OrderItem item : orderItems) {
-                Product product = productRepository.findById(item.getProduct().getProductId())
+            List<Long> sortedProductIds = orderItems.stream()
+                    .map(item -> item.getProduct().getProductId())
+                    .sorted(Comparator.naturalOrder())
+                    .toList();
+            for (Long pid : sortedProductIds) {
+                Product product = productRepository.findByIdForUpdate(pid)
                         .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
                 try {
                     product.increaseStock(1);
