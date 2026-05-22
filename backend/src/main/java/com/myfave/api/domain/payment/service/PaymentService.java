@@ -127,6 +127,14 @@ public class PaymentService {
 
         // 3. 쿠폰 적용 및 최종 결제 금액 산정
         List<OrderItem> items = orderItemRepository.findByOrder(order);
+
+        // 결제 진입 전 재고 사전 검증 — 상태 변경 없이 검증만 수행.
+        // Order 생성 시점과 결제 준비 시점 사이에 다른 경로로 재고가 빠질 가능성에 대한 사전 안내.
+        // 비관적 락 미사용 (k6 부하 테스트 결과에 따라 후속 이슈에서 도입 검토).
+        for (OrderItem item : items) {
+            item.getProduct().validateStock(1);
+        }
+
         int totalProductPrice = items.stream().mapToInt(OrderItem::getPrice).sum();
         int deliveryFee = shippingCoupon != null ? 0 : DELIVERY_FEE;
         int discountPrice = discountCoupon != null
