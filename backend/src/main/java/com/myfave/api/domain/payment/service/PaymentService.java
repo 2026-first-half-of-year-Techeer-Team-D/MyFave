@@ -335,8 +335,30 @@ public class PaymentService {
 
         paymentProvider.cancelPayment(ctx.pgTransactionId(), ctx.cancelAmount(), request.getReason());
 
-        // 2. 환불
-        return self.applyCancelResult(ctx.paymentId(), ctx.cancelAmount(), ctx.fullCancel(), userId);
+        // 2. 환불 — PG 환불은 이미 비가역으로 완료된 상태이므로,
+        // applyCancelResult 가 PAYMENT_STOCK_RESTORE_FAILED 로 롤백되면
+        // 독립 트랜잭션(REQUIRES_NEW)으로 Payment/Order CANCELLED 확정 + 운영 복구 단서를 영속화한다.
+        try {
+            return self.applyCancelResult(ctx.paymentId(), ctx.cancelAmount(), ctx.fullCancel(), userId);
+        } catch (CustomException e) {
+            if (ctx.fullCancel() && e.getErrorCode() == ErrorCode.PAYMENT_STOCK_RESTORE_FAILED) {
+                try {
+                    self.recordCancelCompensation(
+                            ctx.paymentId(),
+                            ctx.cancelAmount(),
+                            ctx.pgTransactionId(),
+                            e.getMessage());
+                } catch (Exception compensationEx) {
+                    // 보상 트랜잭션 자체가 실패해도 PG 환불은 이미 완료된 상태이므로
+                    // 운영 추적이 가능하도록 ERROR 로그를 반드시 남긴다.
+                    log.error("[Payment] PG 환불 완료 + 재고 복구 실패 + 보상 영속화까지 실패: "
+                                    + "paymentId={}, pgTxId={}, cancelAmount={}, compensationError={}",
+                            ctx.paymentId(), ctx.pgTransactionId(), ctx.cancelAmount(),
+                            compensationEx.getMessage(), compensationEx);
+                }
+            }
+            throw e;
+        }
     }
 
     // 결제 취소
