@@ -1,23 +1,61 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import {
+  useDeleteShippingAddress,
+  useSetDefaultShippingAddress,
+  useShippingAddresses,
+} from '@/features/shipping/hooks'
 import { useShippingStore } from '@/features/shipping/store'
+import type { Address } from '@/features/shipping/types'
+
+function toLocalAddress(ba: {
+  shippingId: number
+  receiverName: string
+  receiverPhone: string
+  address: string
+  addressDetail: string
+  zipCode: string
+  deliveryRequest: string
+  isDefault: boolean
+}): Address {
+  return {
+    id: String(ba.shippingId),
+    name: ba.receiverName,
+    phone: ba.receiverPhone,
+    address: ba.address,
+    detailAddress: ba.addressDetail,
+    zipcode: ba.zipCode,
+    request: ba.deliveryRequest,
+    isDefault: ba.isDefault,
+  }
+}
 
 export function ShippingAddressPage() {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
-  const addresses = useShippingStore((s) => s.addresses)
-  const setDefault = useShippingStore((s) => s.setDefault)
-  const removeAddress = useShippingStore((s) => s.removeAddress)
+  const syncAddresses = useShippingStore((s) => s.syncAddresses)
+
+  const { data: backendAddresses = [], isLoading } = useShippingAddresses()
+  const deleteAddress = useDeleteShippingAddress()
+  const setDefaultMutation = useSetDefaultShippingAddress()
+
+  useEffect(() => {
+    if (backendAddresses.length > 0) {
+      syncAddresses(backendAddresses.map(toLocalAddress))
+    }
+  }, [backendAddresses, syncAddresses])
+
+  const addresses = backendAddresses.map(toLocalAddress)
 
   const handleSelectDefault = (id: string) => {
-    setDefault(id)
+    setDefaultMutation.mutate(Number(id))
   }
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
     if (window.confirm('배송지를 삭제하시겠습니까?')) {
-      removeAddress(id)
+      deleteAddress.mutate(Number(id))
     }
   }
 
@@ -25,12 +63,12 @@ export function ShippingAddressPage() {
     (addr) =>
       addr.name.includes(searchTerm) ||
       addr.address.includes(searchTerm) ||
-      addr.phone.includes(searchTerm)
+      addr.phone.includes(searchTerm),
   )
 
   return (
     <div className="flex-1 bg-white min-h-0 pb-10 overflow-y-auto">
-      {/* 1. Search Bar - Figma Node 100:1031 */}
+      {/* Search Bar */}
       <div className="px-[20px] pt-[28.01px] mb-[28px]">
         <div className="relative">
           <input
@@ -49,15 +87,23 @@ export function ShippingAddressPage() {
         </div>
       </div>
 
-      {/* 3. Address List - Figma Node 100:1080 */}
+      {/* Address List */}
       <div className="px-[20px] space-y-[16px]">
-        {filteredAddresses.map((addr) => (
-          <div 
+        {isLoading && (
+          <>
+            {[1, 2].map((i) => (
+              <div key={i} className="h-[110px] w-full rounded-[12px] bg-gray-100 animate-pulse" />
+            ))}
+          </>
+        )}
+
+        {!isLoading && filteredAddresses.map((addr) => (
+          <div
             key={addr.id}
             onClick={() => handleSelectDefault(addr.id)}
             className={`flex flex-col gap-[8px] p-[20px] rounded-[12px] border transition-all cursor-pointer relative ${
-              addr.isDefault 
-                ? 'border-point bg-main-bg/30 shadow-md' 
+              addr.isDefault
+                ? 'border-point bg-main-bg/30 shadow-md'
                 : 'border-separator bg-white hover:border-point/50'
             }`}
           >
@@ -76,18 +122,18 @@ export function ShippingAddressPage() {
                 </div>
               )}
             </div>
-            
+
             <p className="font-noto text-[12px] leading-[18px] text-[#322927] pr-20">
               {`${addr.address}${addr.detailAddress ? ` ${addr.detailAddress}` : ''}`}
             </p>
-            
+
             <p className="font-noto text-[12px] text-[#322927]">
               {addr.phone}
             </p>
 
             {/* Action Buttons */}
             <div className="absolute top-[20px] right-[20px] flex gap-[6px]">
-              <button 
+              <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation()
@@ -97,7 +143,7 @@ export function ShippingAddressPage() {
               >
                 <span className="font-noto text-[10px] font-medium text-[#949494]">수정</span>
               </button>
-              <button 
+              <button
                 type="button"
                 onClick={(e) => handleDelete(e, addr.id)}
                 className="h-[24px] px-[8px] flex items-center justify-center bg-white rounded-[5px] border border-red-100 active:bg-red-50 transition-colors"
@@ -108,14 +154,16 @@ export function ShippingAddressPage() {
           </div>
         ))}
 
-        {filteredAddresses.length === 0 && (
+        {!isLoading && filteredAddresses.length === 0 && (
           <div className="py-20 text-center">
-            <p className="font-noto text-[14px] text-muted-text">검색 결과가 없습니다.</p>
+            <p className="font-noto text-[14px] text-muted-text">
+              {searchTerm ? '검색 결과가 없습니다.' : '등록된 배송지가 없습니다.'}
+            </p>
           </div>
         )}
       </div>
 
-      {/* 4. Add Address Button - Figma Node 100:816 */}
+      {/* Add Address Button */}
       <div className="mt-10 px-[32px] flex justify-center pb-10">
         <button
           type="button"
