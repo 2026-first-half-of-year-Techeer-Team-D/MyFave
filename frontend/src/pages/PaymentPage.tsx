@@ -1,6 +1,9 @@
 import PortOne from '@portone/browser-sdk/v2'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+
+import { productsApi } from '@/features/products/api'
 
 import { PopUp } from '@/shared/components/PopUp'
 
@@ -65,6 +68,7 @@ export function PaymentPage() {
   const [address, setAddress] = useState<Address | null>(null)
   const [isPopUpOpen, setIsPopUpOpen] = useState(false)
   const [popUpMessage, setPopUpMessage] = useState('')
+  const [isPortOneOpen, setIsPortOneOpen] = useState(false)
 
   const showPopUp = (msg: string) => {
     setPopUpMessage(msg)
@@ -96,12 +100,8 @@ export function PaymentPage() {
   }, [checkoutItems.length, cartItems, setCheckoutItems])
 
   useEffect(() => {
-    const defaultAddr = getDefaultAddress(addresses)
-    if (defaultAddr) {
-      setAddress(defaultAddr)
-      if (defaultAddr.request) setShippingRequest(defaultAddr.request)
-    } else if (defaultBackendAddress) {
-      // 로컬 배송지 없을 때 백엔드 기본 배송지로 폴백
+    // 백엔드 주소가 있으면 반드시 백엔드 기준으로 설정 (로컬 스토어 stale 방지)
+    if (defaultBackendAddress) {
       setAddress({
         id: String(defaultBackendAddress.shippingId),
         name: defaultBackendAddress.receiverName,
@@ -115,6 +115,13 @@ export function PaymentPage() {
       if (defaultBackendAddress.deliveryRequest) {
         setShippingRequest(defaultBackendAddress.deliveryRequest)
       }
+    } else {
+      // 백엔드 주소 없을 때만 로컬 스토어 폴백
+      const defaultAddr = getDefaultAddress(addresses)
+      if (defaultAddr) {
+        setAddress(defaultAddr)
+        if (defaultAddr.request) setShippingRequest(defaultAddr.request)
+      }
     }
   }, [addresses, defaultBackendAddress])
 
@@ -122,7 +129,27 @@ export function PaymentPage() {
 
   const resolvedShippingId = address ? Number(address.id) : null
 
-  const subtotal = checkoutItems.reduce((sum, item) => sum + item.price, 0)
+  const { data: backendProducts } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => productsApi.getList(),
+  })
+
+  const backendPriceMap = useMemo(() => {
+    const map: Record<number, number> = {}
+    backendProducts?.content.forEach((p) => { map[p.id] = p.price })
+    return map
+  }, [backendProducts])
+
+  // 장바구니 stale 가격을 백엔드 최신 가격으로 동기화
+  const syncedItems = useMemo(
+    () => checkoutItems.map((item) => ({
+      ...item,
+      price: backendPriceMap[item.id] ?? item.price,
+    })),
+    [checkoutItems, backendPriceMap],
+  )
+
+  const subtotal = syncedItems.reduce((sum, item) => sum + item.price, 0)
   const shippingFee = 3000
   const discount = appliedCoupon ? appliedCoupon.discountPrice : 0
   const total = subtotal + shippingFee - discount
@@ -150,14 +177,15 @@ export function PaymentPage() {
         ...(appliedCoupon?.couponId && appliedCoupon.couponType === 'SHIPPING' && { shippingCouponId: appliedCoupon.couponId }),
       })
 
-      // 금액 일치 검증
-      const expectedTotal = subtotal + (prepareRes.deliveryFee ?? shippingFee) - (prepareRes.discountPrice ?? 0)
+      // 금액 일치 검증 (백엔드 값끼리만 비교)
+      const expectedTotal = prepareRes.totalProductPrice + prepareRes.deliveryFee - prepareRes.discountPrice
       if (prepareRes.totalPaymentPrice !== expectedTotal) {
         showPopUp('주문 금액이 변경되었습니다. 다시 시도해주세요.')
         return
       }
 
-      // 3. PortOne 결제창
+      // 3. PortOne 결제창 (열려있는 동안 버튼 비활성화)
+      setIsPortOneOpen(true)
       const easyPayProvider = (
         {
           KAKAO_PAY: 'KAKAOPAY',
@@ -182,13 +210,12 @@ export function PaymentPage() {
         },
       })
 
+      setIsPortOneOpen(false)
+
       if (!portoneRes || portoneRes.code) {
-        const isUserCancel = portoneRes?.message?.includes('취소') || portoneRes?.message?.includes('cancel')
-        if (isUserCancel) {
-          showPopUp('결제를 취소하셨습니다.')
-        } else {
-          showPopUp(`결제 실패: ${portoneRes?.message ?? '알 수 없는 오류'}`)
-        }
+        const msg = portoneRes?.message ?? ''
+        const isUserCancel = msg.includes('취소') || msg.toLowerCase().includes('cancel')
+        showPopUp(isUserCancel ? '결제를 취소하셨습니다.' : `결제 실패: ${msg || '알 수 없는 오류'}`)
         return
       }
 
@@ -203,7 +230,7 @@ export function PaymentPage() {
       navigate('/order-success', {
         state: {
           orderNumber: order.orderNumber,
-          items: checkoutItems.map((item) => ({
+          items: syncedItems.map((item) => ({
             id: String(item.id),
             name: item.title,
             price: item.price.toLocaleString() + '원',
@@ -228,6 +255,15 @@ export function PaymentPage() {
         },
       })
     } catch (err) {
+      setIsPortOneOpen(false)
+      // PortOne SDK가 resolve 대신 throw한 경우 (code 필드로 구분)
+      const portoneErr = err as { code?: string; message?: string }
+      if (portoneErr?.code) {
+        const msg = portoneErr.message ?? ''
+        const isUserCancel = msg.includes('취소') || msg.toLowerCase().includes('cancel')
+        showPopUp(isUserCancel ? '결제를 취소하셨습니다.' : `결제 실패: ${msg || '알 수 없는 오류'}`)
+        return
+      }
       showPopUp(getPaymentErrorMessage(err))
     }
   }
@@ -335,9 +371,9 @@ export function PaymentPage() {
         </section>
 
         <section className="mt-[32px] space-y-[16px]">
-          <h2 className="font-noto text-[15px] font-bold text-[#322927]">주문 상품 {checkoutItems.length}개</h2>
+          <h2 className="font-noto text-[15px] font-bold text-[#322927]">주문 상품 {syncedItems.length}개</h2>
           <div className="space-y-[12px]">
-            {checkoutItems.map((item) => (
+            {syncedItems.map((item) => (
               <div key={item.id} className="flex w-full h-[114.19px] gap-[11.99px] rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white p-[15.99px] shadow-sm">
                 <div className="h-[84px] w-[84px] flex-shrink-0 overflow-hidden rounded-[15px] shadow-sm">
                   <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
@@ -388,7 +424,7 @@ export function PaymentPage() {
       <div className="fixed bottom-0 left-1/2 z-40 w-full max-w-[376.04px] -translate-x-1/2 bg-white p-[19.99px] border-t border-[#F2EDEB] shadow-figma-popup">
         <button
           onClick={handlePayment}
-          disabled={checkoutItems.length === 0 || !address || !resolvedShippingId || createOrder.isPending || preparePayment.isPending || confirmPayment.isPending}
+          disabled={isPortOneOpen || checkoutItems.length === 0 || !address || !resolvedShippingId || createOrder.isPending || preparePayment.isPending || confirmPayment.isPending}
           className="w-full h-[56px] rounded-[12px] bg-point flex flex-col items-center justify-center shadow-lg active:scale-[0.98] transition-all disabled:bg-gray-300"
         >
           {appliedCoupon && (
