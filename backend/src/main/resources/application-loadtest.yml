@@ -80,6 +80,8 @@ loadtest:
 
 server:
   tomcat:
+    mbeanregistry:
+      enabled: true          # Grafana Tomcat Threads 패널 메트릭 수집
     threads:
       max: 400               # 시나리오 E의 1000 WS 세션 + HTTP 동시 처리 여유
     max-connections: 2000

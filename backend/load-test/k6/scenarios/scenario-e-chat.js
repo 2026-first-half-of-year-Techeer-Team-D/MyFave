@@ -16,7 +16,12 @@ import { Counter, Trend } from 'k6/metrics';
 import { connect, subscribe, send, disconnect, frameCommand } from '../lib/stomp.js';
 import { tokens } from '../lib/pool.js';
 
-const WS_URL = __ENV.WS_URL || 'ws://localhost:8080/ws';
+function sockJsWsUrl(base) {
+  const server = String(Math.floor(Math.random() * 999)).padStart(3, '0');
+  const session = Array.from({length: 8}, () => Math.random().toString(36)[2]).join('');
+  return `${base}/${server}/${session}/websocket`;
+}
+const WS_URL = sockJsWsUrl(__ENV.WS_URL || 'ws://localhost:8080/ws');
 const ROOM_ID = __ENV.ROOM_ID || '1';
 const SESSION_DURATION_MS = 4 * 60 * 1000 + 30 * 1000; // 4분 30초
 
@@ -80,9 +85,12 @@ export default function () {
           const intervalMs = isInfluencer ? 10_000 : randomBetween(3_000, 7_000);
           publishTimer = socket.setInterval(() => {
             const body = {
-              message: isInfluencer
-                ? `[host] live-msg-${Date.now()}`
-                : `[u${__VU}] hello-${__ITER}`,
+              type: 'SEND_MESSAGE',
+              payload: {
+                content: isInfluencer
+                  ? `[host] live-msg-${Date.now()}`
+                  : `[u${__VU}] hello-${__ITER}`,
+              },
             };
             socket.send(send(`/app/chat/${ROOM_ID}`, body));
             messagesSent.add(1);
