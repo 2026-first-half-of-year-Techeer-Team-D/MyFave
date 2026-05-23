@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 
 import { useLogout, useUser } from '@/features/auth/hooks'
+import { useMyCoupons } from '@/features/coupons/hooks'
 import { UserIcon } from '@/shared/components/UserIcon'
 
 // TODO: React Query로 대체 - 주문 현황 API 연동
@@ -15,6 +16,7 @@ export function MyPage() {
   const navigate = useNavigate()
   const user = useUser()
   const logout = useLogout()
+  const { data: availableCoupons = [] } = useMyCoupons('AVAILABLE')
 
   const displayName = user ? `${user.nickname}님` : '비회원'
   const displayEmail = user?.email ?? ''
@@ -86,7 +88,7 @@ export function MyPage() {
         >
           <span className="font-noto text-[12px] font-medium text-[#322927]">쿠폰</span>
           <div className="flex items-center gap-1">
-            <span className="font-noto text-[12px] font-medium text-chat-font">3장</span>
+            <span className="font-noto text-[12px] font-medium text-chat-font">{availableCoupons.length}장</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7E74" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
