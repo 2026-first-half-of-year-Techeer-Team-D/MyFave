@@ -2,6 +2,8 @@ import PortOne from '@portone/browser-sdk/v2'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { PopUp } from '@/shared/components/PopUp'
+
 interface PortOnePaymentRequest {
   storeId: string
   channelKey: string
@@ -61,6 +63,31 @@ export function PaymentPage() {
   const [shippingRequest, setShippingRequest] = useState('')
   const [isRequestOpen, setIsRequestOpen] = useState(false)
   const [address, setAddress] = useState<Address | null>(null)
+  const [isPopUpOpen, setIsPopUpOpen] = useState(false)
+  const [popUpMessage, setPopUpMessage] = useState('')
+
+  const showPopUp = (msg: string) => {
+    setPopUpMessage(msg)
+    setIsPopUpOpen(true)
+  }
+
+  const getPaymentErrorMessage = (error: unknown): string => {
+    const errorCode = (error as { response?: { data?: { errorCode?: string } } })
+      ?.response?.data?.errorCode
+    switch (errorCode) {
+      case 'PRODUCT_SOLD_OUT': return '상품이 품절되었습니다.'
+      case 'PRODUCT_STOCK_INSUFFICIENT': return '재고가 부족합니다.'
+      case 'PRODUCT_NOT_FOUND': return '상품을 찾을 수 없습니다.'
+      case 'PAYMENT_FAILED': return '결제 서비스 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+      case 'PAYMENT_AMOUNT_MISMATCH': return '결제 금액이 일치하지 않아 자동 환불 처리되었습니다.'
+      case 'PAYMENT_ALREADY_DONE': return '이미 처리된 결제입니다.'
+      case 'PAYMENT_INVALID_STATUS': return '결제 상태가 올바르지 않습니다. 페이지를 새로고침 해주세요.'
+      case 'PAYMENT_LOCK_CONFLICT': return '결제 처리 중 충돌이 발생했습니다. 다시 시도해주세요.'
+      case 'ORDER_NOT_FOUND': return '주문을 찾을 수 없습니다.'
+      case 'ORDER_INVALID_STATUS': return '주문 상태가 올바르지 않습니다.'
+      default: return '결제 오류가 발생했습니다. 다시 시도해주세요.'
+    }
+  }
 
   useEffect(() => {
     if (checkoutItems.length === 0 && cartItems.length > 0) {
@@ -126,7 +153,7 @@ export function PaymentPage() {
       // 금액 일치 검증
       const expectedTotal = subtotal + (prepareRes.deliveryFee ?? shippingFee) - (prepareRes.discountPrice ?? 0)
       if (prepareRes.totalPaymentPrice !== expectedTotal) {
-        alert('주문 금액이 변경되었습니다. 다시 시도해주세요.')
+        showPopUp('주문 금액이 변경되었습니다. 다시 시도해주세요.')
         return
       }
 
@@ -158,9 +185,9 @@ export function PaymentPage() {
       if (!portoneRes || portoneRes.code) {
         const isUserCancel = portoneRes?.message?.includes('취소') || portoneRes?.message?.includes('cancel')
         if (isUserCancel) {
-          alert('결제를 취소하셨습니다.')
+          showPopUp('결제를 취소하셨습니다.')
         } else {
-          alert(`결제 실패: ${portoneRes?.message ?? '알 수 없는 오류'}\n다시 시도하려면 페이지를 새로고침 해주세요.`)
+          showPopUp(`결제 실패: ${portoneRes?.message ?? '알 수 없는 오류'}`)
         }
         return
       }
@@ -201,9 +228,7 @@ export function PaymentPage() {
         },
       })
     } catch (err) {
-      const axiosErr = err as { response?: { data?: { message?: string; code?: number } }; message?: string }
-      const msg = axiosErr.response?.data?.message ?? axiosErr.message ?? '알 수 없는 오류'
-      alert(`결제 오류: ${msg}`)
+      showPopUp(getPaymentErrorMessage(err))
     }
   }
 
@@ -376,6 +401,8 @@ export function PaymentPage() {
           </span>
         </button>
       </div>
+
+      <PopUp isOpen={isPopUpOpen} message={popUpMessage} onClose={() => setIsPopUpOpen(false)} />
     </div>
   )
 }
