@@ -1,7 +1,12 @@
+export type CouponType = 'DISCOUNT' | 'SHIPPING'
+export type CouponStatus = 'AVAILABLE' | 'USED' | 'EXPIRED'
+
 export interface Coupon {
-  id: number
-  benefit: string
-  title: string
-  expiry: string
-  discount: number
+  couponId: number
+  couponName: string
+  couponType: CouponType
+  discountPrice: number
+  status: CouponStatus
+  expiredAt: string
+  createdAt: string
 }
