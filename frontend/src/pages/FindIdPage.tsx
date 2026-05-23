@@ -32,7 +32,15 @@ export function FindIdPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name) { showPopUp('이름을 입력해주세요'); return }
+    if (!/^[가-힣a-zA-Z]{2,}$/.test(name)) {
+      showPopUp('이름은 한글 또는 영문 2자 이상으로 입력해주세요')
+      return
+    }
     if (!phone) { showPopUp('전화번호를 입력해주세요'); return }
+    if (!/^01[0-9]-\d{4}-\d{4}$/.test(phone)) {
+      showPopUp('올바른 전화번호 형식이 아닙니다 (예: 010-1234-5678)')
+      return
+    }
     setFoundEmail(maskEmail(name))
   }
 
