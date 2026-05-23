@@ -1,5 +1,4 @@
 import PortOne from '@portone/browser-sdk/v2'
-import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -28,7 +27,7 @@ import { useConfirmPayment, usePreparePayment } from '@/features/payments/hooks'
 import { useCheckoutStore } from '@/features/payments/store'
 import { PAYMENT_METHOD_MAP } from '@/features/payments/types'
 import type { OrderCreateRequest } from '@/features/orders/api'
-import { shippingApi } from '@/features/shipping/api'
+import { useShippingAddresses } from '@/features/shipping/hooks'
 import { getDefaultAddress, useShippingStore } from '@/features/shipping/store'
 import type { Address } from '@/features/shipping/types'
 
@@ -55,10 +54,7 @@ export function PaymentPage() {
   const preparePayment = usePreparePayment()
   const confirmPayment = useConfirmPayment()
 
-  const { data: backendAddresses } = useQuery({
-    queryKey: ['shipping-addresses'],
-    queryFn: shippingApi.getAddresses,
-  })
+  const { data: backendAddresses } = useShippingAddresses()
   const defaultBackendAddress = backendAddresses?.find((a) => a.isDefault) ?? backendAddresses?.[0]
 
   const [selectedMethod, setSelectedMethod] = useState('카드')
@@ -97,7 +93,7 @@ export function PaymentPage() {
 
   const greetingName = user ? `${user.nickname}님` : '비회원'
 
-  const resolvedShippingId = defaultBackendAddress?.shippingId ?? (address ? Number(address.id) : null)
+  const resolvedShippingId = address ? Number(address.id) : null
 
   const subtotal = checkoutItems.reduce((sum, item) => sum + item.price, 0)
   const shippingFee = 3000
