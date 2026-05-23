@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PopUp } from '@/shared/components/PopUp'
+import { isValidEmail, isValidName, isValidPhone } from '@/shared/utils/validation'
 import { useSendSignUpCode, useVerifySignUpCode, useSignUp } from '@/features/auth/hooks'
 
 type SignUpStep = 'EMAIL' | 'PASSWORD' | 'NAME' | 'PHONE' | 'NICKNAME' | 'AGREEMENT'
@@ -74,7 +75,8 @@ export function SignUpPage() {
   }
 
   const handleSendCode = async () => {
-    if (!formData.email) return
+    if (!formData.email) { showPopUp('이메일을 입력해주세요'); return }
+    if (!isValidEmail(formData.email)) { showPopUp('올바른 이메일 형식이 아닙니다'); return }
     try {
       await sendSignUpCode.mutateAsync({ email: formData.email })
       setIsCodeSent(true)
@@ -119,8 +121,22 @@ export function SignUpPage() {
   const handleNext = () => {
     if (step === 'EMAIL') setStep('PASSWORD')
     else if (step === 'PASSWORD') setStep('NAME')
-    else if (step === 'NAME') setStep('PHONE')
-    else if (step === 'PHONE') setStep('NICKNAME')
+    else if (step === 'NAME') {
+      if (!formData.name) { showPopUp('이름을 입력해주세요'); return }
+      if (!isValidName(formData.name)) {
+        showPopUp('이름은 한글 또는 영문 2자 이상으로 입력해주세요')
+        return
+      }
+      setStep('PHONE')
+    }
+    else if (step === 'PHONE') {
+      if (!formData.phone) { showPopUp('전화번호를 입력해주세요'); return }
+      if (!isValidPhone(formData.phone)) {
+        showPopUp('올바른 전화번호 형식이 아닙니다 (예: 010-1234-5678)')
+        return
+      }
+      setStep('NICKNAME')
+    }
     else if (step === 'NICKNAME') {
       showPopUp('회원가입이 완료되었습니다 ✨')
       setTimeout(() => navigate('/login'), 2000)
