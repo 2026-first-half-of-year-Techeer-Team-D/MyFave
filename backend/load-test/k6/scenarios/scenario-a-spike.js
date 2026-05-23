@@ -4,9 +4,22 @@
 
 import { check, sleep } from 'k6';
 import { Trend, Counter } from 'k6/metrics';
+import http from 'k6/http';
 
 import { get, post, pickProductIdByVu, BASE_URL } from '../lib/http.js';
 import { tokens } from '../lib/pool.js';
+
+// 409(cart 중복), 404(payments/prepare orderId=0) 를 expected로 처리 — http_req_failed 임계값 오염 방지
+http.setResponseCallback(http.expectedStatuses(
+  { min: 200, max: 299 },
+  409,
+  404,
+));
+
+// 스파이크 시작 시각 (30s 예열 + 10s 스파이크 = 40초 지점)
+const TEST_START_MS = Date.now();
+const SPIKE_START_MS = 40_000;
+const SPIKE_END_MS   = 50_000;
 
 export const options = {
   scenarios: {
@@ -98,7 +111,10 @@ export default function () {
 
   // 폭증 초기 10초 구간(40~50초)의 latency만 따로 추적
   const elapsed = (Date.now() - startedAt) / 1000;
-  if (__ITER < 10) spikeWindow.add(elapsed * 1000);
+  const sinceStart = Date.now() - TEST_START_MS;
+  if (sinceStart >= SPIKE_START_MS && sinceStart < SPIKE_END_MS) {
+    spikeWindow.add(elapsed * 1000);
+  }
 
   sleep(Math.random() * 0.5);
 }
