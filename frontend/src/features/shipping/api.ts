@@ -44,4 +44,10 @@ export const shippingApi = {
     const res = await apiClient.put<{ data: BackendShippingAddress }>(`/shipping/${shippingId}`, data)
     return res.data.data
   },
+  deleteAddress: async (shippingId: number): Promise<void> => {
+    await apiClient.delete(`/shipping/${shippingId}`)
+  },
+  setDefaultAddress: async (shippingId: number): Promise<void> => {
+    await apiClient.patch(`/shipping/${shippingId}/default`)
+  },
 }
