@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { PopUp } from '@/shared/components/PopUp'
-import { isValidPhone } from '@/shared/utils/validation'
+import { isValidName, isValidPhone } from '@/shared/utils/validation'
 
 export function FindIdPage() {
   const navigate = useNavigate()
@@ -33,7 +33,7 @@ export function FindIdPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name) { showPopUp('이름을 입력해주세요'); return }
-    if (!/^[가-힣a-zA-Z]{2,}$/.test(name)) {
+    if (!isValidName(name)) {
       showPopUp('이름은 한글 또는 영문 2자 이상으로 입력해주세요')
       return
     }
