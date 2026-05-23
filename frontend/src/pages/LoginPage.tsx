@@ -3,9 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { useLogin } from '@/features/auth/hooks'
 import { PopUp } from '@/shared/components/PopUp'
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const isValidEmail = (value: string) => EMAIL_REGEX.test(value.trim())
+import { isValidEmail } from '@/shared/utils/validation'
 
 export function LoginPage() {
   const navigate = useNavigate()
