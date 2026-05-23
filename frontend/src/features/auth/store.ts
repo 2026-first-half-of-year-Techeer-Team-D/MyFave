@@ -4,6 +4,13 @@ import { persist } from 'zustand/middleware'
 import { queryClient } from '@/app/providers'
 import type { User } from './types'
 
+const USER_STORE_KEYS = ['myfave-shipping', 'myfave-cart', 'myfave-coupons']
+
+const clearUserStores = () => {
+  queryClient.clear()
+  USER_STORE_KEYS.forEach((key) => localStorage.removeItem(key))
+}
+
 interface AuthState {
   user: User | null
   accessToken: string | null
@@ -20,11 +27,11 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       login: ({ user, accessToken, refreshToken }) => {
-        queryClient.clear()
+        clearUserStores()
         set({ user, accessToken, refreshToken })
       },
       logout: () => {
-        queryClient.clear()
+        clearUserStores()
         set({ user: null, accessToken: null, refreshToken: null })
       },
       updateTokens: (accessToken, refreshToken) => {
