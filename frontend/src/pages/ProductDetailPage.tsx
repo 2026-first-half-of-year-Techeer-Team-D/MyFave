@@ -12,7 +12,7 @@ export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const productId = Number(id) || 1
-  const { data: product } = useProduct(productId)
+  const { data: product, isLoading } = useProduct(productId)
   const addCartItem = useCartStore((s) => s.addItem)
   const setCheckoutItems = useCheckoutStore((s) => s.setItems)
   const setOrderType = useCheckoutStore((s) => s.setOrderType)
@@ -22,6 +22,10 @@ export function ProductDetailPage() {
   const [isPopUpOpen, setIsPopUpOpen] = useState(false)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set())
+
+  if (isLoading) {
+    return <div className="flex-1 bg-white" />
+  }
 
   if (!product) {
     return (
