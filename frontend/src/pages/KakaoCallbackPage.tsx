@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useKakaoLogin } from '@/features/auth/hooks'
+import { PopUp } from '@/shared/components/PopUp'
 
 export function KakaoCallbackPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { mutate } = useKakaoLogin()
-  const [errorMessage, setErrorMessage] = useState('')
+  const [isPopUpOpen, setIsPopUpOpen] = useState(false)
   const calledRef = useRef(false)
 
   useEffect(() => {
@@ -21,16 +22,23 @@ export function KakaoCallbackPage() {
 
     mutate(code, {
       onSuccess: () => navigate('/', { replace: true }),
-      onError: () =>
-        setErrorMessage('카카오 로그인에 실패했습니다. 다시 시도해주세요.'),
+      onError: () => setIsPopUpOpen(true),
     })
   }, [searchParams, mutate, navigate])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white">
       <p className="font-noto text-[14px] text-[#322927]">
-        {errorMessage || '카카오 로그인 처리 중...'}
+        카카오 로그인 처리 중...
       </p>
+      <PopUp
+        isOpen={isPopUpOpen}
+        message="카카오 로그인에 실패했습니다. 다시 시도해주세요."
+        onClose={() => {
+          setIsPopUpOpen(false)
+          navigate('/login', { replace: true })
+        }}
+      />
     </div>
   )
 }
