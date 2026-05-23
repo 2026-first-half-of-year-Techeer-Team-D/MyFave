@@ -11,6 +11,10 @@ import type {
   ProductDetailApiResponse,
 } from './types'
 
+// DAON'S PICK: 픽1~4.mp4 영상 순서와 매칭되는 상품 id (고정)
+// 1) 원오프 넘버링 티셔츠, 2) 브라운 무스탕 자켓, 3) 스트라이프 카디건, 4) 플라워 롱스커트
+const INFLUENCER_PICK_IDS = [1, 7, 2, 9] as const
+
 function mapCategory(code: string | null | undefined): ProductCategory {
   switch (code?.toUpperCase()) {
     case 'BOTTOM': return 'bottom'
@@ -63,8 +67,12 @@ export function useInfluencerPicks() {
   return useQuery({
     queryKey: ['products', 'influencer'],
     queryFn: async () => {
-      const data = await productsApi.getList(0, 4)
-      return data.content.map(toInfluencerPick)
+      const data = await productsApi.getList(0, 50)
+      const byId = new Map(data.content.map((item) => [item.id, item]))
+      return INFLUENCER_PICK_IDS
+        .map((id) => byId.get(id))
+        .filter((item): item is ProductApiItem => item != null)
+        .map(toInfluencerPick)
     },
   })
 }
