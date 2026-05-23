@@ -168,7 +168,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
                     </Link>
                   ))}
                   <a
-                    href="https://www.instagram.com/direct/inbox/"
+                    href="https://www.instagram.com/daonmoood/"
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={onClose}
