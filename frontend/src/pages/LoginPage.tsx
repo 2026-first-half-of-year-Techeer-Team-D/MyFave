@@ -4,6 +4,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useLogin } from '@/features/auth/hooks'
 import { PopUp } from '@/shared/components/PopUp'
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const isValidEmail = (value: string) => EMAIL_REGEX.test(value.trim())
+
 export function LoginPage() {
   const navigate = useNavigate()
   const { mutate: loginMutate, isPending } = useLogin()
@@ -23,6 +26,10 @@ export function LoginPage() {
 
     if (!email || !password) {
       showPopUp('이메일과 비밀번호를 모두 입력해주세요')
+      return
+    }
+    if (!isValidEmail(email)) {
+      showPopUp('올바른 이메일 형식이 아닙니다')
       return
     }
 
