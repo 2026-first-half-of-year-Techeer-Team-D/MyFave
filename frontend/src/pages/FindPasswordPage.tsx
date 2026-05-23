@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { PopUp } from '@/shared/components/PopUp'
 
 const VERIFICATION_DURATION_SEC = 180
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const isValidEmail = (value: string) => EMAIL_REGEX.test(value.trim())
 
 export function FindPasswordPage() {
   const navigate = useNavigate()
@@ -33,6 +35,7 @@ export function FindPasswordPage() {
 
   const handleSendCode = () => {
     if (!email) { showPopUp('이메일을 입력해주세요'); return }
+    if (!isValidEmail(email)) { showPopUp('올바른 이메일 형식이 아닙니다'); return }
     setIsCodeSent(true)
     setTimeLeft(VERIFICATION_DURATION_SEC)
     showPopUp('인증번호가 발송되었습니다 🎁')
@@ -41,6 +44,7 @@ export function FindPasswordPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) { showPopUp('이메일을 입력해주세요'); return }
+    if (!isValidEmail(email)) { showPopUp('올바른 이메일 형식이 아닙니다'); return }
     if (!code) { showPopUp('인증번호를 입력해주세요'); return }
     showPopUp('임시 비밀번호를 발송했습니다 🔑')
     setTimeout(() => navigate('/login'), 2200)
