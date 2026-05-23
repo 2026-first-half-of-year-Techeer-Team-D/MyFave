@@ -9,13 +9,13 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- [1] order_items.order_id
--- 대상: 검증 SQL ① ③ 의 JOIN 키 (order_items oi JOIN orders o ON oi.order_id = o.id)
+-- [1] order_items.orders_id
+-- 대상: 검증 SQL ① ③ 의 JOIN 키 (order_items oi JOIN orders o ON oi.orders_id = o.id)
 -- 효과: nested loop join 의 inner 쪽 비용 감소
 -- 주의: FK 가 걸려있어도 PostgreSQL 은 FK 에 자동 인덱스를 생성하지 않음
 -- -----------------------------------------------------------------------------
-CREATE INDEX IF NOT EXISTS idx_order_items_order_id
-    ON order_items (order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_orders_id
+    ON order_items (orders_id);
 
 -- -----------------------------------------------------------------------------
 -- [2] order_items.product_id
