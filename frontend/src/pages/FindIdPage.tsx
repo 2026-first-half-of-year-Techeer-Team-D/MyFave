@@ -1,11 +1,20 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { PopUp } from '@/shared/components/PopUp'
+
 export function FindIdPage() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [foundEmail, setFoundEmail] = useState<string | null>(null)
+  const [isPopUpOpen, setIsPopUpOpen] = useState(false)
+  const [popUpMessage, setPopUpMessage] = useState('')
+
+  const showPopUp = (msg: string) => {
+    setPopUpMessage(msg)
+    setIsPopUpOpen(true)
+  }
 
   const formatPhoneNumber = (value: string) => {
     const numbers = value.replace(/[^\d]/g, '')
@@ -22,7 +31,8 @@ export function FindIdPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name || !phone) return
+    if (!name) { showPopUp('이름을 입력해주세요'); return }
+    if (!phone) { showPopUp('전화번호를 입력해주세요'); return }
     setFoundEmail(maskEmail(name))
   }
 
@@ -104,6 +114,8 @@ export function FindIdPage() {
           </Link>
         </div>
       </div>
+
+      <PopUp isOpen={isPopUpOpen} message={popUpMessage} onClose={() => setIsPopUpOpen(false)} />
     </div>
   )
 }
