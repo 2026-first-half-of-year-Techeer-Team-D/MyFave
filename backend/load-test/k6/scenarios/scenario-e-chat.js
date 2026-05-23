@@ -16,13 +16,14 @@ import { Counter, Trend } from 'k6/metrics';
 import { connect, subscribe, send, disconnect, frameCommand } from '../lib/stomp.js';
 import { tokens } from '../lib/pool.js';
 
+const WS_BASE = __ENV.WS_URL || 'ws://localhost:8080/ws';
+const ROOM_ID = __ENV.ROOM_ID || '1';
+
 function sockJsWsUrl(base) {
   const server = String(Math.floor(Math.random() * 999)).padStart(3, '0');
   const session = Array.from({length: 8}, () => Math.random().toString(36)[2]).join('');
   return `${base}/${server}/${session}/websocket`;
 }
-const WS_URL = sockJsWsUrl(__ENV.WS_URL || 'ws://localhost:8080/ws');
-const ROOM_ID = __ENV.ROOM_ID || '1';
 const SESSION_DURATION_MS = 4 * 60 * 1000 + 30 * 1000; // 4분 30초
 
 export const options = {
@@ -50,10 +51,11 @@ const messagesSent = new Counter('chat_messages_sent');
 const subscribeTime = new Trend('chat_subscribe_ms', true);
 
 export function setup() {
-  console.log(`[scenario-E] WS_URL=${WS_URL}, ROOM_ID=${ROOM_ID}, 토큰 풀=${tokens.length}`);
+  console.log(`[scenario-E] WS_BASE=${WS_BASE}, ROOM_ID=${ROOM_ID}, 토큰 풀=${tokens.length}`);
 }
 
 export default function () {
+  const WS_URL = sockJsWsUrl(WS_BASE); // iteration마다 고유한 세션 ID 생성
   const token = tokens[(__VU - 1) % tokens.length];
   const accessToken = token.accessToken;
 
