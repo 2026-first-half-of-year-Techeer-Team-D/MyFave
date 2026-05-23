@@ -193,8 +193,15 @@ public class PaymentService {
             // 1. DB에서 유저와 결제 상태 확인
             ConfirmContext ctx = self.validateForConfirm(userId, request.getPaymentId());
 
-            // 2. 외부 PG사 통신
-            PortOnePaymentInfo pgInfo = paymentProvider.getPaymentInfo(request.getPgTransactionId());
+            // 2. 외부 PG사 통신 — 조회 실패 시 failConfirm 호출 후 재전파
+            PortOnePaymentInfo pgInfo;
+            try {
+                pgInfo = paymentProvider.getPaymentInfo(request.getPgTransactionId());
+            } catch (Exception e) {
+                self.failConfirm(ctx.paymentId(), request.getPgTransactionId(),
+                        "PG 조회 실패: " + e.getMessage());
+                throw new CustomException(ErrorCode.PAYMENT_FAILED);
+            }
 
             //  3. 데이터 무결성 검증 및 롤백
             if (!"PAID".equals(pgInfo.status()) || pgInfo.totalAmount() != ctx.totalPaymentPrice()) {
