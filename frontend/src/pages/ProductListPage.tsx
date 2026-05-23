@@ -13,7 +13,7 @@ const CATEGORIES = [
 export function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedCategory = searchParams.get('category') ?? 'all'
-  const { data: products } = useProducts()
+  const { data: products = [] } = useProducts()
 
   const filteredProducts =
     selectedCategory === 'all'
