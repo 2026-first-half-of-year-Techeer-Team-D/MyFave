@@ -9,3 +9,12 @@ export const isValidPhone = (value: string): boolean => PHONE_REGEX.test(value.t
 export const NAME_REGEX = /^[가-힣a-zA-Z]{2,}$/
 
 export const isValidName = (value: string): boolean => NAME_REGEX.test(value.trim())
+
+export const PASSWORD_MIN_LENGTH = 8
+
+export const isValidPassword = (value: string): boolean => {
+  if (value.length < PASSWORD_MIN_LENGTH) return false
+  if (!/[A-Za-z]/.test(value)) return false
+  if (!/\d/.test(value)) return false
+  return true
+}
