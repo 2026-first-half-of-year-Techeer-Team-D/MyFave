@@ -32,7 +32,7 @@ export function FindPasswordPage() {
   }
 
   const handleSendCode = () => {
-    if (!email) return
+    if (!email) { showPopUp('이메일을 입력해주세요'); return }
     setIsCodeSent(true)
     setTimeLeft(VERIFICATION_DURATION_SEC)
     showPopUp('인증번호가 발송되었습니다 🎁')
@@ -40,7 +40,8 @@ export function FindPasswordPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !code) return
+    if (!email) { showPopUp('이메일을 입력해주세요'); return }
+    if (!code) { showPopUp('인증번호를 입력해주세요'); return }
     showPopUp('임시 비밀번호를 발송했습니다 🔑')
     setTimeout(() => navigate('/login'), 2200)
   }
