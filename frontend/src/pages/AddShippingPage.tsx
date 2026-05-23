@@ -9,6 +9,7 @@ import type { AxiosError } from 'axios'
 import { shippingApi } from '@/features/shipping/api'
 import { useShippingStore } from '@/features/shipping/store'
 import type { Address } from '@/features/shipping/types'
+import { PopUp } from '@/shared/components/PopUp'
 import { isValidName, isValidPhone } from '@/shared/utils/validation'
 
 interface AddressFormData {
@@ -57,6 +58,13 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
   const updateAddress = useShippingStore((s) => s.updateAddress)
   const [isOpenPost, setIsOpenPost] = useState(false)
   const [formData, setFormData] = useState<AddressFormData>(() => buildInitialFormData(initialTarget))
+  const [isPopUpOpen, setIsPopUpOpen] = useState(false)
+  const [popUpMessage, setPopUpMessage] = useState('')
+
+  const showPopUp = (msg: string) => {
+    setPopUpMessage(msg)
+    setIsPopUpOpen(true)
+  }
 
   const handleComplete = (data: DaumAddress) => {
     let fullAddress = data.address
@@ -96,17 +104,17 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
     e.preventDefault()
 
     if (!formData.name || !formData.phone || !formData.address || !formData.zipcode) {
-      alert('이름, 휴대폰 번호, 주소(주소 찾기 버튼 사용)는 필수입니다.')
+      showPopUp('이름, 휴대폰 번호, 주소는 필수입니다')
       return
     }
 
     if (!isValidName(formData.name)) {
-      alert('이름은 한글 또는 영문 2자 이상으로 입력해주세요.')
+      showPopUp('이름은 한글 또는 영문 2자 이상으로 입력해주세요')
       return
     }
 
     if (!isValidPhone(formData.phone)) {
-      alert('휴대폰 번호를 010-XXXX-XXXX 형식으로 입력해주세요.')
+      showPopUp('휴대폰 번호를 010-XXXX-XXXX 형식으로 입력해주세요')
       return
     }
 
@@ -114,7 +122,7 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
       if (editId) {
         const shippingId = parseInt(editId, 10)
         if (isNaN(shippingId)) {
-          alert('유효하지 않은 배송지 ID입니다.')
+          showPopUp('유효하지 않은 배송지 ID입니다')
           return
         }
         await shippingApi.updateAddress(shippingId, {
@@ -165,9 +173,9 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
       navigate(fromPath)
     } catch (err) {
       const axiosErr = err as AxiosError<{ message?: string }>
-      const fallback = editId ? '배송지 수정 중 오류가 발생했습니다.' : '배송지 저장 중 오류가 발생했습니다.'
+      const fallback = editId ? '배송지 수정 중 오류가 발생했습니다' : '배송지 저장 중 오류가 발생했습니다'
       const msg = axiosErr.response?.data?.message ?? fallback
-      alert(msg)
+      showPopUp(msg)
     }
   }
 
@@ -321,6 +329,7 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
     </div>
 
     {postcodeModal}
+    <PopUp isOpen={isPopUpOpen} message={popUpMessage} onClose={() => setIsPopUpOpen(false)} />
     </>
   )
 }
