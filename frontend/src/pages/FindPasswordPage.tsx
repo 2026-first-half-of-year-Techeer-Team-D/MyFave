@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { PopUp } from '@/shared/components/PopUp'
+import { isValidEmail } from '@/shared/utils/validation'
 
 const VERIFICATION_DURATION_SEC = 180
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const isValidEmail = (value: string) => EMAIL_REGEX.test(value.trim())
 
 export function FindPasswordPage() {
   const navigate = useNavigate()
