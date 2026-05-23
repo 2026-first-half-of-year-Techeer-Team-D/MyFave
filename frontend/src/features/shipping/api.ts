@@ -1,4 +1,7 @@
 import { apiClient } from '@/shared/api/axios'
+import type { ApiResponse } from '@/shared/api/types'
+
+import type { TrackingResponse } from './types'
 
 export interface BackendShippingAddress {
   shippingId: number
@@ -49,5 +52,9 @@ export const shippingApi = {
   },
   setDefaultAddress: async (shippingId: number): Promise<void> => {
     await apiClient.patch(`/shipping/${shippingId}/default`)
+  },
+  getTracking: async (orderId: number): Promise<TrackingResponse> => {
+    const { data } = await apiClient.get<ApiResponse<TrackingResponse>>(`/orders/${orderId}/tracking`)
+    return data.data
   },
 }
