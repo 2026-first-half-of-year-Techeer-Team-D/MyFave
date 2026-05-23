@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PopUp } from '@/shared/components/PopUp'
-import { isValidEmail, isValidName, isValidPhone } from '@/shared/utils/validation'
+import { isValidEmail, isValidName, isValidPassword, isValidPhone } from '@/shared/utils/validation'
 import { useSendSignUpCode, useVerifySignUpCode, useSignUp } from '@/features/auth/hooks'
 
 type SignUpStep = 'EMAIL' | 'PASSWORD' | 'NAME' | 'PHONE' | 'NICKNAME' | 'AGREEMENT'
@@ -120,7 +120,19 @@ export function SignUpPage() {
 
   const handleNext = () => {
     if (step === 'EMAIL') setStep('PASSWORD')
-    else if (step === 'PASSWORD') setStep('NAME')
+    else if (step === 'PASSWORD') {
+      if (!formData.password) { showPopUp('비밀번호를 입력해주세요'); return }
+      if (!isValidPassword(formData.password)) {
+        showPopUp('비밀번호는 영문과 숫자를 포함해 8자 이상으로 입력해주세요')
+        return
+      }
+      if (!formData.passwordConfirm) { showPopUp('비밀번호를 다시 입력해주세요'); return }
+      if (formData.password !== formData.passwordConfirm) {
+        showPopUp('비밀번호가 일치하지 않습니다')
+        return
+      }
+      setStep('NAME')
+    }
     else if (step === 'NAME') {
       if (!formData.name) { showPopUp('이름을 입력해주세요'); return }
       if (!isValidName(formData.name)) {
