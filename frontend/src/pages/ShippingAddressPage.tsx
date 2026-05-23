@@ -39,6 +39,7 @@ export function ShippingAddressPage() {
   const { data: backendAddresses = [], isLoading } = useShippingAddresses()
   const deleteAddress = useDeleteShippingAddress()
   const setDefaultMutation = useSetDefaultShippingAddress()
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
     if (backendAddresses.length > 0) {
@@ -54,10 +55,16 @@ export function ShippingAddressPage() {
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
-    if (window.confirm('배송지를 삭제하시겠습니까?')) {
-      deleteAddress.mutate(Number(id))
-    }
+    setPendingDeleteId(id)
   }
+
+  const handleConfirmDelete = () => {
+    if (pendingDeleteId === null) return
+    deleteAddress.mutate(Number(pendingDeleteId))
+    setPendingDeleteId(null)
+  }
+
+  const handleCancelDelete = () => setPendingDeleteId(null)
 
   const filteredAddresses = addresses.filter(
     (addr) =>
@@ -173,6 +180,35 @@ export function ShippingAddressPage() {
           배송지 추가하기
         </button>
       </div>
+
+      {pendingDeleteId !== null && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-9 animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" onClick={handleCancelDelete} />
+          <div className="relative w-full max-w-[320px] overflow-hidden rounded-[15px] bg-white shadow-2xl">
+            <div className="px-6 py-10 text-center">
+              <p className="font-noto text-[15px] font-bold leading-relaxed text-[#322927]">
+                배송지를 삭제하시겠습니까?
+              </p>
+            </div>
+            <div className="flex border-t border-[#F2EDEB]">
+              <button
+                type="button"
+                onClick={handleCancelDelete}
+                className="flex-1 py-4 font-noto text-[14px] font-bold text-[#999999] hover:bg-gray-50 border-r border-[#F2EDEB]"
+              >
+                아니오
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="flex-1 py-4 font-noto text-[14px] font-bold text-point hover:bg-[#FEF6F6]"
+              >
+                예
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
