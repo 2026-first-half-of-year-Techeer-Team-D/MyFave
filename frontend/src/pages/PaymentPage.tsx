@@ -101,7 +101,7 @@ export function PaymentPage() {
 
   const subtotal = checkoutItems.reduce((sum, item) => sum + item.price, 0)
   const shippingFee = 3000
-  const discount = appliedCoupon ? appliedCoupon.discount : 0
+  const discount = appliedCoupon ? appliedCoupon.discountPrice : 0
   const total = subtotal + shippingFee - discount
 
   const handlePayment = async (e: React.FormEvent) => {
@@ -123,7 +123,8 @@ export function PaymentPage() {
       const prepareRes = await preparePayment.mutateAsync({
         orderId: order.orderId,
         paymentMethod: backendMethod,
-        ...(appliedCoupon?.id && { discountCouponId: appliedCoupon.id }),
+        ...(appliedCoupon?.couponId && appliedCoupon.couponType === 'DISCOUNT' && { discountCouponId: appliedCoupon.couponId }),
+        ...(appliedCoupon?.couponId && appliedCoupon.couponType === 'SHIPPING' && { shippingCouponId: appliedCoupon.couponId }),
       })
 
       // 금액 일치 검증
@@ -306,7 +307,9 @@ export function PaymentPage() {
             onClick={() => navigate('/coupons')}
             className="w-full h-[32px] rounded-[12px] bg-point font-noto text-[12px] font-bold text-white shadow-md active:scale-[0.99] transition-all"
           >
-            {appliedCoupon ? `적용됨: ${appliedCoupon.benefit}` : '쿠폰 사용'}
+            {appliedCoupon
+              ? `적용됨: ${appliedCoupon.couponType === 'SHIPPING' ? '배송비 무료' : `${appliedCoupon.discountPrice.toLocaleString()}원`}`
+              : '쿠폰 사용'}
           </button>
         </section>
 
