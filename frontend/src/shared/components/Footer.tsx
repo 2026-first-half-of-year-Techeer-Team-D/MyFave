@@ -38,8 +38,8 @@ export function Footer() {
           배송/주문 안내
         </Link>
         <span className="h-2 w-px bg-chat-font opacity-30" />
-        <a 
-          href="https://www.instagram.com/direct/inbox/" 
+        <a
+          href="https://www.instagram.com/daonmoood/"
           target="_blank"
           rel="noopener noreferrer"
           className="font-noto text-xs text-chat-font hover:underline"
