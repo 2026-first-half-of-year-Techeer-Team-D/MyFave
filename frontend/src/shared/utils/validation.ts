@@ -5,3 +5,7 @@ export const isValidEmail = (value: string): boolean => EMAIL_REGEX.test(value.t
 export const PHONE_REGEX = /^01[0-9]-\d{4}-\d{4}$/
 
 export const isValidPhone = (value: string): boolean => PHONE_REGEX.test(value.trim())
+
+export const NAME_REGEX = /^[가-힣a-zA-Z]{2,}$/
+
+export const isValidName = (value: string): boolean => NAME_REGEX.test(value.trim())
