@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { useConfirmPurchase, useOrdersQuery } from '@/features/orders/hooks'
 import type { BackendOrderStatus } from '@/features/orders/types'
-import { PRODUCTS } from '@/features/products/mock'
+import { getProductThumbnail } from '@/features/products/imageMap'
 
 const STATUS_LABEL: Record<BackendOrderStatus, string> = {
   PENDING: '결제 대기',
@@ -25,10 +25,6 @@ function formatDate(iso: string) {
     month: '2-digit',
     day: '2-digit',
   })
-}
-
-function getProductImage(item: { productId: number; thumbnailUrl: string | null }) {
-  return item.thumbnailUrl ?? PRODUCTS.find((p) => p.id === item.productId)?.image ?? ''
 }
 
 export function OrdersPage() {
@@ -88,7 +84,7 @@ export function OrdersPage() {
               >
                 <div className="w-[84px] h-[84px] flex-shrink-0 overflow-hidden rounded-[15px]">
                   <img
-                    src={getProductImage(item)}
+                    src={getProductThumbnail(item.productId)}
                     alt={item.productName}
                     className="w-full h-full object-cover"
                   />
