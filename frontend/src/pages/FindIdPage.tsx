@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { PopUp } from '@/shared/components/PopUp'
+import { isValidPhone } from '@/shared/utils/validation'
 
 export function FindIdPage() {
   const navigate = useNavigate()
@@ -37,7 +38,7 @@ export function FindIdPage() {
       return
     }
     if (!phone) { showPopUp('전화번호를 입력해주세요'); return }
-    if (!/^01[0-9]-\d{4}-\d{4}$/.test(phone)) {
+    if (!isValidPhone(phone)) {
       showPopUp('올바른 전화번호 형식이 아닙니다 (예: 010-1234-5678)')
       return
     }
