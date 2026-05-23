@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { useLogin } from '@/features/auth/hooks'
-import { Modal } from '@/shared/components/Modal'
+import { PopUp } from '@/shared/components/PopUp'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -10,15 +10,19 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [autoLogin, setAutoLogin] = useState(false)
-  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
+  const [isPopUpOpen, setIsPopUpOpen] = useState(false)
+  const [popUpMessage, setPopUpMessage] = useState('')
+
+  const showPopUp = (msg: string) => {
+    setPopUpMessage(msg)
+    setIsPopUpOpen(true)
+  }
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!email || !password) {
-      setErrorMessage('이메일과 비밀번호를 모두 입력해주세요')
-      setIsErrorModalOpen(true)
+      showPopUp('이메일과 비밀번호를 모두 입력해주세요')
       return
     }
 
@@ -26,18 +30,14 @@ export function LoginPage() {
       { email, password },
       {
         onSuccess: () => navigate('/'),
-        onError: () => {
-          setErrorMessage('이메일 또는 비밀번호가 일치하지 않습니다')
-          setIsErrorModalOpen(true)
-        },
+        onError: () => showPopUp('이메일 또는 비밀번호가 일치하지 않습니다'),
       },
     )
   }
 
   const handleKakaoLogin = () => {
     if (!window.Kakao?.isInitialized?.()) {
-      setErrorMessage('카카오 로그인을 사용할 수 없습니다.')
-      setIsErrorModalOpen(true)
+      showPopUp('카카오 로그인을 사용할 수 없습니다.')
       return
     }
     window.Kakao.Auth.authorize({
@@ -168,13 +168,7 @@ export function LoginPage() {
         </form>
       </div>
 
-      <Modal
-        isOpen={isErrorModalOpen}
-        onClose={() => setIsErrorModalOpen(false)}
-        buttonText="확인"
-      >
-        <p className="font-noto text-[14px] text-[#322927] text-center">{errorMessage}</p>
-      </Modal>
+      <PopUp isOpen={isPopUpOpen} message={popUpMessage} onClose={() => setIsPopUpOpen(false)} />
     </div>
   )
 }
