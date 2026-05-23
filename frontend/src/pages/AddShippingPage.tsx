@@ -9,6 +9,7 @@ import type { AxiosError } from 'axios'
 import { shippingApi } from '@/features/shipping/api'
 import { useShippingStore } from '@/features/shipping/store'
 import type { Address } from '@/features/shipping/types'
+import { isValidName, isValidPhone } from '@/shared/utils/validation'
 
 interface AddressFormData {
   name: string
@@ -99,8 +100,12 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
       return
     }
 
-    const phonePattern = /^010-\d{4}-\d{4}$/
-    if (!phonePattern.test(formData.phone)) {
+    if (!isValidName(formData.name)) {
+      alert('이름은 한글 또는 영문 2자 이상으로 입력해주세요.')
+      return
+    }
+
+    if (!isValidPhone(formData.phone)) {
       alert('휴대폰 번호를 010-XXXX-XXXX 형식으로 입력해주세요.')
       return
     }
