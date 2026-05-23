@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PopUp } from '@/shared/components/PopUp'
-import { isValidEmail, isValidName, isValidPassword, isValidPhone } from '@/shared/utils/validation'
+import { isValidEmail, isValidName, isValidNickname, isValidPassword, isValidPhone } from '@/shared/utils/validation'
 import { useSendSignUpCode, useVerifySignUpCode, useSignUp } from '@/features/auth/hooks'
 
 type SignUpStep = 'EMAIL' | 'PASSWORD' | 'NAME' | 'PHONE' | 'NICKNAME' | 'AGREEMENT'
@@ -102,6 +102,11 @@ export function SignUpPage() {
   }
 
   const handleSignUp = async () => {
+    if (!formData.nickname) { showPopUp('별명을 입력해주세요'); return }
+    if (!isValidNickname(formData.nickname)) {
+      showPopUp('별명은 한글, 영문, 숫자로 2~12자까지 입력 가능합니다')
+      return
+    }
     try {
       await signUpMutation.mutateAsync({
         email: formData.email,
