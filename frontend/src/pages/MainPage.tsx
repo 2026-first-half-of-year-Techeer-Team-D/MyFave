@@ -15,7 +15,7 @@ const DAON_PICKS = [
 ]
 
 export function MainPage() {
-  const { data: influencerProducts } = useInfluencerPicks()
+  const { data: influencerProducts = [] } = useInfluencerPicks()
 
   return (
     <div className="flex-1 bg-white">
