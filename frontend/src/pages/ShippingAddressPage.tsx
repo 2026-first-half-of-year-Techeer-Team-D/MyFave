@@ -36,16 +36,17 @@ export function ShippingAddressPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const syncAddresses = useShippingStore((s) => s.syncAddresses)
 
-  const { data: backendAddresses = [], isLoading } = useShippingAddresses()
+  const { data: backendAddresses = [], isLoading, isError, isSuccess } = useShippingAddresses()
   const deleteAddress = useDeleteShippingAddress()
   const setDefaultMutation = useSetDefaultShippingAddress()
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (backendAddresses.length > 0) {
+    // isSuccess 일 때만 sync — 빈 배열도 반드시 스토어에 반영해 이전 캐시 잔존 방지 (CR M15).
+    if (isSuccess) {
       syncAddresses(backendAddresses.map(toLocalAddress))
     }
-  }, [backendAddresses, syncAddresses])
+  }, [isSuccess, backendAddresses, syncAddresses])
 
   const addresses = backendAddresses.map(toLocalAddress)
 
@@ -104,7 +105,14 @@ export function ShippingAddressPage() {
           </>
         )}
 
-        {!isLoading && filteredAddresses.map((addr) => (
+        {!isLoading && isError && (
+          // 에러 상태를 빈 목록으로 숨기지 않도록 명시적 분기 (CR M14).
+          <p className="py-12 text-center font-noto text-[13px] text-muted-text">
+            배송지를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+          </p>
+        )}
+
+        {!isLoading && !isError && filteredAddresses.map((addr) => (
           <div
             key={addr.id}
             onClick={() => handleSelectDefault(addr.id)}
