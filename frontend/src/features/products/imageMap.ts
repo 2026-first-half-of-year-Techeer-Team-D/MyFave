@@ -66,7 +66,7 @@ export const imageMap: Partial<Record<number, ImageMapEntry>> = {
   11: {
     slug: 'top7',
     jpg: null,
-    heic: 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top7_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',
+    heic: 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top7_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg',
   },
   12: {
     slug: 'top8',
