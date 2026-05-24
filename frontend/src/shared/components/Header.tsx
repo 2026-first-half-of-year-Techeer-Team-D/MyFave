@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { useCartCount } from '@/features/cart/hooks'
+import { useCurrentSaleEvent } from '@/features/saleevent/hooks'
 import { SideMenu } from '@/shared/components/SideMenu'
 import { getCountdownSeconds } from '@/shared/utils/saleSchedule'
 
@@ -13,18 +14,21 @@ interface HeaderProps {
 
 export function Header({ showCountdown = true, title, showBackButton = false }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
-  // SALE_START_AT(saleSchedule.ts) 기준 남은 초를 매 초 재계산 — 탭 복귀/일시 정지에도 정확.
-  const [timeLeft, setTimeLeft] = useState(() => getCountdownSeconds())
+  const { data: saleEvent } = useCurrentSaleEvent()
+  const saleStartAtIso = saleEvent?.saleStartAt ?? null
+  const [timeLeft, setTimeLeft] = useState(0)
   const cartCount = useCartCount()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!showCountdown) return
+    if (!showCountdown || !saleStartAtIso) return
+    const startAt = new Date(saleStartAtIso)
+    setTimeLeft(getCountdownSeconds(startAt))
     const timer = setInterval(() => {
-      setTimeLeft(getCountdownSeconds())
+      setTimeLeft(getCountdownSeconds(startAt))
     }, 1000)
     return () => clearInterval(timer)
-  }, [showCountdown])
+  }, [showCountdown, saleStartAtIso])
 
   const formatTime = (seconds: number) => {
     // 1일 이상 남았으면 dd일 hh:mm:ss, 미만이면 hh:mm:ss

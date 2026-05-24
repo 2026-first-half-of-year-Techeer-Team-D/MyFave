@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { chatApi } from './api'
 
 export function useChatRoomInfo() {
@@ -30,5 +30,15 @@ export function useChatPreview(size = 5) {
     queryFn: () => chatApi.getPreview(size),
     staleTime: 30_000,
     retry: false,
+  })
+}
+
+export function useCloseChatRoom() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: chatApi.closeRoom,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chat', 'room'] })
+    },
   })
 }
