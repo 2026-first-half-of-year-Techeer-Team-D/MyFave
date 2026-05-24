@@ -210,8 +210,6 @@ export function PaymentPage() {
         },
       })
 
-      setIsPortOneOpen(false)
-
       if (!portoneRes || portoneRes.code) {
         const msg = portoneRes?.message ?? ''
         const isUserCancel = msg.includes('취소') || msg.toLowerCase().includes('cancel')
@@ -255,7 +253,6 @@ export function PaymentPage() {
         },
       })
     } catch (err) {
-      setIsPortOneOpen(false)
       // PortOne SDK가 resolve 대신 throw한 경우 (code 필드로 구분)
       const portoneErr = err as { code?: string; message?: string }
       if (portoneErr?.code) {
@@ -265,6 +262,9 @@ export function PaymentPage() {
         return
       }
       showPopUp(getPaymentErrorMessage(err))
+    } finally {
+      // 어떤 종료 경로(성공/취소/예외)에서도 결제버튼 잠금 해제 보장
+      setIsPortOneOpen(false)
     }
   }
 
