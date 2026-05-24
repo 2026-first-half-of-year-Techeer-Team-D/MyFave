@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api/axios'
 import type { ApiResponse } from '@/shared/api/types'
-import type { ChatRoomInfo, ChatHistoryResponse, ChatPreviewResponse } from './types'
+import type { ChatRoomInfo, ChatHistoryResponse, ChatPreviewResponse, ChatRoomCloseResponse } from './types'
 
 export const chatApi = {
   getRoomInfo: async (): Promise<ChatRoomInfo> => {
@@ -19,6 +19,11 @@ export const chatApi = {
     const { data } = await apiClient.get<ApiResponse<ChatPreviewResponse>>('/chat-room/preview', {
       params: { size },
     })
+    return data.data
+  },
+
+  closeRoom: async (): Promise<ChatRoomCloseResponse> => {
+    const { data } = await apiClient.patch<ApiResponse<ChatRoomCloseResponse>>('/chat-room/close')
     return data.data
   },
 }
