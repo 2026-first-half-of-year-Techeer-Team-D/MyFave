@@ -10,13 +10,28 @@ import type {
   SignUpRequest,
 } from './types'
 
+// 회원가입 시점에 프론트가 부여한 곰돌이 아바타 URL을 이메일 키로 localStorage 에 보관.
+// 백엔드 LoginResponse 가 profileImageUrl 을 아직 내려주지 않을 때 fallback 으로 사용.
+const PENDING_AVATAR_PREFIX = 'myfave-avatar:'
+
+function readPendingAvatar(email: string): string | undefined {
+  if (!email) return undefined
+  return localStorage.getItem(PENDING_AVATAR_PREFIX + email) ?? undefined
+}
+
 export function useLogin() {
   const login = useAuthStore((s) => s.login)
   return useMutation({
     mutationFn: authApi.login,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      const profileImageUrl = data.profileImageUrl ?? readPendingAvatar(variables.email)
       login({
-        user: { id: data.userId, email: '', nickname: data.nickname },
+        user: {
+          id: data.userId,
+          email: variables.email,
+          nickname: data.nickname,
+          profileImageUrl,
+        },
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       })
@@ -30,8 +45,14 @@ export function useKakaoLogin() {
     mutationFn: (authorizationCode: string) =>
       authApi.socialLogin('kakao', { authorizationCode }),
     onSuccess: (data) => {
+      const profileImageUrl = data.profileImageUrl ?? readPendingAvatar(data.email)
       login({
-        user: { id: data.userId, email: data.email, nickname: data.nickname },
+        user: {
+          id: data.userId,
+          email: data.email,
+          nickname: data.nickname,
+          profileImageUrl,
+        },
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       })
