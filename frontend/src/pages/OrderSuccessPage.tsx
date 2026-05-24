@@ -47,7 +47,7 @@ export function OrderSuccessPage() {
   })
 
   return (
-    <div className="flex-1 bg-white min-h-0 pb-32 overflow-y-auto">
+    <div className="flex-1 bg-white min-h-0 pb-32">
       {/* 1. Success Message */}
       <div className="flex flex-col items-center justify-center px-[19.99px] py-[40px] text-center">
         <div className="mb-[24px]">
