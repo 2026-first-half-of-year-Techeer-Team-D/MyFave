@@ -31,7 +31,9 @@ export function OrdersPage() {
   const navigate = useNavigate()
   const confirmPurchase = useConfirmPurchase()
   const { data, isLoading, isError } = useOrdersQuery()
-  const orders = data?.content ?? []
+  // PENDING(결제 대기) 주문은 결제가 아직 완료되지 않아 사용자에게 노출하지 않음.
+  // (백엔드 list 가 PENDING 을 포함해 내려주더라도 프론트에서 필터링)
+  const orders = (data?.content ?? []).filter((o) => o.orderStatus !== 'PENDING')
 
   if (isLoading) {
     return (
