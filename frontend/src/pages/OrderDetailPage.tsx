@@ -174,6 +174,20 @@ export function OrderDetailPage() {
               </p>
             )}
           </div>
+
+          {/* 배송 조회 CTA — 운송장이 등록된 경우 또는 배송중/배송완료 단계에서 노출.
+              클릭 시 /shipping-status/:orderId 로 이동, 택배사 트래킹 API 결과(배송 현황 + 이력)를 표시. */}
+          {(data.trackingNumber ||
+            data.orderStatus === 'SHIPPING' ||
+            data.orderStatus === 'DELIVERY_COMPLETED') && (
+            <button
+              type="button"
+              onClick={() => navigate(`/shipping-status/${data.orderId}`)}
+              className="mt-[16px] flex h-[40px] w-full items-center justify-center rounded-[5px] border-[1.096px] border-[#F2EDEB] bg-white font-noto text-[13px] font-medium text-[#322927] active:bg-gray-50 transition-colors"
+            >
+              배송 조회
+            </button>
+          )}
         </div>
       )}
     </div>
