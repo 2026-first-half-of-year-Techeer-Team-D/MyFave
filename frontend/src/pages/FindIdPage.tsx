@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { useFindId } from '@/features/auth/hooks'
 import { PopUp } from '@/shared/components/PopUp'
 import { isValidName, isValidPhone } from '@/shared/utils/validation'
 
@@ -11,6 +12,7 @@ export function FindIdPage() {
   const [foundEmail, setFoundEmail] = useState<string | null>(null)
   const [isPopUpOpen, setIsPopUpOpen] = useState(false)
   const [popUpMessage, setPopUpMessage] = useState('')
+  const findIdMutation = useFindId()
 
   const showPopUp = (msg: string) => {
     setPopUpMessage(msg)
@@ -22,12 +24,6 @@ export function FindIdPage() {
     if (numbers.length <= 3) return numbers
     if (numbers.length <= 7) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`
     return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`
-  }
-
-  const maskEmail = (name: string): string => {
-    const lower = name.toLowerCase().replace(/\s/g, '')
-    const visible = lower.slice(0, 2)
-    return `${visible}***@gmail.com`
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -42,7 +38,22 @@ export function FindIdPage() {
       showPopUp('올바른 전화번호 형식이 아닙니다 (예: 010-1234-5678)')
       return
     }
-    setFoundEmail(maskEmail(name))
+
+    findIdMutation.mutate(
+      { name, phoneNumber: phone },
+      {
+        onSuccess: (data) => setFoundEmail(data.maskedEmail),
+        onError: (error) => {
+          const errorCode = (error as { response?: { data?: { errorCode?: string } } })
+            ?.response?.data?.errorCode
+          if (errorCode === 'USER_NOT_FOUND') {
+            showPopUp('일치하는 회원 정보가 없습니다')
+          } else {
+            showPopUp('아이디 찾기에 실패했습니다. 잠시 후 다시 시도해주세요')
+          }
+        },
+      },
+    )
   }
 
   return (
@@ -96,10 +107,10 @@ export function FindIdPage() {
 
           <button
             type="submit"
-            disabled={!name || !phone}
+            disabled={!name || !phone || findIdMutation.isPending}
             className="flex h-[43px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-medium text-white shadow-sm active:scale-[0.98] transition-transform disabled:bg-gray-300"
           >
-            아이디 찾기
+            {findIdMutation.isPending ? '확인 중...' : '아이디 찾기'}
           </button>
         </form>
 
