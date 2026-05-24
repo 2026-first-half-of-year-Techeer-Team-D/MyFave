@@ -31,11 +31,11 @@ function getDashboardBucket(order: OrderSummaryApiResponse): DashboardBucket | n
 }
 
 const DASHBOARD_BUCKETS: DashboardBucket[] = ['입금확인', '배송준비', '배송중', '배송완료']
+const INFLUENCER_ID = Number(import.meta.env.VITE_INFLUENCER_USER_ID)
 
 export function MyPage() {
   const navigate = useNavigate()
   const user = useUser()
-  const INFLUENCER_ID = Number(import.meta.env.VITE_INFLUENCER_USER_ID)
   const isInfluencer = user?.id === INFLUENCER_ID
   const [isSaleEventModalOpen, setIsSaleEventModalOpen] = useState(false)
   const logout = useLogout()
@@ -179,6 +179,7 @@ export function MyPage() {
         {/* 판매 이벤트 등록 — 인플루언서 전용 */}
         {isInfluencer && (
           <button
+            type="button"
             onClick={() => setIsSaleEventModalOpen(true)}
             className="flex w-full h-[51px] items-center justify-between px-[19.99px] border-b-[1.096px] border-separator bg-white active:bg-gray-50 transition-colors"
           >
