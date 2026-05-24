@@ -16,12 +16,16 @@ interface PortOnePaymentRequest {
   currency: string
   payMethod: string
   easyPay?: { easyPayProvider: string }
+  redirectUrl?: string
   customer: {
     email: string
     fullName: string
     phoneNumber: string
   }
 }
+
+// 카톡/인스타/페이스북/라인/네이버 인앱 브라우저 — PortOne 결제는 외부 앱 스킴 호출에 의존하므로 인앱 환경에서 차단됨.
+const IN_APP_BROWSER_REGEX = /KAKAOTALK|Instagram|FBAN|FBAV|Line|NAVER\(inapp/i
 
 import { useUser } from '@/features/auth/hooks'
 import { useCart } from '@/features/cart/hooks'
@@ -163,6 +167,11 @@ export function PaymentPage() {
     e.preventDefault()
     if (checkoutItems.length === 0 || !address || !resolvedShippingId) return
 
+    if (IN_APP_BROWSER_REGEX.test(navigator.userAgent)) {
+      showPopUp('인앱 브라우저에서는 결제가 제한됩니다. Safari나 Chrome 등 기본 브라우저로 열어주세요.')
+      return
+    }
+
     const backendMethod = PAYMENT_METHOD_MAP[selectedMethod]
     if (!backendMethod) return
 
@@ -225,6 +234,9 @@ export function PaymentPage() {
         currency: 'KRW',
         payMethod: backendMethod === 'CARD' ? 'CARD' : 'EASY_PAY',
         ...(easyPayProvider && { easyPay: { easyPayProvider } }),
+        // 모바일 결제 시 PortOne 은 외부 앱·새 탭으로 빠졌다가 redirectUrl 로 복귀한다.
+        // PC 결제창은 이 옵션을 무시한다. 누락 시 모바일에서 결제창이 거부될 수 있어 항상 지정.
+        redirectUrl: `${window.location.origin}/payment/callback`,
         customer: {
           email: user?.email || 'buyer@myfave.com',
           fullName: user?.nickname || '구매자',
