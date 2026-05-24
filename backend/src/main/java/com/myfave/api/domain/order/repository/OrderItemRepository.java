@@ -13,6 +13,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     // 주문에 포함된 상품 목록
     List<OrderItem> findByOrder(Order order);
 
-    @Query("SELECT oi FROM OrderItem oi WHERE oi.order IN :orders")
+    @Query("SELECT oi FROM OrderItem oi JOIN FETCH oi.order WHERE oi.order IN :orders")
     List<OrderItem> findByOrderIn(@Param("orders") List<Order> orders);
 }

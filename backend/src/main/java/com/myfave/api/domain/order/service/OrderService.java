@@ -196,7 +196,7 @@ public class OrderService {
         Map<Long, List<OrderItem>> itemsByOrderId = allItems.stream()
                 .collect(Collectors.groupingBy(item -> item.getOrder().getOrderId()));
 
-        // ── 6. 주문별 DTO 변환 ──────────────────────────────────────────
+        // ── 5. 주문별 DTO 변환 ──────────────────────────────────────────
         List<OrderSummaryResponse> summaries = orders.stream()
                 .map(order -> OrderSummaryResponse.from(
                         order,
@@ -205,7 +205,7 @@ public class OrderService {
                 ))
                 .toList();
 
-        // ── 7. Page<OrderSummaryResponse>로 래핑 후 반환 ────────────────
+        // ── 6. Page<OrderSummaryResponse>로 래핑 후 반환 ────────────────
         // PageImpl: content + pageable + totalElements를 조합해 Page 객체 생성
         Page<OrderSummaryResponse> summaryPage =
                 new PageImpl<>(summaries, pageable, orderPage.getTotalElements());
