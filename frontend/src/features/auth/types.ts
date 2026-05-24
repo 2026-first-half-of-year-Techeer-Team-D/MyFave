@@ -54,15 +54,15 @@ export interface SignUpRequest {
   nickname: string
   phone: string
   verifiedToken: string
-  // 백엔드 SignUpRequest DTO에 profileImageUrl 필드가 추가되면 자동으로 전송된다.
-  // 현재 백엔드 미지원 → optional 로 유지. Jackson은 기본적으로 unknown 필드를 무시하므로 안전.
-  profileImageUrl?: string
+  // ─ profileImageUrl 은 백엔드 미지원이므로 전송하지 않음 ─
+  // 회원가입 시 부여된 곰돌이 아바타는 localStorage(PENDING_AVATAR_KEY) 에 저장해 다음 로그인 시 복원.
+  // 백엔드가 SignUpRequest DTO 에 필드를 추가하기 전까지 프론트는 이 필드를 보내지 않는다 (CR PR#185 M4).
 }
 
 export interface SignUpResponse {
   userId: number
   nickname: string
-  // 백엔드가 응답에 포함하기 시작하면 그대로 활용. 현재는 프론트가 자체 부여한 값을 store에 저장.
+  // 응답 측은 백엔드가 추가하기 시작하면 그대로 활용 — 응답 unknown 필드는 클라이언트에서 무시되므로 안전.
   profileImageUrl?: string
 }
 
