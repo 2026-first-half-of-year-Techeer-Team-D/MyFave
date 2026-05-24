@@ -109,10 +109,8 @@ export function SignUpPage() {
       showPopUp('별명은 한글, 영문, 숫자로 2~12자까지 입력 가능합니다')
       return
     }
-    // 회원가입 시점에 무작위 곰돌이 아바타 URL 한 개 부여.
-    // 백엔드 SignUpRequest 가 profileImageUrl 을 받기 시작하면 그대로 저장되고,
-    // 그렇지 않더라도 단일 비식별 키(PENDING_AVATAR_KEY) 에 JSON 으로 보관 → 다음 로그인 시 email 매칭 후 1회 소비.
-    // 이메일을 localStorage 키 자체에 노출하던 이전 방식은 제거 (CodeRabbit Major).
+    // 회원가입 시점에 무작위 곰돌이 아바타 URL 한 개 부여 — 백엔드 미지원 필드라 mutation body 에는 포함하지 않고
+    // 단일 비식별 키(PENDING_AVATAR_KEY) 에 JSON 으로 보관 → 다음 로그인 시 email 매칭 후 1회 소비 (CR PR#185 M4/M5).
     const profileImageUrl = getRandomAvatarUrl()
     if (profileImageUrl) {
       localStorage.setItem(
@@ -128,7 +126,6 @@ export function SignUpPage() {
         nickname: formData.nickname,
         phone: formData.phone,
         verifiedToken,
-        profileImageUrl,
       })
       showPopUp('회원가입이 완료되었습니다 ✨')
       setTimeout(() => navigate('/login'), 2000)
