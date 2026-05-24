@@ -262,7 +262,7 @@ public class PaymentService {
     // 결제 승인 직전 재고 확정 차감 — over-selling 방지를 위해 PESSIMISTIC_WRITE 락 사용
     @Transactional
     public void decreaseStockForConfirm(Long paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
+        Payment payment = paymentRepository.findByIdWithOrder(paymentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
         List<OrderItem> orderItems = orderItemRepository.findByOrder(payment.getOrder());
@@ -303,7 +303,7 @@ public class PaymentService {
     // DB에서 유저와 결제 상태 확인
     @Transactional(readOnly = true)
     public ConfirmContext validateForConfirm(Long userId, Long paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
+        Payment payment = paymentRepository.findByIdWithOrderAndUser(paymentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
         if (!payment.getOrder().getUser().getUserId().equals(userId)) {
             throw new CustomException(ErrorCode.AUTH_FORBIDDEN);
@@ -359,7 +359,7 @@ public class PaymentService {
         if (userId == null) {
             throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
         }
-        Payment payment = paymentRepository.findById(paymentId)
+        Payment payment = paymentRepository.findByIdWithOrderAndUser(paymentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
         if (!payment.getOrder().getUser().getUserId().equals(userId)) {
@@ -412,7 +412,7 @@ public class PaymentService {
     // 결제 취소
     @Transactional(readOnly = true)
     public CancelContext validateForCancel(Long userId, Long paymentId, PaymentCancelRequest request) {
-        Payment payment = paymentRepository.findById(paymentId)
+        Payment payment = paymentRepository.findByIdWithOrderAndUser(paymentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
         if (!payment.getOrder().getUser().getUserId().equals(userId)) {

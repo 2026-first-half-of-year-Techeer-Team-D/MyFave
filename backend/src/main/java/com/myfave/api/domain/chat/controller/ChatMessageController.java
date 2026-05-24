@@ -7,8 +7,6 @@ import com.myfave.api.domain.chat.dto.request.ChatMessageRequest;
 import com.myfave.api.domain.chat.dto.response.ChatMessageResponse;
 import com.myfave.api.domain.chat.service.ChatMessageService;
 import com.myfave.api.domain.chat.service.RedisPublisher;
-import com.myfave.api.domain.user.entity.User;
-import com.myfave.api.domain.user.service.UserService;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.Valid;
@@ -29,7 +27,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ChatMessageController {
 
-    private final UserService userService;
     private final ChatMessageService chatMessageService;
     private final RedisPublisher redisPublisher;
     private final SimpMessagingTemplate messagingTemplate;
@@ -61,7 +58,7 @@ public class ChatMessageController {
             return;
         }
 
-        User user = userService.findUserById(userId);
+        String nickname = (String) headerAccessor.getSessionAttributes().get("nickname");
 
         // XSS 방어
         String safeContent = HtmlUtils.htmlEscape(request.getPayload().getContent());
@@ -69,7 +66,7 @@ public class ChatMessageController {
         ChatMessageResponse response = ChatMessageResponse.newMessage(
                 UUID.randomUUID().toString(),
                 userId,
-                user.getNickname(),
+                nickname,
                 safeContent
         );
 

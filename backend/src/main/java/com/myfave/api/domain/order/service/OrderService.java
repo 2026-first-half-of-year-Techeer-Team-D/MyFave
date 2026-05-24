@@ -65,6 +65,7 @@ public class OrderService {
         String type = request.getOrderType() != null ? request.getOrderType().name() : "UNKNOWN";
         String outcome = "failure";
         try {
+        int itemCount = 0;
 
         // ── 1. 사용자 조회 ──────────────────────────────────────────────
         if (userId == null) {
@@ -124,6 +125,7 @@ public class OrderService {
                     .productName(product.getProductName())
                     .build();
             orderItemRepository.save(orderItem);
+            itemCount = 1;
 
         } else {
             // ── CART: 장바구니 상품 구매 ─────────────────────────────
@@ -136,10 +138,16 @@ public class OrderService {
                     .sorted(Comparator.naturalOrder())
                     .toList();
 
+            List<Long> distinctProductIds = sortedProductIds.stream().distinct().toList();
+            List<Product> products = productRepository.findAllById(distinctProductIds);
+            if (products.size() != distinctProductIds.size()) {
+                throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
+            }
+            Map<Long, Product> productMap = products.stream()
+                    .collect(Collectors.toMap(Product::getProductId, p -> p));
             List<Product> validatedProducts = new ArrayList<>();
             for (Long pid : sortedProductIds) {
-                Product product = productRepository.findById(pid)
-                        .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+                Product product = productMap.get(pid);
                 product.validateStock(1);
                 validatedProducts.add(product);
             }
@@ -153,11 +161,11 @@ public class OrderService {
                         .build();
                 orderItemRepository.save(orderItem);
             }
+            itemCount = validatedProducts.size();
         }
 
         // ── 7. 응답 반환 ───────────────────────────────────────────────
         // OrderResponse.from(order): order 엔티티에서 필요한 필드만 뽑아 DTO로 변환
-        int itemCount = orderItemRepository.findByOrder(order).size();
         log.info("[Order] 주문 생성: orderId={}, userId={}, type={}, itemCount={}",
                 order.getOrderId(), userId, type, itemCount);
         outcome = "success";
@@ -191,15 +199,12 @@ public class OrderService {
             return OrderListResponse.from(Page.empty(pageable));
         }
 
-        // ── 4. OrderItem 주문별 단건 조회 (의도적 N+1 발생 — 부하 실측용) ─
-        // 운영에서는 findByOrderIn(orders)로 IN 쿼리 1회 사용. 실측을 위해 단건 루프로 교체.
-        Map<Long, List<OrderItem>> itemsByOrderId = orders.stream()
-                .collect(Collectors.toMap(
-                        Order::getOrderId,
-                        order -> orderItemRepository.findByOrder(order)
-                ));
+        // ── 4. OrderItem IN 쿼리 1회 조회 (N+1 제거 — Round 2) ─────────────
+        List<OrderItem> allItems = orderItemRepository.findByOrderIn(orders);
+        Map<Long, List<OrderItem>> itemsByOrderId = allItems.stream()
+                .collect(Collectors.groupingBy(item -> item.getOrder().getOrderId()));
 
-        // ── 6. 주문별 DTO 변환 ──────────────────────────────────────────
+        // ── 5. 주문별 DTO 변환 ──────────────────────────────────────────
         List<OrderSummaryResponse> summaries = orders.stream()
                 .map(order -> OrderSummaryResponse.from(
                         order,
@@ -208,7 +213,7 @@ public class OrderService {
                 ))
                 .toList();
 
-        // ── 7. Page<OrderSummaryResponse>로 래핑 후 반환 ────────────────
+        // ── 6. Page<OrderSummaryResponse>로 래핑 후 반환 ────────────────
         // PageImpl: content + pageable + totalElements를 조합해 Page 객체 생성
         Page<OrderSummaryResponse> summaryPage =
                 new PageImpl<>(summaries, pageable, orderPage.getTotalElements());
