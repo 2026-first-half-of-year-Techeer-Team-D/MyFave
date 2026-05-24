@@ -128,7 +128,7 @@ export function SignUpPage() {
     else if (step === 'PASSWORD') {
       if (!formData.password) { showPopUp('비밀번호를 입력해주세요'); return }
       if (!isValidPassword(formData.password)) {
-        showPopUp('비밀번호는 영문과 숫자를 포함해 8자 이상으로 입력해주세요')
+        showPopUp('비밀번호는 영문·숫자·특수문자를 포함해 8~20자로 입력해주세요')
         return
       }
       if (!formData.passwordConfirm) { showPopUp('비밀번호를 다시 입력해주세요'); return }
