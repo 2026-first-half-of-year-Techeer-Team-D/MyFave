@@ -74,7 +74,7 @@ export function ShippingAddressPage() {
   )
 
   return (
-    <div className="flex-1 bg-white min-h-0 pb-10 overflow-y-auto">
+    <div className="flex-1 bg-white min-h-0 pb-10">
       {/* Search Bar */}
       <div className="px-[20px] pt-[28.01px] mb-[28px]">
         <div className="relative">
