@@ -10,6 +10,7 @@ import { getChatLifecycleState, getChatOpenAt, getCountdownSeconds } from '@/sha
 import { useCurrentSaleEvent } from '@/features/saleevent/hooks'
 import { useCloseChatRoom } from '@/features/chat/hooks'
 import { Modal } from '@/shared/components/Modal'
+import { CouponIssueModal } from '@/features/coupons/CouponIssueModal'
 
 const THROTTLE_MS = 3000
 const INFLUENCER_ID = Number(import.meta.env.VITE_INFLUENCER_USER_ID)
@@ -25,6 +26,8 @@ function getVariantFromNickname(nickname: string): number {
 
 interface Message {
   id: string | number
+  // admin 쿠폰 발급 시 대상 user_id 식별용 — WS NEW_MESSAGE 의 payload.userId, history 의 senderId 매핑.
+  userId: number
   user: string
   text: string
   avatarType: 'bear' | 'human' | 'seller'
@@ -36,6 +39,7 @@ interface Message {
 function historyToMessage(msg: ChatHistoryMessage): Message {
   return {
     id: msg.messageId,
+    userId: msg.senderId,
     user: msg.senderNickname,
     text: msg.content,
     avatarType: msg.influencer ? 'seller' : 'bear',
@@ -128,6 +132,8 @@ export function LiveChatPage() {
   const isInfluencer = user?.id === INFLUENCER_ID
   const closeRoomMutation = useCloseChatRoom()
   const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false)
+  // admin 쿠폰 발급 모달 — 채팅 메시지 옆 🎁 버튼 클릭 시 대상 user 정보 저장.
+  const [couponTarget, setCouponTarget] = useState<{ userId: number; nickname: string } | null>(null)
 
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
@@ -195,6 +201,7 @@ export function LiveChatPage() {
               const isOfficial = payload.nickname?.includes('공식') ?? false
               const newMessage: Message = {
                 id: payload.messageId ?? Date.now(),
+                userId: payload.userId,
                 user: payload.nickname,
                 text: payload.content,
                 avatarType: isOfficial ? 'seller' : 'bear',
@@ -321,6 +328,13 @@ export function LiveChatPage() {
         채팅방을 종료하면 모든 참여자의 채팅이 비활성화됩니다.{'\n'}정말 종료하시겠습니까?
       </Modal>
 
+      {/* admin 쿠폰 발급 모달 — 채팅 메시지 옆 🎁 버튼 클릭 시 표시. */}
+      <CouponIssueModal
+        isOpen={couponTarget != null}
+        onClose={() => setCouponTarget(null)}
+        target={couponTarget}
+      />
+
       {/* 0. Background Watermark */}
       <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-[0.20]">
         <img src="/logo.svg" alt="My Fave Watermark" className="w-[50%] h-auto grayscale" style={{ imageRendering: 'auto' }} />
@@ -396,6 +410,17 @@ export function LiveChatPage() {
                   <span className={`font-noto text-[12px] leading-[18px] text-[#000000] ${msg.isOfficial ? 'font-bold' : 'font-normal'}`}>
                     {msg.user}
                   </span>
+                  {/* admin(인플루언서)만 보이는 쿠폰 발급 버튼. 인플루언서 본인 메시지엔 표시 안 함. */}
+                  {isInfluencer && !msg.isOfficial && msg.userId !== INFLUENCER_ID && (
+                    <button
+                      type="button"
+                      onClick={() => setCouponTarget({ userId: msg.userId, nickname: msg.user })}
+                      className="rounded-full bg-main-bg/70 px-[6px] py-[1px] font-noto text-[10px] text-point hover:bg-main-bg active:scale-95 transition-all"
+                      aria-label={`${msg.user} 님에게 쿠폰 발급`}
+                    >
+                      🎁
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-end gap-[8px] max-w-[240px]">
                   <div
