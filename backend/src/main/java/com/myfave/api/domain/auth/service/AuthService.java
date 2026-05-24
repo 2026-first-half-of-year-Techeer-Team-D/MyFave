@@ -4,6 +4,7 @@ import com.myfave.api.domain.auth.client.KakaoAuthClient;
 import com.myfave.api.domain.auth.client.dto.KakaoTokenResponse;
 import com.myfave.api.domain.auth.client.dto.KakaoUserInfoResponse;
 import com.myfave.api.domain.auth.dto.request.FindEmailRequest;
+import com.myfave.api.domain.auth.dto.request.FindIdRequest;
 import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.PasswordResetSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
@@ -12,8 +13,10 @@ import com.myfave.api.domain.auth.dto.request.SignUpSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpVerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ResetPasswordRequest;
 import com.myfave.api.domain.auth.dto.request.SocialLoginRequest;
+import com.myfave.api.domain.auth.dto.request.TempPasswordRequest;
 import com.myfave.api.domain.auth.dto.request.VerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
+import com.myfave.api.domain.auth.dto.response.FindIdResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.ReissueResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
@@ -62,6 +65,9 @@ public class AuthService {
     private static final long RESET_TOKEN_TTL_MINUTES = 10L;
     private static final long SIGNUP_VERIFIED_TOKEN_TTL_MINUTES = 10L;
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final char[] TEMP_PASSWORD_ALPHABET =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*".toCharArray();
+    private static final int TEMP_PASSWORD_LENGTH = 12;
 
     public void sendSignUpCode(SignUpSendCodeRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -224,6 +230,40 @@ public class AuthService {
         User user = userRepository.findByNameAndPhone(request.getName(), request.getPhone())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         return FindEmailResponse.from(user.getEmail());
+    }
+
+    public FindIdResponse findIdByNameAndPhone(FindIdRequest request) {
+        User user = userRepository.findByNameAndPhone(request.getName(), request.getPhoneNumber())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        return FindIdResponse.from(maskEmail(user.getEmail()));
+    }
+
+    @Transactional
+    public void sendTempPassword(TempPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        String tempPassword = generateTempPassword();
+        user.updatePassword(passwordEncoder.encode(tempPassword));
+        mailService.sendTempPassword(user.getEmail(), tempPassword);
+    }
+
+    private String maskEmail(String email) {
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 1) {
+            return "*" + email.substring(Math.max(atIndex, 0));
+        }
+        String local = email.substring(0, atIndex);
+        String domain = email.substring(atIndex);
+        return local.charAt(0) + "***" + domain;
+    }
+
+    private String generateTempPassword() {
+        StringBuilder sb = new StringBuilder(TEMP_PASSWORD_LENGTH);
+        for (int i = 0; i < TEMP_PASSWORD_LENGTH; i++) {
+            sb.append(TEMP_PASSWORD_ALPHABET[RANDOM.nextInt(TEMP_PASSWORD_ALPHABET.length)]);
+        }
+        return sb.toString();
     }
 
     public void sendPasswordResetCode(PasswordResetSendCodeRequest request) {
