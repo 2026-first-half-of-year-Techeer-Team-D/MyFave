@@ -30,9 +30,6 @@ const IN_APP_BROWSER_REGEX = /KAKAOTALK|Instagram|FBAN|FBAV|Line|NAVER\(inapp/i
 // 백엔드 PortOne 모바일 channelKey 분기용. userAgent 기반 — 화면 너비(useIsMobile) 가 아니라 실제 디바이스로 판단해야 PG 채널이 정확히 선택된다.
 const MOBILE_DEVICE_REGEX = /iPhone|iPad|iPod|Android/i
 
-// 모바일 redirect 흐름에서 백엔드 paymentId 가 React state 로 보존되지 않으므로 sessionStorage 로 PaymentCallbackPage 까지 운반한다.
-const PENDING_PAYMENT_STORAGE_KEY = 'myfave:pendingPayment'
-
 import { useUser } from '@/features/auth/hooks'
 import { useCart } from '@/features/cart/hooks'
 import { useCartStore } from '@/features/cart/store'
@@ -214,12 +211,6 @@ export function PaymentPage() {
       // PortOne 실패/취소 시 cleanup 대상으로 저장.
       pendingPaymentId = prepareRes.paymentId
 
-      // 모바일 결제는 redirect 로 페이지가 떠나기 때문에 paymentId 를 sessionStorage 에 보존해 PaymentCallbackPage 가 confirm 호출에 사용한다.
-      sessionStorage.setItem(
-        PENDING_PAYMENT_STORAGE_KEY,
-        JSON.stringify({ paymentId: prepareRes.paymentId, idempotencyKey: prepareRes.idempotencyKey }),
-      )
-
       // 금액 일치 검증 (백엔드 값끼리만 비교)
       const expectedTotal = prepareRes.totalProductPrice + prepareRes.deliveryFee - prepareRes.discountPrice
       if (prepareRes.totalPaymentPrice !== expectedTotal) {
@@ -249,7 +240,8 @@ export function PaymentPage() {
         ...(easyPayProvider && { easyPay: { easyPayProvider } }),
         // 모바일 결제 시 PortOne 은 외부 앱·새 탭으로 빠졌다가 redirectUrl 로 복귀한다.
         // PC 결제창은 이 옵션을 무시한다. 누락 시 모바일에서 결제창이 거부될 수 있어 항상 지정.
-        redirectUrl: `${window.location.origin}/payment/callback`,
+        // bpid query 로 backend paymentId 를 URL 에 실어 보내 새 탭/세션 복귀 시에도 sessionStorage 없이 복구 가능.
+        redirectUrl: `${window.location.origin}/payment/callback?bpid=${prepareRes.paymentId}`,
         customer: {
           email: user?.email || 'buyer@myfave.com',
           fullName: user?.nickname || '구매자',
@@ -314,9 +306,6 @@ export function PaymentPage() {
       showPopUp(getPaymentErrorMessage(err))
       await cleanupPendingPayment('CONFIRM_FAILED')
     } finally {
-      // PC 결제창 흐름(성공/취소/예외)에서는 같은 페이지에서 종료되므로 여기서 sessionStorage 정리.
-      // 모바일 redirect 흐름은 finally 가 실행되지 않고 PaymentCallbackPage 가 정리한다.
-      sessionStorage.removeItem(PENDING_PAYMENT_STORAGE_KEY)
       // 어떤 종료 경로(성공/취소/예외)에서도 결제버튼 잠금 해제 보장
       setIsPortOneOpen(false)
     }
