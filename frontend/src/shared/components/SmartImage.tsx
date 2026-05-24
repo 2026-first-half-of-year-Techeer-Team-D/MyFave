@@ -45,6 +45,8 @@ export function SmartImage({ src, ...rest }: SmartImageProps) {
 
   useEffect(() => {
     // src 변경 시 이전 변환 URL 이 잠시 노출되는 것을 막기 위해 변환 시작 전에 초기화 (CR M8).
+    // (의도된 동기 setState — src 가 바뀐 직후 한 번만 reset 하기 위함이며 의존성 배열로 가드됨)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setConvertedUrl(undefined)
     if (!needsConversion || !src) return
     let cancelled = false
