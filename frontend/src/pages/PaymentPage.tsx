@@ -269,7 +269,7 @@ export function PaymentPage() {
   }
 
   return (
-    <div className="flex-1 bg-white min-h-0 pb-40 overflow-y-auto pt-8">
+    <div className="flex-1 bg-white min-h-0 pb-40 pt-8">
       <div className="px-[19.99px] pt-[17.01px] pb-[8px]">
         <h1 className="font-noto text-[15px] font-medium leading-[22px] text-[#322927]">{greetingName}</h1>
       </div>
