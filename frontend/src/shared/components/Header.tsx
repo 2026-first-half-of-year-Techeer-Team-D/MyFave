@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { useCartCount } from '@/features/cart/hooks'
 import { SideMenu } from '@/shared/components/SideMenu'
+import { getCountdownSeconds } from '@/shared/utils/saleSchedule'
 
 interface HeaderProps {
   showCountdown?: boolean
@@ -12,23 +13,28 @@ interface HeaderProps {
 
 export function Header({ showCountdown = true, title, showBackButton = false }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(17 * 60 * 39 + 1) // 17:39:01
+  // SALE_START_AT(saleSchedule.ts) 기준 남은 초를 매 초 재계산 — 탭 복귀/일시 정지에도 정확.
+  const [timeLeft, setTimeLeft] = useState(() => getCountdownSeconds())
   const cartCount = useCartCount()
   const navigate = useNavigate()
 
   useEffect(() => {
     if (!showCountdown) return
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0))
+      setTimeLeft(getCountdownSeconds())
     }, 1000)
     return () => clearInterval(timer)
   }, [showCountdown])
 
   const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600)
-    const m = Math.floor((seconds % 3600) / 60)
-    const s = seconds % 60
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    // 1일 이상 남았으면 dd일 hh:mm:ss, 미만이면 hh:mm:ss
+    const days = Math.floor(seconds / 86400)
+    const remainder = seconds % 86400
+    const h = Math.floor(remainder / 3600)
+    const m = Math.floor((remainder % 3600) / 60)
+    const s = remainder % 60
+    const hms = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    return days > 0 ? `${days}일 ${hms}` : hms
   }
 
   return (

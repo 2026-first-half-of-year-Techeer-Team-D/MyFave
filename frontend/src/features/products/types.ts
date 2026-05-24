@@ -35,6 +35,7 @@ export interface ProductApiItem {
   price: number
   thumbnailUrl: string | null
   isSoldOut: boolean
+  categoryCode: string | null
 }
 
 export interface ProductDetailApiResponse {

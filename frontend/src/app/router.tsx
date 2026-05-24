@@ -30,53 +30,59 @@ import { ShippingStatusPage } from '@/pages/ShippingStatusPage'
 import { SignUpPage } from '@/pages/SignUpPage'
 import { Layout } from '@/shared/components/Layout'
 import { ProtectedRoute } from '@/shared/components/ProtectedRoute'
+import { ScrollToTopWrapper } from '@/shared/components/ScrollToTopWrapper'
 
 const router = createBrowserRouter([
-  // Auth & support pages (no layout)
-  { path: '/login', element: <LoginPage /> },
-  { path: '/signup', element: <SignUpPage /> },
-  { path: '/find-id', element: <FindIdPage /> },
-  { path: '/find-password', element: <FindPasswordPage /> },
-  { path: '/inquiry', element: <InquiryPage /> },
-  { path: '/auth/kakao/callback', element: <KakaoCallbackPage /> },
-
-  // Pages with Header + Footer (Layout)
   {
-    element: <Layout />,
+    element: <ScrollToTopWrapper />,
     children: [
-      // Public browsing and community pages
-      { path: '/', element: <MainPage /> },
-      { path: '/shop', element: <ProductListPage /> },
-      { path: '/product/:id', element: <ProductDetailPage /> },
-      { path: '/cart', element: <CartPage /> },
-      { path: '/live-chat', element: <LiveChatPage /> },
-      { path: '/about', element: <AboutPage /> },
-      { path: '/notice', element: <NoticePage /> },
-      { path: '/faq', element: <FAQPage /> },
-      { path: '/shipping', element: <ShippingInfoPage /> },
-      { path: '/business', element: <BusinessInfoPage /> },
-      { path: '/terms', element: <TermsPage /> },
-      { path: '/privacy', element: <PrivacyPage /> },
+      // Auth & support pages (no layout)
+      { path: '/login', element: <LoginPage /> },
+      { path: '/signup', element: <SignUpPage /> },
+      { path: '/find-id', element: <FindIdPage /> },
+      { path: '/find-password', element: <FindPasswordPage /> },
+      { path: '/inquiry', element: <InquiryPage /> },
+      { path: '/auth/kakao/callback', element: <KakaoCallbackPage /> },
 
-      // Protected pages (require login)
+      // Pages with Header + Footer (Layout)
       {
-        element: <ProtectedRoute />,
+        element: <Layout />,
         children: [
-          { path: '/payment', element: <PaymentPage /> },
-          { path: '/shipping-addresses', element: <ShippingAddressPage /> },
-          { path: '/add-shipping', element: <AddShippingPage /> },
-          { path: '/coupons', element: <CouponPage /> },
-          { path: '/order-success', element: <OrderSuccessPage /> },
-          { path: '/mypage', element: <MyPage /> },
-          { path: '/orders', element: <OrdersPage /> },
-          { path: '/orders/:id', element: <OrderDetailPage /> },
-          { path: '/shipping-status/:orderId', element: <ShippingStatusPage /> },
+          // Public browsing and community pages
+          { path: '/', element: <MainPage /> },
+          { path: '/shop', element: <ProductListPage /> },
+          { path: '/product/:id', element: <ProductDetailPage /> },
+          { path: '/cart', element: <CartPage /> },
+          { path: '/live-chat', element: <LiveChatPage /> },
+          { path: '/about', element: <AboutPage /> },
+          { path: '/notice', element: <NoticePage /> },
+          { path: '/faq', element: <FAQPage /> },
+          { path: '/shipping', element: <ShippingInfoPage /> },
+          { path: '/business', element: <BusinessInfoPage /> },
+          { path: '/terms', element: <TermsPage /> },
+          { path: '/privacy', element: <PrivacyPage /> },
+
+          // Protected pages (require login)
+          {
+            element: <ProtectedRoute />,
+            children: [
+              { path: '/payment', element: <PaymentPage /> },
+              { path: '/shipping-addresses', element: <ShippingAddressPage /> },
+              { path: '/add-shipping', element: <AddShippingPage /> },
+              { path: '/coupons', element: <CouponPage /> },
+              { path: '/order-success', element: <OrderSuccessPage /> },
+              { path: '/mypage', element: <MyPage /> },
+              { path: '/orders', element: <OrdersPage /> },
+              { path: '/orders/:id', element: <OrderDetailPage /> },
+              { path: '/shipping-status/:orderId', element: <ShippingStatusPage /> },
+            ],
+          },
         ],
       },
+
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
-
-  { path: '*', element: <NotFoundPage /> },
 ])
 
 export function AppRouter() {

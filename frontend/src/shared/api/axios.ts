@@ -20,7 +20,9 @@ const getAuthTokens = (): { accessToken: string | null; refreshToken: string | n
         refreshToken: parsed.state?.refreshToken ?? null,
       }
     }
-  } catch {}
+  } catch {
+    // localStorage 파싱 실패는 무시하고 비로그인 상태로 처리
+  }
   return { accessToken: null, refreshToken: null }
 }
 
@@ -39,7 +41,9 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // auth 엔드포인트(로그인·재발급)는 재시도 없이 즉시 거부
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/')
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true
       const { refreshToken } = getAuthTokens()
 

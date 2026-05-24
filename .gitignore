@@ -36,3 +36,4 @@ backend/run.bat
 .env*.local
 AGENTS.md
 .DS_Store
+.omc/

@@ -57,6 +57,12 @@ export interface OrderSummaryApiResponse {
   totalPaymentPrice: number
   createdAt: string
   orderItems: OrderItemApiResponse[]
+  // ─ forward-compat ───────────────────────────────────────────────
+  // 백엔드가 list 응답에 운송장 정보를 포함하기 시작하면 그 즉시 활용.
+  // PAID 상태에서 trackingNumber 가 채워진 주문 = "배송 준비" 버킷으로 집계.
+  // 백엔드 추가 작업 가이드: backend OrderSummary DTO 에 trackingNumber 필드 추가 +
+  // OrderRepository projection 에 포함. (Talk with AI/관리자_입금확인_to_배송준비_가이드.md 참조)
+  trackingNumber?: string | null
 }
 
 export interface OrderDetailApiResponse {

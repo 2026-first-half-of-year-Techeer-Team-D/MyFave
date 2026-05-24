@@ -2,7 +2,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { useOrderDetailQuery } from '@/features/orders/hooks'
 import type { BackendOrderStatus } from '@/features/orders/types'
-import { PRODUCTS } from '@/features/products/mock'
+import { getProductThumbnail } from '@/features/products/imageMap'
+import { SmartImage } from '@/shared/components/SmartImage'
 
 const STATUS_LABEL: Record<BackendOrderStatus, string> = {
   PENDING: '결제 대기',
@@ -27,10 +28,6 @@ function formatDate(iso: string) {
     month: '2-digit',
     day: '2-digit',
   })
-}
-
-function getProductImage(productId: number) {
-  return PRODUCTS.find((p) => p.id === productId)?.image ?? ''
 }
 
 export function OrderDetailPage() {
@@ -70,8 +67,10 @@ export function OrderDetailPage() {
             className="flex gap-[11.99px] p-[15.99px] rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white"
           >
             <div className="w-[84px] h-[84px] flex-shrink-0 overflow-hidden rounded-[15px]">
-              <img
-                src={getProductImage(item.productId)}
+              <SmartImage
+                // 로컬 imageMap 우선, 매핑 없으면 백엔드 thumbnailUrl fallback.
+                // HEIC-only 상품도 SmartImage 가 자동 변환 (CR M9).
+                src={getProductThumbnail(item.productId) || item.thumbnailUrl || ''}
                 alt={item.productName}
                 className="w-full h-full object-cover"
               />
@@ -89,9 +88,21 @@ export function OrderDetailPage() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="font-noto text-[11px] text-[#949494]">
-                    {STATUS_LABEL[data.orderStatus]}
-                  </span>
+                  {data.orderStatus === 'PAID' ? (
+                    // PAID('배송 준비중') 상태 텍스트 자체를 클릭 가능한 버튼으로 — /shipping-status 로 이동.
+                    // 운송장이 아직 미등록이면 트래킹 페이지가 "운송장이 아직 등록되지 않았습니다" 안내.
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/shipping-status/${data.orderId}`)}
+                      className="font-noto text-[11px] text-[#949494] underline-offset-2 hover:underline active:opacity-60 transition-opacity"
+                    >
+                      {STATUS_LABEL[data.orderStatus]}
+                    </button>
+                  ) : (
+                    <span className="font-noto text-[11px] text-[#949494]">
+                      {STATUS_LABEL[data.orderStatus]}
+                    </span>
+                  )}
                   {data.orderStatus === 'SHIPPING' && (
                     <button
                       type="button"
@@ -178,6 +189,20 @@ export function OrderDetailPage() {
               </p>
             )}
           </div>
+
+          {/* 배송 조회 CTA — 운송장이 등록된 경우 또는 배송중/배송완료 단계에서 노출.
+              클릭 시 /shipping-status/:orderId 로 이동, 택배사 트래킹 API 결과(배송 현황 + 이력)를 표시. */}
+          {(data.trackingNumber ||
+            data.orderStatus === 'SHIPPING' ||
+            data.orderStatus === 'DELIVERY_COMPLETED') && (
+            <button
+              type="button"
+              onClick={() => navigate(`/shipping-status/${data.orderId}`)}
+              className="mt-[16px] flex h-[40px] w-full items-center justify-center rounded-[5px] border-[1.096px] border-[#F2EDEB] bg-white font-noto text-[13px] font-medium text-[#322927] active:bg-gray-50 transition-colors"
+            >
+              배송 조회
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PopUp } from '@/shared/components/PopUp'
+import { isValidEmail, isValidName, isValidNickname, isValidPassword, isValidPhone } from '@/shared/utils/validation'
 import { useSendSignUpCode, useVerifySignUpCode, useSignUp } from '@/features/auth/hooks'
+import { PENDING_AVATAR_KEY } from '@/features/auth/storageKeys'
+import { getRandomAvatarUrl } from '@/features/auth/avatars'
 
 type SignUpStep = 'EMAIL' | 'PASSWORD' | 'NAME' | 'PHONE' | 'NICKNAME' | 'AGREEMENT'
 type TermsView = 'NONE' | 'TERMS' | 'PRIVACY_REQ' | 'PRIVACY_OPT' | 'MARKETING'
@@ -74,7 +77,8 @@ export function SignUpPage() {
   }
 
   const handleSendCode = async () => {
-    if (!formData.email) return
+    if (!formData.email) { showPopUp('이메일을 입력해주세요'); return }
+    if (!isValidEmail(formData.email)) { showPopUp('올바른 이메일 형식이 아닙니다'); return }
     try {
       await sendSignUpCode.mutateAsync({ email: formData.email })
       setIsCodeSent(true)
@@ -100,6 +104,20 @@ export function SignUpPage() {
   }
 
   const handleSignUp = async () => {
+    if (!formData.nickname) { showPopUp('별명을 입력해주세요'); return }
+    if (!isValidNickname(formData.nickname)) {
+      showPopUp('별명은 한글, 영문, 숫자로 2~12자까지 입력 가능합니다')
+      return
+    }
+    // 회원가입 시점에 무작위 곰돌이 아바타 URL 한 개 부여 — 백엔드 미지원 필드라 mutation body 에는 포함하지 않고
+    // 단일 비식별 키(PENDING_AVATAR_KEY) 에 JSON 으로 보관 → 다음 로그인 시 email 매칭 후 1회 소비 (CR PR#185 M4/M5).
+    const profileImageUrl = getRandomAvatarUrl()
+    if (profileImageUrl) {
+      localStorage.setItem(
+        PENDING_AVATAR_KEY,
+        JSON.stringify({ pendingEmail: formData.email, url: profileImageUrl }),
+      )
+    }
     try {
       await signUpMutation.mutateAsync({
         email: formData.email,
@@ -118,9 +136,35 @@ export function SignUpPage() {
 
   const handleNext = () => {
     if (step === 'EMAIL') setStep('PASSWORD')
-    else if (step === 'PASSWORD') setStep('NAME')
-    else if (step === 'NAME') setStep('PHONE')
-    else if (step === 'PHONE') setStep('NICKNAME')
+    else if (step === 'PASSWORD') {
+      if (!formData.password) { showPopUp('비밀번호를 입력해주세요'); return }
+      if (!isValidPassword(formData.password)) {
+        showPopUp('비밀번호는 영문·숫자·특수문자를 포함해 8~20자로 입력해주세요')
+        return
+      }
+      if (!formData.passwordConfirm) { showPopUp('비밀번호를 다시 입력해주세요'); return }
+      if (formData.password !== formData.passwordConfirm) {
+        showPopUp('비밀번호가 일치하지 않습니다')
+        return
+      }
+      setStep('NAME')
+    }
+    else if (step === 'NAME') {
+      if (!formData.name) { showPopUp('이름을 입력해주세요'); return }
+      if (!isValidName(formData.name)) {
+        showPopUp('이름은 한글 또는 영문 2자 이상으로 입력해주세요')
+        return
+      }
+      setStep('PHONE')
+    }
+    else if (step === 'PHONE') {
+      if (!formData.phone) { showPopUp('전화번호를 입력해주세요'); return }
+      if (!isValidPhone(formData.phone)) {
+        showPopUp('올바른 전화번호 형식이 아닙니다 (예: 010-1234-5678)')
+        return
+      }
+      setStep('NICKNAME')
+    }
     else if (step === 'NICKNAME') {
       showPopUp('회원가입이 완료되었습니다 ✨')
       setTimeout(() => navigate('/login'), 2000)

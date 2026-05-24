@@ -8,3 +8,22 @@ export interface Address {
   request?: string
   phone: string
 }
+
+export interface TrackingEvent {
+  statusCode: string
+  statusName: string
+  time: string
+  location: string
+  description: string
+}
+
+export interface TrackingResponse {
+  trackingNumber: string
+  carrierId: string
+  statusCode: string
+  statusName: string
+  time: string
+  location: string
+  description: string
+  events: TrackingEvent[]
+}
