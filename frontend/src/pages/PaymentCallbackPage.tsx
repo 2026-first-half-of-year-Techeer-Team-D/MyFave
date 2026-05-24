@@ -6,25 +6,6 @@ import { useConfirmPayment } from '@/features/payments/hooks'
 
 import { PopUp } from '@/shared/components/PopUp'
 
-// PaymentPage.tsx 의 PENDING_PAYMENT_STORAGE_KEY 와 반드시 동일해야 한다.
-const PENDING_PAYMENT_STORAGE_KEY = 'myfave:pendingPayment'
-
-interface PendingPayment {
-  paymentId: number
-  idempotencyKey: string
-}
-
-function readPendingPayment(): PendingPayment | null {
-  try {
-    const raw = sessionStorage.getItem(PENDING_PAYMENT_STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as PendingPayment
-    return typeof parsed?.paymentId === 'number' && typeof parsed?.idempotencyKey === 'string' ? parsed : null
-  } catch {
-    return null
-  }
-}
-
 export function PaymentCallbackPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -38,42 +19,44 @@ export function PaymentCallbackPage() {
     if (hasProcessed.current) return
     hasProcessed.current = true
 
+    // PaymentPage 가 redirectUrl 에 박아둔 bpid (backend Payment.paymentId).
+    // sessionStorage 가 새 탭/세션 복귀로 유실되어도 URL 자체로 운반되므로 항상 복구 가능.
+    const backendPaymentId = Number(searchParams.get('bpid'))
+    // PortOne v2 표준: 모바일 redirect query 의 paymentId = 우리가 SDK 에 넘긴 idempotencyKey.
+    // 백엔드 paymentProvider.getPaymentInfo(pgTransactionId) 가 PortOne API GET /payments/{paymentId} 로 사용한다.
+    const pgTransactionId = searchParams.get('paymentId') ?? ''
     const code = searchParams.get('code')
     const message = searchParams.get('message') ?? ''
-    const pgTransactionId =
-      searchParams.get('txId') ?? searchParams.get('transactionId') ?? searchParams.get('paymentId') ?? ''
-
-    const pending = readPendingPayment()
-    // sessionStorage 는 한 번 읽고 즉시 정리 — 새로고침/뒤로가기 재실행 방지.
-    sessionStorage.removeItem(PENDING_PAYMENT_STORAGE_KEY)
 
     const openFailurePopUp = (msg: string) => {
       setPopUpMessage(msg)
       setIsPopUpOpen(true)
     }
 
+    const hasValidBpid = Number.isFinite(backendPaymentId) && backendPaymentId > 0
+
     // 1) PortOne 가 실패/취소로 redirect 한 경우.
     if (code) {
       const isUserCancel = message.includes('취소') || message.toLowerCase().includes('cancel')
       // 백엔드에 남은 PENDING 결제 silent cleanup — 실패해도 사용자 흐름에 영향 없음.
-      if (pending) {
+      if (hasValidBpid) {
         paymentsApi
-          .cancel(pending.paymentId, { reason: isUserCancel ? 'USER_CANCEL' : `SDK_ERROR: ${message}` })
+          .cancel(backendPaymentId, { reason: isUserCancel ? 'USER_CANCEL' : `SDK_ERROR: ${message}` })
           .catch(() => {})
       }
       openFailurePopUp(isUserCancel ? '결제를 취소하셨습니다.' : `결제 실패: ${message || '알 수 없는 오류'}`)
       return
     }
 
-    // 2) sessionStorage 가 비어있음 — 새 탭/세션 만료 등 비정상 진입.
-    if (!pending) {
+    // 2) bpid query 가 없거나 비정상 — 새 탭에서 직접 URL 입력 등 비정상 진입.
+    if (!hasValidBpid) {
       openFailurePopUp('결제 정보를 확인할 수 없습니다. 결제 페이지에서 다시 시도해주세요.')
       return
     }
 
     // 3) 정상 redirect — 백엔드 confirm 호출.
     confirmPayment.mutate(
-      { paymentId: pending.paymentId, pgTransactionId: pgTransactionId || pending.idempotencyKey },
+      { paymentId: backendPaymentId, pgTransactionId },
       {
         onSuccess: () => {
           navigate('/orders', { replace: true })
