@@ -27,6 +27,9 @@ interface PortOnePaymentRequest {
 // 카톡/인스타/페이스북/라인/네이버 인앱 브라우저 — PortOne 결제는 외부 앱 스킴 호출에 의존하므로 인앱 환경에서 차단됨.
 const IN_APP_BROWSER_REGEX = /KAKAOTALK|Instagram|FBAN|FBAV|Line|NAVER\(inapp/i
 
+// 백엔드 PortOne 모바일 channelKey 분기용. userAgent 기반 — 화면 너비(useIsMobile) 가 아니라 실제 디바이스로 판단해야 PG 채널이 정확히 선택된다.
+const MOBILE_DEVICE_REGEX = /iPhone|iPad|iPod|Android/i
+
 // 모바일 redirect 흐름에서 백엔드 paymentId 가 React state 로 보존되지 않으므로 sessionStorage 로 PaymentCallbackPage 까지 운반한다.
 const PENDING_PAYMENT_STORAGE_KEY = 'myfave:pendingPayment'
 
@@ -199,10 +202,11 @@ export function PaymentPage() {
           : { orderType: 'DIRECT', productId: checkoutItems[0].id, shippingAddressId: resolvedShippingId }
       const order = await createOrder.mutateAsync(orderPayload)
 
-      // 2. 결제 준비
+      // 2. 결제 준비 — deviceType 으로 PC/모바일 channelKey 분기 (백엔드 PaymentService.resolveChannelKey).
       const prepareRes = await preparePayment.mutateAsync({
         orderId: order.orderId,
         paymentMethod: backendMethod,
+        deviceType: MOBILE_DEVICE_REGEX.test(navigator.userAgent) ? 'MOBILE' : 'PC',
         ...(appliedCoupon?.couponId && appliedCoupon.couponType === 'DISCOUNT' && { discountCouponId: appliedCoupon.couponId }),
         ...(appliedCoupon?.couponId && appliedCoupon.couponType === 'SHIPPING' && { shippingCouponId: appliedCoupon.couponId }),
       })
