@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-import { queryClient } from '@/app/providers'
+import { queryClient } from '@/app/queryClient'
 import type { User } from './types'
 
 const USER_STORE_KEYS = ['myfave-shipping', 'myfave-cart', 'myfave-coupons']
