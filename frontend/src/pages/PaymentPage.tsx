@@ -136,7 +136,7 @@ export function PaymentPage() {
 
   const backendPriceMap = useMemo(() => {
     const map: Record<number, number> = {}
-    backendProducts?.content.forEach((p) => { map[p.id] = p.price })
+    backendProducts?.content?.forEach((p) => { map[p.id] = p.price })
     return map
   }, [backendProducts])
 

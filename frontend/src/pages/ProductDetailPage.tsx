@@ -7,6 +7,7 @@ import { useCheckoutStore } from '@/features/payments/store'
 import { useProduct } from '@/features/products/hooks'
 import { Modal } from '@/shared/components/Modal'
 import { PopUp } from '@/shared/components/PopUp'
+import { SmartImage } from '@/shared/components/SmartImage'
 
 export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -79,7 +80,7 @@ export function ProductDetailPage() {
           {product.images.map((img, idx) =>
             failedImages.has(idx) ? null : (
               <div key={idx} className="h-full w-full flex-shrink-0 snap-center">
-                <img
+                <SmartImage
                   src={img}
                   alt={`${product.title}-${idx}`}
                   className="h-full w-full object-cover"

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 
 import { useInfluencerPicks } from '@/features/products/hooks'
 import { LiveChatPreview } from '@/shared/components/LiveChatPreview'
+import { SmartImage } from '@/shared/components/SmartImage'
 
 const S3 = 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com'
 
@@ -53,7 +54,7 @@ export function MainPage() {
               to={`/product/${product.id}`}
               className="relative aspect-square overflow-hidden rounded-[8px] bg-gray-50 border border-separator/10 active:scale-[0.98] transition-transform"
             >
-              <img
+              <SmartImage
                 src={product.image}
                 alt={product.title}
                 className="h-full w-full object-cover"

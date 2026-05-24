@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { useProducts } from '@/features/products/hooks'
+import { SmartImage } from '@/shared/components/SmartImage'
 
 const CATEGORIES = [
   { label: '전체', value: 'all' },
@@ -65,7 +66,7 @@ export function ProductListPage() {
             >
               {/* Product Image - 각진 모서리(rounded-none) */}
               <div className="relative mb-[9px] h-[200px] overflow-hidden bg-gray-50 border border-separator/10">
-                <img
+                <SmartImage
                   src={product.image}
                   alt={product.title}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
