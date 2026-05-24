@@ -191,13 +191,10 @@ public class OrderService {
             return OrderListResponse.from(Page.empty(pageable));
         }
 
-        // ── 4. OrderItem 주문별 단건 조회 (의도적 N+1 발생 — 부하 실측용) ─
-        // 운영에서는 findByOrderIn(orders)로 IN 쿼리 1회 사용. 실측을 위해 단건 루프로 교체.
-        Map<Long, List<OrderItem>> itemsByOrderId = orders.stream()
-                .collect(Collectors.toMap(
-                        Order::getOrderId,
-                        order -> orderItemRepository.findByOrder(order)
-                ));
+        // ── 4. OrderItem IN 쿼리 1회 조회 (N+1 제거 — Round 2) ─────────────
+        List<OrderItem> allItems = orderItemRepository.findByOrderIn(orders);
+        Map<Long, List<OrderItem>> itemsByOrderId = allItems.stream()
+                .collect(Collectors.groupingBy(item -> item.getOrder().getOrderId()));
 
         // ── 6. 주문별 DTO 변환 ──────────────────────────────────────────
         List<OrderSummaryResponse> summaries = orders.stream()
