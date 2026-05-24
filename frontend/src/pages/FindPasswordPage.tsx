@@ -1,52 +1,47 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { useResetPassword } from '@/features/auth/hooks'
 import { PopUp } from '@/shared/components/PopUp'
 import { isValidEmail } from '@/shared/utils/validation'
-
-const VERIFICATION_DURATION_SEC = 180
 
 export function FindPasswordPage() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
-  const [isCodeSent, setIsCodeSent] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(0)
   const [popUpMessage, setPopUpMessage] = useState('')
   const [isPopUpOpen, setIsPopUpOpen] = useState(false)
-
-  useEffect(() => {
-    if (timeLeft <= 0) return
-    const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000)
-    return () => clearInterval(timer)
-  }, [timeLeft])
+  const resetPasswordMutation = useResetPassword()
 
   const showPopUp = (msg: string) => {
     setPopUpMessage(msg)
     setIsPopUpOpen(true)
   }
 
-  const formatTime = (sec: number) => {
-    const m = Math.floor(sec / 60)
-    const s = sec % 60
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-  }
-
-  const handleSendCode = () => {
-    if (!email) { showPopUp('이메일을 입력해주세요'); return }
-    if (!isValidEmail(email)) { showPopUp('올바른 이메일 형식이 아닙니다'); return }
-    setIsCodeSent(true)
-    setTimeLeft(VERIFICATION_DURATION_SEC)
-    showPopUp('인증번호가 발송되었습니다 🎁')
-  }
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) { showPopUp('이메일을 입력해주세요'); return }
     if (!isValidEmail(email)) { showPopUp('올바른 이메일 형식이 아닙니다'); return }
-    if (!code) { showPopUp('인증번호를 입력해주세요'); return }
-    showPopUp('임시 비밀번호를 발송했습니다 🔑')
-    setTimeout(() => navigate('/login'), 2200)
+
+    resetPasswordMutation.mutate(
+      { email },
+      {
+        onSuccess: () => {
+          showPopUp('임시 비밀번호가 이메일로 발송되었습니다 🔑')
+          setTimeout(() => navigate('/login'), 2200)
+        },
+        onError: (error) => {
+          const errorCode = (error as { response?: { data?: { errorCode?: string } } })
+            ?.response?.data?.errorCode
+          if (errorCode === 'USER_NOT_FOUND') {
+            showPopUp('가입되지 않은 이메일입니다')
+          } else if (errorCode === 'EMAIL_SEND_FAILED') {
+            showPopUp('메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요')
+          } else {
+            showPopUp('임시 비밀번호 발송에 실패했습니다')
+          }
+        },
+      },
+    )
   }
 
   return (
@@ -72,9 +67,9 @@ export function FindPasswordPage() {
 
         <h1 className="mb-[11px] font-noto text-[24px] font-bold text-black">비밀번호 찾기</h1>
         <p className="mb-[18px] font-noto text-[13px] text-[#8B7E74] leading-[20px]">
-          가입한 이메일로 인증번호를 받은 뒤
+          가입한 이메일로 임시 비밀번호를 발송해드립니다.
           <br />
-          임시 비밀번호를 발급받을 수 있습니다.
+          로그인 후 즉시 비밀번호를 변경해주세요.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-[11px]">
@@ -88,46 +83,13 @@ export function FindPasswordPage() {
             />
           </div>
 
-          {isCodeSent && (
-            <div className="relative flex h-[43px] items-center rounded-[5px] border border-[#BBBBBB] bg-white px-[19px]">
-              <input
-                type="text"
-                placeholder="인증번호를 입력해주세요"
-                className="w-full bg-transparent font-noto text-[16px] font-medium text-[#322927] placeholder:text-[#999999] focus:outline-none"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              />
-              <div className="absolute right-[19px] flex items-center gap-[10px]">
-                <span className="font-noto text-[14px] font-bold text-[#999999]">{formatTime(timeLeft)}</span>
-                <button
-                  type="button"
-                  onClick={handleSendCode}
-                  className="h-[25px] rounded-[5px] bg-point px-2 font-noto text-[10px] font-bold text-white"
-                >
-                  재발송
-                </button>
-              </div>
-            </div>
-          )}
-
-          {!isCodeSent ? (
-            <button
-              type="button"
-              onClick={handleSendCode}
-              disabled={!email}
-              className="flex h-[43px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-medium text-white shadow-sm active:scale-[0.98] transition-transform disabled:bg-gray-300"
-            >
-              인증번호 발송하기
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={!code}
-              className="flex h-[43px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-medium text-white shadow-sm active:scale-[0.98] transition-transform disabled:bg-gray-300"
-            >
-              임시 비밀번호 받기
-            </button>
-          )}
+          <button
+            type="submit"
+            disabled={!email || resetPasswordMutation.isPending}
+            className="flex h-[43px] w-full items-center justify-center rounded-[5px] bg-point font-noto text-[16px] font-medium text-white shadow-sm active:scale-[0.98] transition-transform disabled:bg-gray-300"
+          >
+            {resetPasswordMutation.isPending ? '발송 중...' : '임시 비밀번호 받기'}
+          </button>
         </form>
 
         <div className="mt-[20px] text-center">
