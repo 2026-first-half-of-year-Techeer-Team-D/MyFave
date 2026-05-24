@@ -85,9 +85,21 @@ export function OrderDetailPage() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="font-noto text-[11px] text-[#949494]">
-                    {STATUS_LABEL[data.orderStatus]}
-                  </span>
+                  {data.orderStatus === 'PAID' ? (
+                    // PAID('배송 준비중') 상태 텍스트 자체를 클릭 가능한 버튼으로 — /shipping-status 로 이동.
+                    // 운송장이 아직 미등록이면 트래킹 페이지가 "운송장이 아직 등록되지 않았습니다" 안내.
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/shipping-status/${data.orderId}`)}
+                      className="font-noto text-[11px] text-[#949494] underline-offset-2 hover:underline active:opacity-60 transition-opacity"
+                    >
+                      {STATUS_LABEL[data.orderStatus]}
+                    </button>
+                  ) : (
+                    <span className="font-noto text-[11px] text-[#949494]">
+                      {STATUS_LABEL[data.orderStatus]}
+                    </span>
+                  )}
                   {data.orderStatus === 'SHIPPING' && (
                     <button
                       type="button"
