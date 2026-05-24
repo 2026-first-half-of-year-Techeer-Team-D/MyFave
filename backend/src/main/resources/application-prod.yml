@@ -8,6 +8,10 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: false
+    properties:
+      hibernate:
+        # 1000ms 초과 쿼리만 운영 로그로 (loadtest 500ms 보다 보수적 — 로그 폭주 방지)
+        session.events.log.LOG_QUERIES_SLOWER_THAN_MS: 1000
 
   data:
     redis:
@@ -17,6 +21,11 @@ spring:
 springdoc:
   swagger-ui:
     enabled: false
+
+# 운영에서도 slow query 인지 가능하도록 SQL_SLOW 로거 INFO 유지
+logging:
+  level:
+    org.hibernate.SQL_SLOW: INFO
 
 # CORS 설정 (prod profile override)
 app:

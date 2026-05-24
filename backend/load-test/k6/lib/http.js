@@ -2,6 +2,7 @@
 // 시나리오 코드를 깔끔하게 유지하기 위함.
 
 import http from 'k6/http';
+import { loadtestHeaders } from './context.js';
 
 export const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080/api/v1';
 
@@ -10,6 +11,8 @@ export function authHeaders(token, extra = {}) {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
+      // 부하테스트 Round/Scenario/RunId 헤더 — 모든 HTTP 요청에 자동 부착
+      ...loadtestHeaders(),
       ...extra,
     },
   };

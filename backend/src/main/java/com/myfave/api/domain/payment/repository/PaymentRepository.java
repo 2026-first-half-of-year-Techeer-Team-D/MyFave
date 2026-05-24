@@ -19,4 +19,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     // Reconciliation: 특정 상태 + 생성시각 기준 조회
     List<Payment> findByPaymentStatusAndCreatedAtBefore(PaymentStatus status, ZonedDateTime threshold);
+
+    // myfave.payment.pending.gauge: 현재 PENDING 결제 적체량 관측
+    long countByPaymentStatus(PaymentStatus status);
 }

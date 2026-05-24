@@ -8,6 +8,9 @@
 //         a["<stomp-frame>"] ← message (a 접두사 + JSON 배열)
 //         c[code,"reason"]   ← close
 
+import { LOADTEST_RUN_ID, LOADTEST_SCENARIO, LOADTEST_ROUND } from './context.js';
+
+// STOMP frame 종료자: NULL byte (0x00). String.fromCharCode로 명시적으로 생성.
 const NULL_BYTE = String.fromCharCode(0);
 
 // STOMP 프레임을 SockJS 송신 포맷으로 감싸기
@@ -15,12 +18,22 @@ function sockJsWrap(frame) {
   return JSON.stringify([frame]);
 }
 
+function loadtestStompHeaders() {
+  const lines = [];
+  if (LOADTEST_RUN_ID) lines.push(`X-Loadtest-Run-Id:${LOADTEST_RUN_ID}`);
+  if (LOADTEST_SCENARIO) lines.push(`X-Loadtest-Scenario:${LOADTEST_SCENARIO}`);
+  if (LOADTEST_ROUND) lines.push(`X-Loadtest-Round:${LOADTEST_ROUND}`);
+  return lines.length > 0 ? lines.join('\n') + '\n' : '';
+}
+
 export function connect(accessToken) {
+  // Bearer 토큰은 JwtChannelInterceptor가 STOMP 헤더에서 읽음.
   const frame =
     'CONNECT\n' +
     'accept-version:1.2\n' +
     'host:localhost\n' +
     `Authorization:Bearer ${accessToken}\n` +
+    loadtestStompHeaders() +
     '\n' +
     NULL_BYTE;
   return sockJsWrap(frame);

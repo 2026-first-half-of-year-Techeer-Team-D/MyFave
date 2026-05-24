@@ -30,11 +30,14 @@ import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -67,6 +70,7 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final PaymentProvider paymentProvider;
+    private final MeterRegistry meterRegistry;
 
     @Lazy
     private final PaymentService self;
@@ -180,56 +184,79 @@ public class PaymentService {
     // 2. 결제 승인 (오케스트레이터: 외부 호출은 트랜잭션 밖) ──────────────────────
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public PaymentResponse confirmPayment(Long userId, PaymentConfirmRequest request) {
-        if (userId == null) {
-            throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
-        }
-        // 1. DB에서 유저와 결제 상태 확인
-        ConfirmContext ctx = self.validateForConfirm(userId, request.getPaymentId());
-
-        // 2. 외부 PG사 통신
-        PortOnePaymentInfo pgInfo = paymentProvider.getPaymentInfo(request.getPgTransactionId());
-
-        //  3. 데이터 무결성 검증 및 롤백
-        if (!"PAID".equals(pgInfo.status()) || pgInfo.totalAmount() != ctx.totalPaymentPrice()) {
-            String failReason = "PG상태: " + pgInfo.status() +
-                    ", 예상금액: " + ctx.totalPaymentPrice() +
-                    ", 실제금액: " + pgInfo.totalAmount();
-            try {
-                if ("PAID".equals(pgInfo.status())) {
-                    paymentProvider.cancelPayment(pgInfo.pgTransactionId(), pgInfo.totalAmount(), "금액 불일치 자동 환불");
-                }
-            } catch (Exception ex) {
-                log.warn("PG 자동취소 실패: paymentId={}", ctx.paymentId(), ex);
-            } finally {
-                self.failConfirm(ctx.paymentId(), pgInfo.pgTransactionId(), failReason);
-            }
-            throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
-        }
-
-        // 4. 결제 승인 직전 재고 확정 차감 — over-selling 방지 + 보상 트랜잭션
+        Timer.Sample sample = Timer.start(meterRegistry);
+        String outcome = "failure";
         try {
-            self.decreaseStockForConfirm(ctx.paymentId());
-        } catch (CustomException e) {
-            // PG는 이미 PAID 처리됨 → 자동 환불 보상 + Payment FAILED + 원본 에러 전파
-            String failReason = "재고 차감 실패: " + e.getErrorCode().name();
-            try {
-                paymentProvider.cancelPayment(
-                        pgInfo.pgTransactionId(),
-                        pgInfo.totalAmount(),
-                        "재고 차감 실패 자동 환불 (" + e.getErrorCode().name() + ")");
-            } catch (Exception ex) {
-                // PG 환불 자체가 실패 — 운영 알람 대상
-                log.error("[Payment] 재고 실패 후 PG 자동 환불 실패: paymentId={}, pgTxId={}, error={}",
-                        ctx.paymentId(), pgInfo.pgTransactionId(), ex.getMessage(), ex);
+            if (userId == null) {
+                throw new CustomException(ErrorCode.AUTH_UNAUTHORIZED);
             }
-            self.failConfirm(ctx.paymentId(), pgInfo.pgTransactionId(), failReason);
-            log.warn("[Payment] 결제 후 재고 차감 실패: paymentId={}, errorCode={}",
-                    ctx.paymentId(), e.getErrorCode());
-            throw e; // 원본 PRODUCT_SOLD_OUT / PRODUCT_STOCK_INSUFFICIENT 그대로 전파
-        }
+            // 1. DB에서 유저와 결제 상태 확인
+            ConfirmContext ctx = self.validateForConfirm(userId, request.getPaymentId());
 
-        // 5. 최종 성공 반영
-        return self.completeConfirm(ctx.paymentId(), pgInfo, userId);
+            // 2. 외부 PG사 통신
+            PortOnePaymentInfo pgInfo = paymentProvider.getPaymentInfo(request.getPgTransactionId());
+
+            //  3. 데이터 무결성 검증 및 롤백
+            if (!"PAID".equals(pgInfo.status()) || pgInfo.totalAmount() != ctx.totalPaymentPrice()) {
+                String failReason = "PG상태: " + pgInfo.status() +
+                        ", 예상금액: " + ctx.totalPaymentPrice() +
+                        ", 실제금액: " + pgInfo.totalAmount();
+                // 금액 불일치는 보안/계산 버그 신호 — 즉시 알람 대상
+                meterRegistry.counter("myfave.payment.amount.mismatch").increment();
+                log.error("[Payment] 금액 불일치: paymentId={}, serverAmount={}, pgAmount={}, diff={}, pgStatus={}",
+                        ctx.paymentId(), ctx.totalPaymentPrice(), pgInfo.totalAmount(),
+                        pgInfo.totalAmount() - ctx.totalPaymentPrice(), pgInfo.status());
+                try {
+                    if ("PAID".equals(pgInfo.status())) {
+                        paymentProvider.cancelPayment(pgInfo.pgTransactionId(), pgInfo.totalAmount(), "금액 불일치 자동 환불");
+                        meterRegistry.counter("myfave.payment.pg.auto.refund", "outcome", "success", "trigger", "amount_mismatch").increment();
+                    }
+                } catch (Exception ex) {
+                    meterRegistry.counter("myfave.payment.pg.auto.refund", "outcome", "failure", "trigger", "amount_mismatch").increment();
+                    log.warn("PG 자동취소 실패: paymentId={}", ctx.paymentId(), ex);
+                } finally {
+                    self.failConfirm(ctx.paymentId(), pgInfo.pgTransactionId(), failReason);
+                }
+                throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
+            }
+
+            // 4. 결제 승인 직전 재고 확정 차감 — over-selling 방지 + 보상 트랜잭션
+            try {
+                self.decreaseStockForConfirm(ctx.paymentId());
+            } catch (CustomException e) {
+                meterRegistry.counter("myfave.payment.stock.deduct.failed",
+                        "reason", e.getErrorCode().name()).increment();
+                // PG는 이미 PAID 처리됨 → 자동 환불 보상 + Payment FAILED + 원본 에러 전파
+                String failReason = "재고 차감 실패: " + e.getErrorCode().name();
+                try {
+                    paymentProvider.cancelPayment(
+                            pgInfo.pgTransactionId(),
+                            pgInfo.totalAmount(),
+                            "재고 차감 실패 자동 환불 (" + e.getErrorCode().name() + ")");
+                    meterRegistry.counter("myfave.payment.pg.auto.refund", "outcome", "success", "trigger", "stock_deduct_failed").increment();
+                } catch (Exception ex) {
+                    meterRegistry.counter("myfave.payment.pg.auto.refund", "outcome", "failure", "trigger", "stock_deduct_failed").increment();
+                    // PG 환불 자체가 실패 — 운영 알람 대상
+                    log.error("[Payment] 재고 실패 후 PG 자동 환불 실패: paymentId={}, pgTxId={}, error={}",
+                            ctx.paymentId(), pgInfo.pgTransactionId(), ex.getMessage(), ex);
+                }
+                self.failConfirm(ctx.paymentId(), pgInfo.pgTransactionId(), failReason);
+                // 보상 분기 트리거 — WARN → ERROR 승격
+                log.error("[Payment] 결제 후 재고 차감 실패: paymentId={}, errorCode={}",
+                        ctx.paymentId(), e.getErrorCode());
+                throw e; // 원본 PRODUCT_SOLD_OUT / PRODUCT_STOCK_INSUFFICIENT 그대로 전파
+            }
+
+            // 5. 최종 성공 반영
+            PaymentResponse response = self.completeConfirm(ctx.paymentId(), pgInfo, userId);
+            outcome = "success";
+            return response;
+        } finally {
+            meterRegistry.counter("myfave.payment.confirm", "outcome", outcome).increment();
+            sample.stop(Timer.builder("myfave.payment.confirm.duration")
+                    .tag("outcome", outcome)
+                    .register(meterRegistry));
+        }
     }
 
     // 결제 승인 직전 재고 확정 차감 — over-selling 방지를 위해 PESSIMISTIC_WRITE 락 사용
@@ -247,9 +274,29 @@ public class PaymentService {
                 .toList();
 
         for (Long pid : sortedProductIds) {
-            Product product = productRepository.findByIdForUpdate(pid)
-                    .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
-            product.decreaseStock(1); // stockQuantity-- + isSoldout 동기화
+            // 락 획득 대기시간 측정 — PESSIMISTIC_WRITE 경합 강도 시나리오 D 검증
+            Timer.Sample lockSample = Timer.start(meterRegistry);
+            Product product;
+            try {
+                product = productRepository.findByIdForUpdate(pid)
+                        .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+            } catch (PessimisticLockingFailureException e) {
+                // 데드락/락 타임아웃 (Hibernate가 Spring DataAccessException으로 변환).
+                // PostgreSQL deadlock_timeout(기본 1s) 초과나 40P01 발생 시 진입.
+                meterRegistry.counter("myfave.stock.deadlock").increment();
+                meterRegistry.counter("myfave.stock.deduct.attempt", "outcome", "deadlock").increment();
+                throw e;
+            } finally {
+                lockSample.stop(Timer.builder("myfave.stock.lock.wait.duration").register(meterRegistry));
+            }
+            try {
+                product.decreaseStock(1); // stockQuantity-- + isSoldout 동기화
+                meterRegistry.counter("myfave.stock.deduct.attempt", "outcome", "success").increment();
+            } catch (CustomException e) {
+                String outcome = ErrorCode.PRODUCT_SOLD_OUT.equals(e.getErrorCode()) ? "sold_out" : "insufficient";
+                meterRegistry.counter("myfave.stock.deduct.attempt", "outcome", outcome).increment();
+                throw e;
+            }
         }
     }
 
@@ -350,7 +397,8 @@ public class PaymentService {
                             e.getMessage());
                 } catch (Exception compensationEx) {
                     // 보상 트랜잭션 자체가 실패해도 PG 환불은 이미 완료된 상태이므로
-                    // 운영 추적이 가능하도록 ERROR 로그를 반드시 남긴다.
+                    // 운영 추적이 가능하도록 ERROR 로그를 반드시 남긴다. 수동 복구 큐 대상.
+                    meterRegistry.counter("myfave.payment.compensation.persist.failed").increment();
                     log.error("[Payment] PG 환불 완료 + 재고 복구 실패 + 보상 영속화까지 실패: "
                                     + "paymentId={}, pgTxId={}, cancelAmount={}, compensationError={}",
                             ctx.paymentId(), ctx.pgTransactionId(), ctx.cancelAmount(),
@@ -417,6 +465,10 @@ public class PaymentService {
                 try {
                     product.increaseStock(1);
                 } catch (CustomException e) {
+                    // 데이터 불일치 위험 — 즉시 알람 + 보상 영속화 트리거
+                    // reason 라벨: deduct 실패와 동일 패턴(ErrorCode.name())으로 원인 분류
+                    meterRegistry.counter("myfave.payment.stock.restore.failed",
+                            "reason", e.getErrorCode().name()).increment();
                     throw new CustomException(ErrorCode.PAYMENT_STOCK_RESTORE_FAILED);
                 }
             }
@@ -631,11 +683,16 @@ public class PaymentService {
             mac.init(new SecretKeySpec(apiSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             String computed = Base64.getEncoder().encodeToString(mac.doFinal(message.getBytes(StandardCharsets.UTF_8)));
             if (!computed.equals(signature)) {
+                // 공격/설정 오류 신호 — 즉시 알람 대상
+                meterRegistry.counter("myfave.payment.webhook.signature.invalid", "reason", "mismatch").increment();
+                log.warn("[Webhook] 서명 검증 실패: webhookId={}, reason=mismatch", webhookId);
                 throw new CustomException(ErrorCode.PAYMENT_WEBHOOK_INVALID_SIGNATURE);
             }
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {
+            meterRegistry.counter("myfave.payment.webhook.signature.invalid", "reason", "exception").increment();
+            log.warn("[Webhook] 서명 검증 예외: webhookId={}, error={}", webhookId, e.getMessage());
             throw new CustomException(ErrorCode.PAYMENT_WEBHOOK_INVALID_SIGNATURE);
         }
     }
