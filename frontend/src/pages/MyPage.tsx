@@ -1,22 +1,57 @@
+import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { useLogout, useUser } from '@/features/auth/hooks'
 import { useMyCoupons } from '@/features/coupons/hooks'
+import { useOrdersQuery } from '@/features/orders/hooks'
+import type { OrderSummaryApiResponse } from '@/features/orders/types'
 import { UserIcon } from '@/shared/components/UserIcon'
 
-// TODO: React Query로 대체 - 주문 현황 API 연동
-const ORDER_STATUS = [
-  { status: '입금확인', count: 0 },
-  { status: '배송준비', count: 0 },
-  { status: '배송중', count: 0 },
-  { status: '배송완료', count: 0 },
-]
+type DashboardBucket = '입금확인' | '배송준비' | '배송중' | '배송완료'
+
+// 백엔드 BackendOrderStatus + trackingNumber 유무를 4-bucket 대시보드 라벨로 환산.
+// - PAID && !trackingNumber → 입금확인 (운영자가 아직 배송 정보 입력 안 함)
+// - PAID && trackingNumber  → 배송준비 (운영자가 배송 정보 입력했지만 출고 전)
+// - SHIPPING                → 배송중
+// - DELIVERY_COMPLETED, PURCHASE_CONFIRMED → 배송완료
+// - PENDING / CANCELLED / REFUNDED → 대시보드 집계 제외
+function getDashboardBucket(order: OrderSummaryApiResponse): DashboardBucket | null {
+  switch (order.orderStatus) {
+    case 'PAID':
+      return order.trackingNumber ? '배송준비' : '입금확인'
+    case 'SHIPPING':
+      return '배송중'
+    case 'DELIVERY_COMPLETED':
+    case 'PURCHASE_CONFIRMED':
+      return '배송완료'
+    default:
+      return null
+  }
+}
+
+const DASHBOARD_BUCKETS: DashboardBucket[] = ['입금확인', '배송준비', '배송중', '배송완료']
 
 export function MyPage() {
   const navigate = useNavigate()
   const user = useUser()
   const logout = useLogout()
   const { data: availableCoupons = [] } = useMyCoupons('AVAILABLE')
+  const { data: ordersData } = useOrdersQuery()
+
+  const orderCounts = useMemo(() => {
+    const init: Record<DashboardBucket, number> = {
+      입금확인: 0,
+      배송준비: 0,
+      배송중: 0,
+      배송완료: 0,
+    }
+    const orders = ordersData?.content ?? []
+    for (const order of orders) {
+      const bucket = getDashboardBucket(order)
+      if (bucket) init[bucket] += 1
+    }
+    return init
+  }, [ordersData])
 
   const displayName = user ? `${user.nickname}님` : '비회원'
   const displayEmail = user?.email ?? ''
@@ -31,7 +66,13 @@ export function MyPage() {
       {/* 1. User Profile Section - Figma Node 99:1201 */}
       <div className="px-[19.99px] pt-[23.99px] pb-[19.99px]">
         <div className="flex items-center gap-[14px]">
-          <UserIcon type="bear" variant={10} size={56} className="shadow-sm" />
+          <UserIcon
+            type="bear"
+            variant={10}
+            size={56}
+            className="shadow-sm"
+            profileImageUrl={user?.profileImageUrl}
+          />
           <div className="flex flex-col gap-[1.99px]">
             <h2 className="font-noto text-[16px] font-medium leading-[24px] text-[#322927] tracking-tight">
               {displayName}
@@ -47,17 +88,17 @@ export function MyPage() {
       <div className="px-[19.99px] mb-[24px]">
         <div className="rounded-[12px] bg-footer-bg p-[15.99px] shadow-sm border border-separator/10">
           <div className="flex justify-between items-center h-[54.99px]">
-            {ORDER_STATUS.map((order) => (
+            {DASHBOARD_BUCKETS.map((bucket) => (
               <Link
-                key={order.status}
+                key={bucket}
                 to="/orders"
                 className="flex flex-col items-center justify-between h-full w-[74.12px]"
               >
                 <span className="font-noto text-[24px] font-medium leading-[36px] text-[#322927]">
-                  {order.count}
+                  {orderCounts[bucket]}
                 </span>
                 <span className="font-noto text-[12px] font-normal leading-[18px] text-[#8B7E74]">
-                  {order.status}
+                  {bucket}
                 </span>
               </Link>
             ))}
