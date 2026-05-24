@@ -27,6 +27,9 @@ interface PortOnePaymentRequest {
 // 카톡/인스타/페이스북/라인/네이버 인앱 브라우저 — PortOne 결제는 외부 앱 스킴 호출에 의존하므로 인앱 환경에서 차단됨.
 const IN_APP_BROWSER_REGEX = /KAKAOTALK|Instagram|FBAN|FBAV|Line|NAVER\(inapp/i
 
+// 모바일 redirect 흐름에서 백엔드 paymentId 가 React state 로 보존되지 않으므로 sessionStorage 로 PaymentCallbackPage 까지 운반한다.
+const PENDING_PAYMENT_STORAGE_KEY = 'myfave:pendingPayment'
+
 import { useUser } from '@/features/auth/hooks'
 import { useCart } from '@/features/cart/hooks'
 import { useCartStore } from '@/features/cart/store'
@@ -207,6 +210,12 @@ export function PaymentPage() {
       // PortOne 실패/취소 시 cleanup 대상으로 저장.
       pendingPaymentId = prepareRes.paymentId
 
+      // 모바일 결제는 redirect 로 페이지가 떠나기 때문에 paymentId 를 sessionStorage 에 보존해 PaymentCallbackPage 가 confirm 호출에 사용한다.
+      sessionStorage.setItem(
+        PENDING_PAYMENT_STORAGE_KEY,
+        JSON.stringify({ paymentId: prepareRes.paymentId, idempotencyKey: prepareRes.idempotencyKey }),
+      )
+
       // 금액 일치 검증 (백엔드 값끼리만 비교)
       const expectedTotal = prepareRes.totalProductPrice + prepareRes.deliveryFee - prepareRes.discountPrice
       if (prepareRes.totalPaymentPrice !== expectedTotal) {
@@ -301,6 +310,9 @@ export function PaymentPage() {
       showPopUp(getPaymentErrorMessage(err))
       await cleanupPendingPayment('CONFIRM_FAILED')
     } finally {
+      // PC 결제창 흐름(성공/취소/예외)에서는 같은 페이지에서 종료되므로 여기서 sessionStorage 정리.
+      // 모바일 redirect 흐름은 finally 가 실행되지 않고 PaymentCallbackPage 가 정리한다.
+      sessionStorage.removeItem(PENDING_PAYMENT_STORAGE_KEY)
       // 어떤 종료 경로(성공/취소/예외)에서도 결제버튼 잠금 해제 보장
       setIsPortOneOpen(false)
     }
