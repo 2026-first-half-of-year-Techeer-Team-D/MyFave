@@ -86,7 +86,9 @@ export function OrdersPage() {
               >
                 <div className="w-[84px] h-[84px] flex-shrink-0 overflow-hidden rounded-[15px]">
                   <img
-                    src={getProductThumbnail(item.productId)}
+                    // 로컬 imageMap 우선(상품 페이지 정책 일치), 매핑 없으면 백엔드 thumbnailUrl fallback.
+                    // 둘 다 없으면 빈 src 로 alt 텍스트만 표시.
+                    src={getProductThumbnail(item.productId) || item.thumbnailUrl || ''}
                     alt={item.productName}
                     className="w-full h-full object-cover"
                   />
