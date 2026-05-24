@@ -53,27 +53,30 @@ function toProductDetail(item: ProductDetailApiResponse): ProductDetail {
   }
 }
 
-export function useProducts() {
+// useProducts / useInfluencerPicks 가 동일한 상품 리스트를 다른 형태로 가공하므로
+// queryKey/queryFn 을 통일하고 select 로 변환만 분리한다 (캐시 1회 공유).
+function useProductList<T>(select: (items: ProductApiItem[]) => T) {
   return useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const data = await productsApi.getList()
-      return data.content.map(toProduct)
+      const data = await productsApi.getList(0, 50)
+      return data.content
     },
+    select,
   })
 }
 
+export function useProducts() {
+  return useProductList((items) => items.map(toProduct))
+}
+
 export function useInfluencerPicks() {
-  return useQuery({
-    queryKey: ['products', 'influencer'],
-    queryFn: async () => {
-      const data = await productsApi.getList(0, 50)
-      const byId = new Map(data.content.map((item) => [item.id, item]))
-      return INFLUENCER_PICK_IDS
-        .map((id) => byId.get(id))
-        .filter((item): item is ProductApiItem => item != null)
-        .map(toInfluencerPick)
-    },
+  return useProductList((items) => {
+    const byId = new Map(items.map((item) => [item.id, item]))
+    return INFLUENCER_PICK_IDS
+      .map((id) => byId.get(id))
+      .filter((item): item is ProductApiItem => item != null)
+      .map(toInfluencerPick)
   })
 }
 
