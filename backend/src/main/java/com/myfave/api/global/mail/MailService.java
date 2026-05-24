@@ -37,4 +37,17 @@ public class MailService {
         message.setText("인증코드: " + code + "\n\n5분 내로 입력해 주세요.");
         mailSender.send(message);
     }
+
+    @Async("emailExecutor")
+    public void sendTempPassword(String to, String tempPassword) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(to);
+        message.setSubject("[마이페이브] 임시 비밀번호 안내");
+        message.setText(
+                "임시 비밀번호: " + tempPassword + "\n\n"
+                        + "로그인 후 즉시 비밀번호를 변경해주세요."
+        );
+        mailSender.send(message);
+    }
 }
