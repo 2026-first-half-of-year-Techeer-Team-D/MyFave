@@ -65,6 +65,7 @@ public class OrderService {
         String type = request.getOrderType() != null ? request.getOrderType().name() : "UNKNOWN";
         String outcome = "failure";
         try {
+        int itemCount = 0;
 
         // ── 1. 사용자 조회 ──────────────────────────────────────────────
         if (userId == null) {
@@ -124,6 +125,7 @@ public class OrderService {
                     .productName(product.getProductName())
                     .build();
             orderItemRepository.save(orderItem);
+            itemCount = 1;
 
         } else {
             // ── CART: 장바구니 상품 구매 ─────────────────────────────
@@ -136,10 +138,15 @@ public class OrderService {
                     .sorted(Comparator.naturalOrder())
                     .toList();
 
+            List<Product> products = productRepository.findAllById(sortedProductIds);
+            if (products.size() != sortedProductIds.size()) {
+                throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
+            }
+            Map<Long, Product> productMap = products.stream()
+                    .collect(Collectors.toMap(Product::getProductId, p -> p));
             List<Product> validatedProducts = new ArrayList<>();
             for (Long pid : sortedProductIds) {
-                Product product = productRepository.findById(pid)
-                        .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+                Product product = productMap.get(pid);
                 product.validateStock(1);
                 validatedProducts.add(product);
             }
@@ -153,11 +160,11 @@ public class OrderService {
                         .build();
                 orderItemRepository.save(orderItem);
             }
+            itemCount = validatedProducts.size();
         }
 
         // ── 7. 응답 반환 ───────────────────────────────────────────────
         // OrderResponse.from(order): order 엔티티에서 필요한 필드만 뽑아 DTO로 변환
-        int itemCount = orderItemRepository.findByOrder(order).size();
         log.info("[Order] 주문 생성: orderId={}, userId={}, type={}, itemCount={}",
                 order.getOrderId(), userId, type, itemCount);
         outcome = "success";
