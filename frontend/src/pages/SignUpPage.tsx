@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { PopUp } from '@/shared/components/PopUp'
 import { isValidEmail, isValidName, isValidNickname, isValidPassword, isValidPhone } from '@/shared/utils/validation'
 import { useSendSignUpCode, useVerifySignUpCode, useSignUp } from '@/features/auth/hooks'
+import { getRandomAvatarUrl } from '@/features/auth/avatars'
 
 type SignUpStep = 'EMAIL' | 'PASSWORD' | 'NAME' | 'PHONE' | 'NICKNAME' | 'AGREEMENT'
 type TermsView = 'NONE' | 'TERMS' | 'PRIVACY_REQ' | 'PRIVACY_OPT' | 'MARKETING'
@@ -107,6 +108,13 @@ export function SignUpPage() {
       showPopUp('별명은 한글, 영문, 숫자로 2~12자까지 입력 가능합니다')
       return
     }
+    // 회원가입 시점에 무작위 곰돌이 아바타 URL 한 개 부여.
+    // 백엔드 SignUpRequest 가 profileImageUrl 을 받기 시작하면 그대로 저장되고,
+    // 그렇지 않더라도 이메일 키 localStorage 에 보관해서 후속 로그인 시 fallback 으로 사용.
+    const profileImageUrl = getRandomAvatarUrl()
+    if (profileImageUrl) {
+      localStorage.setItem(`myfave-avatar:${formData.email}`, profileImageUrl)
+    }
     try {
       await signUpMutation.mutateAsync({
         email: formData.email,
@@ -115,6 +123,7 @@ export function SignUpPage() {
         nickname: formData.nickname,
         phone: formData.phone,
         verifiedToken,
+        profileImageUrl,
       })
       showPopUp('회원가입이 완료되었습니다 ✨')
       setTimeout(() => navigate('/login'), 2000)
