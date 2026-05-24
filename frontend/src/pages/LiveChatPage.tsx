@@ -34,9 +34,9 @@ function historyToMessage(msg: ChatHistoryMessage): Message {
     id: msg.messageId,
     user: msg.senderNickname,
     text: msg.content,
-    avatarType: msg.isInfluencer ? 'seller' : 'bear',
-    avatarVariant: msg.isInfluencer ? 1 : getVariantFromNickname(msg.senderNickname),
-    isOfficial: msg.isInfluencer,
+    avatarType: msg.influencer ? 'seller' : 'bear',
+    avatarVariant: msg.influencer ? 1 : getVariantFromNickname(msg.senderNickname),
+    isOfficial: msg.influencer,
     timestamp: new Date(msg.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
   }
 }
