@@ -6,6 +6,7 @@ import { UserIcon } from '@/shared/components/UserIcon'
 import { useChatRoomInfo, useChatMessageHistory } from '@/features/chat/hooks'
 import { useAuthStore } from '@/features/auth/store'
 import type { ChatHistoryMessage } from '@/features/chat/types'
+import { getChatLifecycleState, getChatOpenAt, getCountdownSeconds } from '@/shared/utils/saleSchedule'
 
 const THROTTLE_MS = 3000
 const BEAR_VARIANTS = [1, 3, 5, 6, 7, 10] as const
@@ -46,6 +47,67 @@ function InactiveRoomScreen() {
       <div className="flex flex-col items-center gap-4 px-8 text-center">
         <p className="font-noto text-[16px] font-bold text-dark-text">채팅방이 곧 활성화 됩니다</p>
         <p className="font-noto text-[12px] text-muted-text">오픈 30분 전에 채팅방이 열립니다</p>
+      </div>
+    </div>
+  )
+}
+
+// 판매 시작 30분 전 이전 — 잠금 화면.
+function BeforeOpenScreen({ countdownSeconds }: { countdownSeconds: number }) {
+  // 오픈까지 남은 시간 (= 판매 시작 30분 전까지 남은 시간 = countdownSeconds - 30분).
+  const chatOpenAt = getChatOpenAt()
+  const openLabel = chatOpenAt.toLocaleString('ko-KR', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  const days = Math.floor(countdownSeconds / 86400)
+  const hms = countdownSeconds % 86400
+  const h = Math.floor(hms / 3600)
+  const m = Math.floor((hms % 3600) / 60)
+  const s = hms % 60
+  const remainingLabel =
+    days > 0
+      ? `${days}일 ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+      : `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center bg-white">
+      <div className="flex flex-col items-center gap-3 px-8 text-center">
+        <div className="mb-2 flex h-[64px] w-[64px] items-center justify-center rounded-full bg-main-bg">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF95B3" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <polyline points="12 7 12 12 15 14" />
+          </svg>
+        </div>
+        <p className="font-noto text-[16px] font-bold text-dark-text">라이브 톡이 아직 열리지 않았어요</p>
+        <p className="font-noto text-[12px] text-muted-text">
+          판매 시작 30분 전에 자동으로 열려요
+          <br />
+          오픈 예정 — {openLabel}
+        </p>
+        <p className="mt-2 font-lexend text-[14px] font-semibold text-point tracking-tight">
+          판매 시작까지 {remainingLabel}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// 운영자가 ROOM_CLOSED 로 닫았거나 판매 시작 이후 — 종료 화면.
+function ClosedRoomScreen() {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center bg-white">
+      <div className="flex flex-col items-center gap-3 px-8 text-center">
+        <div className="mb-2 flex h-[64px] w-[64px] items-center justify-center rounded-full bg-[#F2EDEB]">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8B7E74" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="6" width="18" height="14" rx="2" />
+            <path d="M3 10h18" />
+          </svg>
+        </div>
+        <p className="font-noto text-[16px] font-bold text-dark-text">라이브 톡이 종료되었습니다</p>
+        <p className="font-noto text-[12px] text-muted-text">곧 본 판매가 시작됩니다. 잠시만 기다려주세요!</p>
       </div>
     </div>
   )
@@ -194,6 +256,13 @@ export function LiveChatPage() {
     }
   }
 
+  // 시간 기반 라이프사이클 게이트를 위해 1초마다 now 갱신.
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const tick = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(tick)
+  }, [])
+
   if (isRoomLoading) {
     return (
       <div className="flex flex-1 items-center justify-center bg-white">
@@ -201,6 +270,15 @@ export function LiveChatPage() {
       </div>
     )
   }
+
+  // 3-state 게이트:
+  // 1) 운영자가 ROOM_CLOSED 로 종료 → CLOSED
+  // 2) 현재 시각이 채팅 오픈 시각(판매시작 30분 전) 이전 → BEFORE_OPEN
+  // 3) 백엔드가 isActive=false 또는 에러 → InactiveRoomScreen (이전 폴백)
+  // 4) 그 외 → OPEN
+  const lifecycle = getChatLifecycleState({ now, isAdminClosed: isRoomClosed })
+  if (lifecycle === 'CLOSED') return <ClosedRoomScreen />
+  if (lifecycle === 'BEFORE_OPEN') return <BeforeOpenScreen countdownSeconds={getCountdownSeconds(now)} />
 
   if (isRoomError || !roomInfo?.isActive) {
     return <InactiveRoomScreen />
