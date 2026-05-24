@@ -38,33 +38,26 @@ interface SmartImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src
 }
 
 export function SmartImage({ src, ...rest }: SmartImageProps) {
-  const [resolved, setResolved] = useState<string | undefined>(() =>
-    src && isHeic(src) ? undefined : src,
-  )
+  const needsConversion = src != null && isHeic(src)
+  const [convertedUrl, setConvertedUrl] = useState<string | undefined>(undefined)
 
   useEffect(() => {
-    if (!src) {
-      setResolved(undefined)
-      return
-    }
-    if (!isHeic(src)) {
-      setResolved(src)
-      return
-    }
-
+    if (!needsConversion || !src) return
     let cancelled = false
     convertHeicUrl(src)
       .then((url) => {
-        if (!cancelled) setResolved(url)
+        if (!cancelled) setConvertedUrl(url)
       })
       .catch(() => {
-        if (!cancelled) setResolved(undefined)
+        if (!cancelled) setConvertedUrl(undefined)
       })
-
     return () => {
       cancelled = true
     }
-  }, [src])
+  }, [src, needsConversion])
+
+  // HEIC가 아니면 src 그대로 사용. HEIC면 변환 완료 전엔 undefined.
+  const resolved = needsConversion ? convertedUrl : src
 
   return <img src={resolved} {...rest} />
 }
