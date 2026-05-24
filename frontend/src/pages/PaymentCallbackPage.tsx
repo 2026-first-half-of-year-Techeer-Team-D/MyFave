@@ -1,10 +1,49 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
+import { ordersApi } from '@/features/orders/api'
+import type { OrderDetailApiResponse } from '@/features/orders/types'
 import { paymentsApi } from '@/features/payments/api'
 import { useConfirmPayment } from '@/features/payments/hooks'
 
 import { PopUp } from '@/shared/components/PopUp'
+
+// PaymentPage 의 결제 수단 한글 라벨과 동일하게 OrderSuccessPage 표시용으로 매핑.
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  CARD: '카드',
+  KAKAO_PAY: '카카오페이',
+  NAVER_PAY: '네이버페이',
+  TOSS_PAY: '토스페이',
+}
+
+function buildSuccessState(detail: OrderDetailApiResponse) {
+  return {
+    orderNumber: detail.orderNumber,
+    items: detail.orderItems.map((it) => ({
+      id: String(it.productId),
+      name: it.productName,
+      price: `${it.price.toLocaleString()}원`,
+      image: it.thumbnailUrl ?? '',
+    })),
+    paymentInfo: {
+      productAmount: `${(detail.totalProductPrice ?? 0).toLocaleString()}원`,
+      discountAmount: `-${(detail.discountPrice ?? 0).toLocaleString()}원`,
+      shippingFee: `${(detail.deliveryFee ?? 0).toLocaleString()}원`,
+      totalAmount: `${(detail.totalPaymentPrice ?? 0).toLocaleString()}원`,
+      paymentMethod:
+        PAYMENT_METHOD_LABEL[detail.paymentMethod ?? ''] ?? (detail.paymentMethod ?? '결제'),
+    },
+    shipping: detail.receiverName
+      ? {
+          recipientName: detail.receiverName,
+          phone: detail.receiverPhone ?? '',
+          // 백엔드 receiverAddress 는 단일 문자열이라 detailAddress 분리 불가 — 통째로 address 에.
+          address: detail.receiverAddress ?? '',
+          request: detail.deliveryRequest ?? undefined,
+        }
+      : undefined,
+  }
+}
 
 export function PaymentCallbackPage() {
   const navigate = useNavigate()
@@ -54,12 +93,18 @@ export function PaymentCallbackPage() {
       return
     }
 
-    // 3) 정상 redirect — 백엔드 confirm 호출.
+    // 3) 정상 redirect — 백엔드 confirm 호출 → 주문 상세 조회 → OrderSuccessPage 진입.
     confirmPayment.mutate(
       { paymentId: backendPaymentId, pgTransactionId },
       {
-        onSuccess: () => {
-          navigate('/orders', { replace: true })
+        onSuccess: async (data) => {
+          try {
+            const detail = await ordersApi.getOrderDetail(data.orderId)
+            navigate('/order-success', { state: buildSuccessState(detail), replace: true })
+          } catch {
+            // 상세 조회만 실패 — 결제는 성공했으므로 사용자에게 실패 알림 없이 주문 목록으로 fallback.
+            navigate('/orders', { replace: true })
+          }
         },
         onError: (err) => {
           const errorCode = (err as { response?: { data?: { errorCode?: string } } })?.response?.data?.errorCode
