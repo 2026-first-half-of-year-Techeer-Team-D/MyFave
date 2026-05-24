@@ -14,6 +14,9 @@ export interface CheckoutSession {
 
 export type BackendPaymentMethod = 'CARD' | 'KAKAO_PAY' | 'NAVER_PAY' | 'TOSS_PAY'
 
+// 백엔드 PaymentPrepareRequest.DeviceType 과 1:1 매핑. 생략(null) = PC 폴백.
+export type DeviceType = 'PC' | 'MOBILE'
+
 export const PAYMENT_METHOD_MAP: Record<string, BackendPaymentMethod> = {
   '카드': 'CARD',
   '카카오페이': 'KAKAO_PAY',
@@ -26,6 +29,7 @@ export interface PaymentPrepareRequest {
   paymentMethod: BackendPaymentMethod
   discountCouponId?: number
   shippingCouponId?: number
+  deviceType?: DeviceType
 }
 
 export interface PaymentPrepareResponse {
