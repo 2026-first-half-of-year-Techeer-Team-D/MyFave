@@ -20,7 +20,9 @@ const getAuthTokens = (): { accessToken: string | null; refreshToken: string | n
         refreshToken: parsed.state?.refreshToken ?? null,
       }
     }
-  } catch {}
+  } catch {
+    // localStorage 파싱 실패는 무시하고 비로그인 상태로 처리
+  }
   return { accessToken: null, refreshToken: null }
 }
 
