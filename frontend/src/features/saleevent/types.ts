@@ -10,3 +10,12 @@ export interface SaleEventCreateResponse {
   saleStartAt: string
   saleEndAt: string
 }
+
+export interface SaleEventCurrentResponse {
+  id: number
+  eventName: string
+  saleStartAt: string
+  saleEndAt: string
+  isLive: boolean
+  serverTime: string
+}
