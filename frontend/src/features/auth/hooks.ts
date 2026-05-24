@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 
 import { authApi } from './api'
+import { PENDING_AVATAR_KEY } from './storageKeys'
 import { useAuthStore } from './store'
 import type {
   FindIdRequest,
@@ -10,13 +11,25 @@ import type {
   SignUpRequest,
 } from './types'
 
-// 회원가입 시점에 프론트가 부여한 곰돌이 아바타 URL을 이메일 키로 localStorage 에 보관.
+// 회원가입 시 부여된 곰돌이 아바타 URL 을 다음 로그인까지 임시 보관 (storageKeys.ts 참조).
 // 백엔드 LoginResponse 가 profileImageUrl 을 아직 내려주지 않을 때 fallback 으로 사용.
-const PENDING_AVATAR_PREFIX = 'myfave-avatar:'
+interface PendingAvatar {
+  pendingEmail: string
+  url: string
+}
 
 function readPendingAvatar(email: string): string | undefined {
   if (!email) return undefined
-  return localStorage.getItem(PENDING_AVATAR_PREFIX + email) ?? undefined
+  const raw = localStorage.getItem(PENDING_AVATAR_KEY)
+  if (!raw) return undefined
+  try {
+    const parsed = JSON.parse(raw) as PendingAvatar
+    if (parsed.pendingEmail !== email) return undefined
+    localStorage.removeItem(PENDING_AVATAR_KEY)
+    return parsed.url
+  } catch {
+    return undefined
+  }
 }
 
 export function useLogin() {
