@@ -3,6 +3,8 @@ import { useMutation } from '@tanstack/react-query'
 import { authApi } from './api'
 import { useAuthStore } from './store'
 import type {
+  FindIdRequest,
+  ResetPasswordRequest,
   SignUpSendCodeRequest,
   SignUpVerifyCodeRequest,
   SignUpRequest,
@@ -64,5 +66,17 @@ export function useVerifySignUpCode() {
 export function useSignUp() {
   return useMutation({
     mutationFn: (body: SignUpRequest) => authApi.signUp(body),
+  })
+}
+
+export function useFindId() {
+  return useMutation({
+    mutationFn: (body: FindIdRequest) => authApi.findId(body),
+  })
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: (body: ResetPasswordRequest) => authApi.resetPassword(body),
   })
 }
