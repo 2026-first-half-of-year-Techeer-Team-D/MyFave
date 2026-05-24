@@ -209,7 +209,7 @@ function AddShippingForm({ editId, fromPath, initialTarget }: AddShippingFormPro
 
   return (
     <>
-    <div className="flex-1 bg-white min-h-0 pb-10 overflow-y-auto">
+    <div className="flex-1 bg-white min-h-0 pb-10">
       <form onSubmit={handleSubmit} className="px-[31px] pt-[28.01px] space-y-[44px]">
         {/* 이름 섹션 */}
         <div className="relative h-[64px]">
