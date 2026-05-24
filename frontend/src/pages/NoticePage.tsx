@@ -8,7 +8,7 @@ const NOTICES: NoticeItem[] = [
   {
     id: 1,
     title: 'MyFave 마켓 오픈 안내',
-    content: 'MyFave 마켓은 2026년 5월 25일 00시 오픈 예정입니다.<br>많은 관심 부탁드려요 !♥︎',
+    content: 'MyFave 마켓은 2026년 5월 25일 20시 오픈 예정입니다.<br>많은 관심 부탁드려요 !♥︎',
   },
   {
     id: 2,
