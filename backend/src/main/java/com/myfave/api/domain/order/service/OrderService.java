@@ -138,8 +138,9 @@ public class OrderService {
                     .sorted(Comparator.naturalOrder())
                     .toList();
 
-            List<Product> products = productRepository.findAllById(sortedProductIds);
-            if (products.size() != sortedProductIds.size()) {
+            List<Long> distinctProductIds = sortedProductIds.stream().distinct().toList();
+            List<Product> products = productRepository.findAllById(distinctProductIds);
+            if (products.size() != distinctProductIds.size()) {
                 throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
             }
             Map<Long, Product> productMap = products.stream()
