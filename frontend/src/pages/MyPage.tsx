@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { useLogout, useUser } from '@/features/auth/hooks'
@@ -6,6 +6,7 @@ import { useMyCoupons } from '@/features/coupons/hooks'
 import { useOrdersQuery } from '@/features/orders/hooks'
 import type { OrderSummaryApiResponse } from '@/features/orders/types'
 import { UserIcon } from '@/shared/components/UserIcon'
+import { SaleEventModal } from '@/shared/components/SaleEventModal'
 
 type DashboardBucket = '입금확인' | '배송준비' | '배송중' | '배송완료'
 
@@ -30,10 +31,13 @@ function getDashboardBucket(order: OrderSummaryApiResponse): DashboardBucket | n
 }
 
 const DASHBOARD_BUCKETS: DashboardBucket[] = ['입금확인', '배송준비', '배송중', '배송완료']
+const INFLUENCER_ID = Number(import.meta.env.VITE_INFLUENCER_USER_ID)
 
 export function MyPage() {
   const navigate = useNavigate()
   const user = useUser()
+  const isInfluencer = user?.id === INFLUENCER_ID
+  const [isSaleEventModalOpen, setIsSaleEventModalOpen] = useState(false)
   const logout = useLogout()
   // 로딩/에러 상태를 0 과 구분해서 표시 — 장애가 "주문 0건"으로 묻히지 않도록 (CR M13).
   const { data: availableCoupons = [], isLoading: isCouponsLoading, isError: isCouponsError } = useMyCoupons('AVAILABLE')
@@ -71,6 +75,10 @@ export function MyPage() {
 
   return (
     <div className="flex-1 bg-white min-h-0 pb-10">
+      <SaleEventModal
+        isOpen={isSaleEventModalOpen}
+        onClose={() => setIsSaleEventModalOpen(false)}
+      />
       {/* 1. User Profile Section - Figma Node 99:1201 */}
       <div className="px-[19.99px] pt-[23.99px] pb-[19.99px]">
         <div className="flex items-center gap-[14px]">
@@ -158,7 +166,7 @@ export function MyPage() {
         </Link>
 
         {/* 로그아웃 */}
-        <button 
+        <button
           onClick={handleLogout}
           className="flex w-full h-[51px] items-center justify-between px-[19.99px] border-b-[1.096px] border-separator bg-white active:bg-gray-50 transition-colors"
         >
@@ -167,6 +175,20 @@ export function MyPage() {
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </button>
+
+        {/* 판매 이벤트 등록 — 인플루언서 전용 */}
+        {isInfluencer && (
+          <button
+            type="button"
+            onClick={() => setIsSaleEventModalOpen(true)}
+            className="flex w-full h-[51px] items-center justify-between px-[19.99px] border-b-[1.096px] border-separator bg-white active:bg-gray-50 transition-colors"
+          >
+            <span className="font-noto text-[12px] font-medium text-point">판매 이벤트 등록</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF93B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   )
