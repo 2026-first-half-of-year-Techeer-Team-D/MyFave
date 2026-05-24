@@ -215,13 +215,21 @@ export function ProductDetailPage() {
       </div>
 
       <div className="fixed bottom-0 left-1/2 z-40 flex w-full max-w-[376.04px] -translate-x-1/2 border-t border-separator bg-white shadow-figma-popup">
-        <button type="button" onClick={handleAddToCart} className="flex-1 flex h-[49.15px] items-center justify-center gap-[8px] bg-white text-[#322927] border-r border-separator active:bg-gray-50 transition-all">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
-          <span className="font-noto text-[14px] font-bold">장바구니</span>
-        </button>
-        <button type="button" onClick={handleBuyNow} className="flex-1 flex h-[49.15px] items-center justify-center bg-point text-white active:bg-[#ff7fa3] transition-all">
-          <span className="font-noto text-[14px] font-bold">구매하기</span>
-        </button>
+        {product.isSoldOut ? (
+          <div className="flex-1 flex h-[49.15px] items-center justify-center bg-separator">
+            <span className="font-noto text-[14px] font-bold text-muted-text">품절</span>
+          </div>
+        ) : (
+          <>
+            <button type="button" onClick={handleAddToCart} className="flex-1 flex h-[49.15px] items-center justify-center gap-[8px] bg-white text-[#322927] border-r border-separator active:bg-gray-50 transition-all">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
+              <span className="font-noto text-[14px] font-bold">장바구니</span>
+            </button>
+            <button type="button" onClick={handleBuyNow} className="flex-1 flex h-[49.15px] items-center justify-center bg-point text-white active:bg-[#ff7fa3] transition-all">
+              <span className="font-noto text-[14px] font-bold">구매하기</span>
+            </button>
+          </>
+        )}
       </div>
     </div>
   )
