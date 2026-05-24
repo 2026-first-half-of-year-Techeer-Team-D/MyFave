@@ -233,19 +233,21 @@ public class AuthService {
     }
 
     public FindIdResponse findIdByNameAndPhone(FindIdRequest request) {
-        User user = userRepository.findByNameAndPhone(request.getName(), request.getPhoneNumber())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        return FindIdResponse.from(maskEmail(user.getEmail()));
+        // 계정 존재 여부를 노출하지 않기 위해 미일치 시에도 동일한 마스킹 placeholder 반환 (CR M2).
+        // 정상 일치 시에만 실제 마스킹된 이메일을 반환 — 응답 형태(HTTP 200 + FindIdResponse)는 항상 동일.
+        return userRepository.findByNameAndPhone(request.getName(), request.getPhoneNumber())
+                .map(user -> FindIdResponse.from(maskEmail(user.getEmail())))
+                .orElseGet(() -> FindIdResponse.from("****@****.***"));
     }
 
     @Transactional
     public void sendTempPassword(TempPasswordRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        String tempPassword = generateTempPassword();
-        user.updatePassword(passwordEncoder.encode(tempPassword));
-        mailService.sendTempPassword(user.getEmail(), tempPassword);
+        // 이메일 존재 여부를 노출하지 않기 위해 silent 처리 — 존재하지 않는 이메일도 200 OK 동일 응답 (CR M1).
+        userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
+            String tempPassword = generateTempPassword();
+            user.updatePassword(passwordEncoder.encode(tempPassword));
+            mailService.sendTempPassword(user.getEmail(), tempPassword);
+        });
     }
 
     private String maskEmail(String email) {
