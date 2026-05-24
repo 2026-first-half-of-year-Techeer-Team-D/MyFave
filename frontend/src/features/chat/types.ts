@@ -9,7 +9,7 @@ export interface ChatHistoryMessage {
   messageId: string
   senderId: number
   senderNickname: string
-  isInfluencer: boolean
+  influencer: boolean
   content: string
   createdAt: string
 }

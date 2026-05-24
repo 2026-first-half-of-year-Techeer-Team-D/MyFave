@@ -118,6 +118,15 @@ public class Payment extends BaseEntity {
         this.paymentStatus = PaymentStatus.FAILED;
     }
 
+    // PG 트랜잭션 ID 만 기록 (status 전이 없이) — 실패 분기에서 웹훅 복구 키 보존용.
+    // 이미 값이 있으면 덮어쓰지 않음 (멱등성). null/blank 입력은 무시 (CR PR#185 C1).
+    public void recordPgTransactionId(String pgTransactionId) {
+        if (pgTransactionId == null || pgTransactionId.isBlank()) return;
+        if (this.pgTransactionId == null) {
+            this.pgTransactionId = pgTransactionId;
+        }
+    }
+
     // COMPLETED → CANCELLED
     public void cancel() {
         this.paymentStatus = PaymentStatus.CANCELLED;

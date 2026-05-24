@@ -1,6 +1,7 @@
 package com.myfave.api.domain.auth.controller;
 
 import com.myfave.api.domain.auth.dto.request.FindEmailRequest;
+import com.myfave.api.domain.auth.dto.request.FindIdRequest;
 import com.myfave.api.domain.auth.dto.request.LoginRequest;
 import com.myfave.api.domain.auth.dto.request.PasswordResetSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ReissueRequest;
@@ -9,8 +10,10 @@ import com.myfave.api.domain.auth.dto.request.SignUpSendCodeRequest;
 import com.myfave.api.domain.auth.dto.request.SignUpVerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.request.ResetPasswordRequest;
 import com.myfave.api.domain.auth.dto.request.SocialLoginRequest;
+import com.myfave.api.domain.auth.dto.request.TempPasswordRequest;
 import com.myfave.api.domain.auth.dto.request.VerifyCodeRequest;
 import com.myfave.api.domain.auth.dto.response.FindEmailResponse;
+import com.myfave.api.domain.auth.dto.response.FindIdResponse;
 import com.myfave.api.domain.auth.dto.response.LoginResponse;
 import com.myfave.api.domain.auth.dto.response.ReissueResponse;
 import com.myfave.api.domain.auth.dto.response.SignUpResponse;
@@ -69,6 +72,17 @@ public class AuthController {
     @PostMapping("/find-email")
     public ApiResponse<FindEmailResponse> findEmail(@Valid @RequestBody FindEmailRequest request) {
         return new ApiResponse<>(200, "이메일 조회 성공", authService.findEmail(request));
+    }
+
+    @PostMapping("/find-id")
+    public ApiResponse<FindIdResponse> findId(@Valid @RequestBody FindIdRequest request) {
+        return new ApiResponse<>(200, "OK", authService.findIdByNameAndPhone(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ApiResponse<Void> resetPasswordByEmail(@Valid @RequestBody TempPasswordRequest request) {
+        authService.sendTempPassword(request);
+        return new ApiResponse<>(200, "OK", null);
     }
 
     @PostMapping("/password-reset/send-code")

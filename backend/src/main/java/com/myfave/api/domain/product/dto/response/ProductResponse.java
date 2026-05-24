@@ -20,6 +20,7 @@ public class ProductResponse {
     private Integer price;
     private String thumbnailUrl;
     private Boolean isSoldOut;
+    private CategoryCode categoryCode;
 
     public static ProductResponse from(Product product, String thumbnailUrl) {
         return new ProductResponse(
@@ -27,7 +28,8 @@ public class ProductResponse {
                 product.getProductName(),
                 product.getPrice(),
                 thumbnailUrl,
-                product.getIsSoldout()
+                product.getIsSoldout(),
+                product.getCategoryCode()
         );
     }
 

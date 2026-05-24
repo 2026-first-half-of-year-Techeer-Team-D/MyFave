@@ -2,7 +2,8 @@ import { useNavigate } from 'react-router-dom'
 
 import { useConfirmPurchase, useOrdersQuery } from '@/features/orders/hooks'
 import type { BackendOrderStatus } from '@/features/orders/types'
-import { PRODUCTS } from '@/features/products/mock'
+import { getProductThumbnail } from '@/features/products/imageMap'
+import { SmartImage } from '@/shared/components/SmartImage'
 
 const STATUS_LABEL: Record<BackendOrderStatus, string> = {
   PENDING: '결제 대기',
@@ -27,15 +28,13 @@ function formatDate(iso: string) {
   })
 }
 
-function getProductImage(item: { productId: number; thumbnailUrl: string | null }) {
-  return item.thumbnailUrl ?? PRODUCTS.find((p) => p.id === item.productId)?.image ?? ''
-}
-
 export function OrdersPage() {
   const navigate = useNavigate()
   const confirmPurchase = useConfirmPurchase()
   const { data, isLoading, isError } = useOrdersQuery()
-  const orders = data?.content ?? []
+  // PENDING(결제 대기) 주문은 결제가 아직 완료되지 않아 사용자에게 노출하지 않음.
+  // (백엔드 list 가 PENDING 을 포함해 내려주더라도 프론트에서 필터링)
+  const orders = (data?.content ?? []).filter((o) => o.orderStatus !== 'PENDING')
 
   if (isLoading) {
     return (
@@ -87,8 +86,10 @@ export function OrdersPage() {
                 className="flex gap-[11.99px] p-[15.99px] rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white active:bg-gray-50 transition-colors cursor-pointer"
               >
                 <div className="w-[84px] h-[84px] flex-shrink-0 overflow-hidden rounded-[15px]">
-                  <img
-                    src={getProductImage(item)}
+                  <SmartImage
+                    // 로컬 imageMap 우선, 매핑 없으면 백엔드 thumbnailUrl fallback.
+                    // HEIC-only 상품도 SmartImage 가 자동 변환 (CR M10).
+                    src={getProductThumbnail(item.productId) || item.thumbnailUrl || ''}
                     alt={item.productName}
                     className="w-full h-full object-cover"
                   />

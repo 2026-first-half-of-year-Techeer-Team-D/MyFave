@@ -193,8 +193,15 @@ public class PaymentService {
             // 1. DB에서 유저와 결제 상태 확인
             ConfirmContext ctx = self.validateForConfirm(userId, request.getPaymentId());
 
-            // 2. 외부 PG사 통신
-            PortOnePaymentInfo pgInfo = paymentProvider.getPaymentInfo(request.getPgTransactionId());
+            // 2. 외부 PG사 통신 — 조회 실패 시 failConfirm 호출 후 재전파
+            PortOnePaymentInfo pgInfo;
+            try {
+                pgInfo = paymentProvider.getPaymentInfo(request.getPgTransactionId());
+            } catch (Exception e) {
+                self.failConfirm(ctx.paymentId(), request.getPgTransactionId(),
+                        "PG 조회 실패: " + e.getMessage());
+                throw new CustomException(ErrorCode.PAYMENT_FAILED);
+            }
 
             //  3. 데이터 무결성 검증 및 롤백
             if (!"PAID".equals(pgInfo.status()) || pgInfo.totalAmount() != ctx.totalPaymentPrice()) {
@@ -349,6 +356,9 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
         int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(paymentId) + 1;
+        // pgTransactionId 를 Payment 에도 먼저 영속화 — 이후 웹훅이 findByPgTransactionId 로
+        // FAILED 레코드를 찾아 보상/복구할 수 있도록 키 보존 (CR PR#185 C1).
+        payment.recordPgTransactionId(pgTransactionId);
         payment.fail(failReason);
         saveAttempt(payment, attemptNo, PaymentStatus.FAILED, pgTransactionId, failReason);
     }

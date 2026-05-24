@@ -2,8 +2,11 @@ import { apiClient } from '@/shared/api/axios'
 import type { ApiResponse } from '@/shared/api/types'
 
 import type {
+  FindIdRequest,
+  FindIdResponse,
   LoginRequest,
   LoginResponse,
+  ResetPasswordRequest,
   SignUpSendCodeRequest,
   SignUpVerifyCodeRequest,
   SignUpVerifyCodeResponse,
@@ -41,5 +44,14 @@ export const authApi = {
       body,
     )
     return data.data
+  },
+
+  findId: async (body: FindIdRequest): Promise<FindIdResponse> => {
+    const { data } = await apiClient.post<ApiResponse<FindIdResponse>>('/auth/find-id', body)
+    return data.data
+  },
+
+  resetPassword: async (body: ResetPasswordRequest): Promise<void> => {
+    await apiClient.post<ApiResponse<void>>('/auth/reset-password', body)
   },
 }

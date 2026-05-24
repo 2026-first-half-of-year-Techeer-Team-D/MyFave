@@ -9,6 +9,7 @@ interface ShippingState {
   updateAddress: (id: string, update: Partial<Address>) => void
   removeAddress: (id: string) => void
   setDefault: (id: string) => void
+  syncAddresses: (addresses: Address[]) => void
 }
 
 export const useShippingStore = create<ShippingState>()(
@@ -43,6 +44,7 @@ export const useShippingStore = create<ShippingState>()(
         set((state) => ({
           addresses: state.addresses.map((a) => ({ ...a, isDefault: a.id === id })),
         })),
+      syncAddresses: (addresses) => set({ addresses }),
     }),
     {
       name: 'myfave-shipping',
