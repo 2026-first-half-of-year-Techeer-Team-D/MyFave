@@ -134,7 +134,6 @@ export function SaleEventModal({ isOpen, onClose }: SaleEventModalProps) {
         <button
           type="submit"
           form="sale-event-form"
-          onClick={handleSubmit(onSubmit)}
           disabled={isSubmitting || isPending}
           className="flex w-full items-center justify-center bg-point py-[18px] font-noto text-sm font-black text-white transition-colors hover:bg-[#ff7fa3] active:scale-[0.98] disabled:opacity-60"
         >
