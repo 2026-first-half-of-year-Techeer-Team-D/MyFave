@@ -28,7 +28,7 @@ export function ShippingStatusPage() {
   const currentStep = data ? getStepIndex(data.statusCode) : 0
 
   return (
-    <div className="flex-1 bg-white pb-20 overflow-y-auto">
+    <div className="flex-1 bg-white pb-20">
       <div className="px-5 py-6">
         {/* 주문번호 */}
         <p className="font-noto text-sm text-muted-text mb-4">주문번호: {orderId}</p>
