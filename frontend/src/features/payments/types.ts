@@ -50,6 +50,8 @@ export interface PaymentConfirmRequest {
 
 export interface BackendPaymentResponse {
   paymentId: number
+  // 백엔드 PaymentResponse 는 orderId 를 내려준다. PaymentCallbackPage 가 결제 완료 후 주문 상세 조회에 사용한다.
+  orderId: number
   paymentStatus: string
   totalPaymentPrice: number
   pgTransactionId: string
