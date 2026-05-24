@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { PopUp } from '@/shared/components/PopUp'
 import { isValidEmail, isValidName, isValidNickname, isValidPassword, isValidPhone } from '@/shared/utils/validation'
 import { useSendSignUpCode, useVerifySignUpCode, useSignUp } from '@/features/auth/hooks'
+import { PENDING_AVATAR_KEY } from '@/features/auth/storageKeys'
 import { getRandomAvatarUrl } from '@/features/auth/avatars'
 
 type SignUpStep = 'EMAIL' | 'PASSWORD' | 'NAME' | 'PHONE' | 'NICKNAME' | 'AGREEMENT'
@@ -110,10 +111,14 @@ export function SignUpPage() {
     }
     // 회원가입 시점에 무작위 곰돌이 아바타 URL 한 개 부여.
     // 백엔드 SignUpRequest 가 profileImageUrl 을 받기 시작하면 그대로 저장되고,
-    // 그렇지 않더라도 이메일 키 localStorage 에 보관해서 후속 로그인 시 fallback 으로 사용.
+    // 그렇지 않더라도 단일 비식별 키(PENDING_AVATAR_KEY) 에 JSON 으로 보관 → 다음 로그인 시 email 매칭 후 1회 소비.
+    // 이메일을 localStorage 키 자체에 노출하던 이전 방식은 제거 (CodeRabbit Major).
     const profileImageUrl = getRandomAvatarUrl()
     if (profileImageUrl) {
-      localStorage.setItem(`myfave-avatar:${formData.email}`, profileImageUrl)
+      localStorage.setItem(
+        PENDING_AVATAR_KEY,
+        JSON.stringify({ pendingEmail: formData.email, url: profileImageUrl }),
+      )
     }
     try {
       await signUpMutation.mutateAsync({
