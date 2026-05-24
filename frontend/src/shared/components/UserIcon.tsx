@@ -7,6 +7,8 @@ interface UserIconProps {
   variant?: Variant
   className?: string
   size?: number
+  // 회원가입 시 부여된 사용자별 프로필 이미지 URL. 존재하면 type/variant 매핑보다 우선.
+  profileImageUrl?: string
 }
 
 // Figma Node 99:351 (곰돌이), 99:380 (셀러) 기반 100% 실사 이미지 URL
@@ -27,12 +29,12 @@ const ICON_URLS: Record<IconType, Record<number, string>> = {
   }
 }
 
-export function UserIcon({ type = 'bear', variant = 1, className = '', size = 23.17 }: UserIconProps) {
-  // 해당 타입/변체가 없을 경우 기본값 처리
-  const iconUrl = ICON_URLS[type]?.[variant] || ICON_URLS[type]?.[1] || ICON_URLS['bear'][1]
+export function UserIcon({ type = 'bear', variant = 1, className = '', size = 23.17, profileImageUrl }: UserIconProps) {
+  // profileImageUrl 이 있으면 그 S3 URL 을 우선 사용. 없으면 기존 type/variant 매핑.
+  const iconUrl = profileImageUrl ?? (ICON_URLS[type]?.[variant] || ICON_URLS[type]?.[1] || ICON_URLS['bear'][1])
 
   return (
-    <div 
+    <div
       className={`relative overflow-hidden rounded-full flex-shrink-0 ${className}`}
       style={{ width: size, height: size }}
     >
