@@ -35,7 +35,7 @@ export function CouponPage() {
   }
 
   return (
-    <div className="flex-1 bg-white min-h-0 pb-40 overflow-y-auto">
+    <div className="flex-1 bg-white min-h-0 pb-40">
       <div className="px-[20px] pt-[28.01px]">
         <p className="font-noto text-[16px] font-medium text-black mb-[20px]">
           사용 가능한 쿠폰 : <span className="text-point">{available.length}장</span>
