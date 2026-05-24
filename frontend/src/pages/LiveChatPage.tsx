@@ -8,8 +8,11 @@ import { useAuthStore } from '@/features/auth/store'
 import type { ChatHistoryMessage } from '@/features/chat/types'
 import { getChatLifecycleState, getChatOpenAt, getCountdownSeconds } from '@/shared/utils/saleSchedule'
 import { useCurrentSaleEvent } from '@/features/saleevent/hooks'
+import { useCloseChatRoom } from '@/features/chat/hooks'
+import { Modal } from '@/shared/components/Modal'
 
 const THROTTLE_MS = 3000
+const INFLUENCER_ID = Number(import.meta.env.VITE_INFLUENCER_USER_ID)
 const BEAR_VARIANTS = [1, 3, 5, 6, 7, 10] as const
 
 function getVariantFromNickname(nickname: string): number {
@@ -121,6 +124,10 @@ export function LiveChatPage() {
   const { data: historyData } = useChatMessageHistory(roomInfo?.id)
   const { data: saleEvent } = useCurrentSaleEvent()
   const saleStartAt = saleEvent ? new Date(saleEvent.saleStartAt) : null
+  const user = useAuthStore((s) => s.user)
+  const isInfluencer = user?.id === INFLUENCER_ID
+  const closeRoomMutation = useCloseChatRoom()
+  const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false)
 
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
@@ -298,6 +305,22 @@ export function LiveChatPage() {
 
   return (
     <div className="relative flex flex-1 flex-col bg-white overflow-hidden min-h-0">
+      <Modal
+        isOpen={isCloseConfirmOpen}
+        onClose={() => setIsCloseConfirmOpen(false)}
+        buttonText={closeRoomMutation.isPending ? '종료 중...' : '채팅방 종료'}
+        onButtonClick={() => {
+          closeRoomMutation.mutate(undefined, {
+            onSuccess: () => {
+              setIsRoomClosed(true)
+              setIsCloseConfirmOpen(false)
+            },
+          })
+        }}
+      >
+        채팅방을 종료하면 모든 참여자의 채팅이 비활성화됩니다.{'\n'}정말 종료하시겠습니까?
+      </Modal>
+
       {/* 0. Background Watermark */}
       <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-[0.20]">
         <img src="/logo.svg" alt="My Fave Watermark" className="w-[50%] h-auto grayscale" style={{ imageRendering: 'auto' }} />
@@ -350,6 +373,16 @@ export function LiveChatPage() {
             {isConnected ? '연결됨' : '연결 대기'}
           </span>
         </div>
+        {isInfluencer && !isRoomClosed && (
+          <button
+            type="button"
+            onClick={() => setIsCloseConfirmOpen(true)}
+            className="inline-flex items-center gap-[4px] rounded-[10px] bg-red-50 px-[10px] py-[4px] border border-red-200 active:scale-95 transition-all"
+          >
+            <span className="h-[6px] w-[6px] rounded-full bg-red-400" />
+            <span className="font-noto text-[10px] text-red-500 font-medium">방 종료</span>
+          </button>
+        )}
       </div>
 
       {/* 3. Chat Messages Area */}
