@@ -1,5 +1,5 @@
 // frontend/src/pages/LiveChatPage.tsx
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { UserIcon } from '@/shared/components/UserIcon'
@@ -70,6 +70,8 @@ export function LiveChatPage() {
 
   useEffect(() => {
     if (roomInfo?.participantCount != null) {
+      // 서버 query 값을 local state로 초기 동기화 (이후 WS의 PARTICIPANT_COUNT 메시지가 갱신)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setParticipantCount(roomInfo.participantCount)
     }
   }, [roomInfo?.participantCount])
@@ -77,6 +79,8 @@ export function LiveChatPage() {
   useEffect(() => {
     if (!historyData?.messages.length || historyInitializedRef.current) return
     historyInitializedRef.current = true
+    // 과거 채팅 이력을 한 번만 초기 주입 (이후 WS의 NEW_MESSAGE가 누적)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMessages(historyData.messages.map(historyToMessage))
   }, [historyData])
 
@@ -167,30 +171,28 @@ export function LiveChatPage() {
     }
   }, [messages])
 
-  const handleSend = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault()
-      if (!inputText.trim() || isRoomClosed) return
+  // React Compiler가 자동 메모이즈하므로 useCallback 제거 (Compiler의 deps 추론과 manual deps mismatch 회피)
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inputText.trim() || isRoomClosed) return
 
-      const now = Date.now()
-      if (now - lastSendTimeRef.current < THROTTLE_MS) return
-      lastSendTimeRef.current = now
+    const now = Date.now()
+    if (now - lastSendTimeRef.current < THROTTLE_MS) return
+    lastSendTimeRef.current = now
 
-      if (stompClient.current?.connected && roomInfo?.id) {
-        stompClient.current.publish({
-          destination: `/app/chat/${roomInfo.id}`,
-          body: JSON.stringify({ type: 'SEND_MESSAGE', payload: { content: inputText } }),
-        })
-        setSendError(null)
-        setInputText('')
-        setIsCooldown(true)
-        setTimeout(() => setIsCooldown(false), THROTTLE_MS)
-      } else {
-        setSendError('서버와 연결이 끊어졌습니다. 잠시 후 다시 시도해주세요.')
-      }
-    },
-    [inputText, isRoomClosed, roomInfo?.id],
-  )
+    if (stompClient.current?.connected && roomInfo?.id) {
+      stompClient.current.publish({
+        destination: `/app/chat/${roomInfo.id}`,
+        body: JSON.stringify({ type: 'SEND_MESSAGE', payload: { content: inputText } }),
+      })
+      setSendError(null)
+      setInputText('')
+      setIsCooldown(true)
+      setTimeout(() => setIsCooldown(false), THROTTLE_MS)
+    } else {
+      setSendError('서버와 연결이 끊어졌습니다. 잠시 후 다시 시도해주세요.')
+    }
+  }
 
   if (isRoomLoading) {
     return (
