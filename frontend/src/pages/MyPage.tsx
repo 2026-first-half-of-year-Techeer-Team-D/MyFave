@@ -27,7 +27,7 @@ export function MyPage() {
   }
 
   return (
-    <div className="flex-1 bg-white min-h-0 pb-10 overflow-y-auto">
+    <div className="flex-1 bg-white min-h-0 pb-10">
       {/* 1. User Profile Section - Figma Node 99:1201 */}
       <div className="px-[19.99px] pt-[23.99px] pb-[19.99px]">
         <div className="flex items-center gap-[14px]">
