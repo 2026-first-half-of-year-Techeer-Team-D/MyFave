@@ -32,7 +32,7 @@ export function Layout() {
     <div className="min-h-screen w-full bg-[#E2AFAF] flex justify-center overflow-x-hidden">
       <div className="w-full max-w-[376.04px] min-h-screen bg-white shadow-figma-app flex flex-col relative">
         <Header {...getHeaderProps()} />
-        <main className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 flex flex-col overflow-x-hidden">
           <Outlet />
         </main>
         <Footer />
