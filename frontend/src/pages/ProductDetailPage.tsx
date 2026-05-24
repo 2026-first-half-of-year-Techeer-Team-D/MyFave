@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { useIsAuthenticated } from '@/features/auth/hooks'
@@ -23,6 +23,9 @@ export function ProductDetailPage() {
   const [isPopUpOpen, setIsPopUpOpen] = useState(false)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set())
+  // 캐러셀: 가로 스크롤 컨테이너 ref + 현재 보이는 인덱스(필터 후 기준).
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const [currentIdx, setCurrentIdx] = useState(0)
 
   if (isLoading) {
     return <div className="flex-1 bg-white" />
@@ -75,29 +78,89 @@ export function ProductDetailPage() {
         회원들만 결제가 가능한 쇼핑몰입니다.<br />
         결제하시려면 회원가입 또는 로그인을 진행해주세요.
       </Modal>
-      <div className="relative w-full h-[455px] bg-[#F8F8F8]">
-        <div className="flex h-full w-full overflow-x-auto snap-x snap-mandatory scrollbar-hide">
-          {product.images.map((img, idx) =>
-            failedImages.has(idx) ? null : (
-              <div key={idx} className="h-full w-full flex-shrink-0 snap-center">
-                <SmartImage
-                  src={img}
-                  alt={`${product.title}-${idx}`}
-                  className="h-full w-full object-cover"
-                  onError={() => setFailedImages((prev) => new Set(prev).add(idx))}
-                />
-              </div>
-            )
-          )}
-        </div>
-        {product.images.filter((_, idx) => !failedImages.has(idx)).length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {product.images.filter((_, idx) => !failedImages.has(idx)).map((_, idx) => (
-              <div key={idx} className="w-1.5 h-1.5 rounded-full bg-black/20" />
-            ))}
+      {(() => {
+        // 실패한 이미지는 렌더 제외. visIdx = 화면상 0-based 인덱스, originalIdx = product.images 원본 인덱스.
+        const visibleImages = product.images
+          .map((src, originalIdx) => ({ src, originalIdx }))
+          .filter(({ originalIdx }) => !failedImages.has(originalIdx))
+
+        const scrollToIdx = (next: number) => {
+          const el = carouselRef.current
+          if (!el || el.clientWidth === 0) return
+          const clamped = Math.max(0, Math.min(visibleImages.length - 1, next))
+          el.scrollTo({ left: clamped * el.clientWidth, behavior: 'smooth' })
+        }
+
+        const handleScroll = () => {
+          const el = carouselRef.current
+          if (!el || el.clientWidth === 0) return
+          const idx = Math.round(el.scrollLeft / el.clientWidth)
+          if (idx !== currentIdx) setCurrentIdx(idx)
+        }
+
+        return (
+          <div className="relative w-full h-[455px] bg-[#F8F8F8]">
+            <div
+              ref={carouselRef}
+              onScroll={handleScroll}
+              className="flex h-full w-full overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+            >
+              {visibleImages.map(({ src, originalIdx }) => (
+                <div key={originalIdx} className="h-full w-full flex-shrink-0 snap-center">
+                  <SmartImage
+                    src={src}
+                    alt={`${product.title}-${originalIdx}`}
+                    className="h-full w-full object-cover"
+                    onError={() => setFailedImages((prev) => new Set(prev).add(originalIdx))}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {visibleImages.length > 1 && (
+              <>
+                {/* 이전 화살표 — 첫 이미지에서는 비활성. */}
+                <button
+                  type="button"
+                  onClick={() => scrollToIdx(currentIdx - 1)}
+                  disabled={currentIdx === 0}
+                  aria-label="이전 이미지"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/85 shadow-md backdrop-blur-sm transition-all hover:bg-white active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#322927" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+
+                {/* 다음 화살표 — 마지막 이미지에서는 비활성. */}
+                <button
+                  type="button"
+                  onClick={() => scrollToIdx(currentIdx + 1)}
+                  disabled={currentIdx >= visibleImages.length - 1}
+                  aria-label="다음 이미지"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/85 shadow-md backdrop-blur-sm transition-all hover:bg-white active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#322927" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+
+                {/* 인디케이터 dots — 활성 dot 강조. */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+                  {visibleImages.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`h-1.5 rounded-full transition-all ${
+                        idx === currentIdx ? 'w-3 bg-[#322927]' : 'w-1.5 bg-black/20'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
-        )}
-      </div>
+        )
+      })()}
 
       <div className="px-[19.99px] pt-[16px] pb-[32px]">
         <div className="space-y-[12px]">
