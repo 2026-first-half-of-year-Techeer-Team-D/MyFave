@@ -31,3 +31,11 @@ logging:
 app:
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:https://www.myfave.shop,https://myfave.shop}
+
+# 포트원 모바일 결제 채널 (PC 키는 application.yml 에서 상속, 모바일 키만 prod 환경변수로 주입)
+portone:
+  channel-key:
+    mobile-card: ${MOBILE_PORTONE_CHANNEL_KEY_CARD}
+    mobile-kakao-pay: ${MOBILE_PORTONE_CHANNEL_KEY_KAKAOPAY}
+    mobile-naver-pay: ${MOBILE_PORTONE_CHANNEL_KEY_NAVERPAY}
+    mobile-toss-pay: ${MOBILE_PORTONE_CHANNEL_KEY_TOSSPAY}

@@ -22,6 +22,7 @@ import { TermsPage } from '@/pages/TermsPage'
 import { OrderDetailPage } from '@/pages/OrderDetailPage'
 import { OrderSuccessPage } from '@/pages/OrderSuccessPage'
 import { OrdersPage } from '@/pages/OrdersPage'
+import { PaymentCallbackPage } from '@/pages/PaymentCallbackPage'
 import { PaymentPage } from '@/pages/PaymentPage'
 import { ProductDetailPage } from '@/pages/ProductDetailPage'
 import { ProductListPage } from '@/pages/ProductListPage'
@@ -67,6 +68,7 @@ const router = createBrowserRouter([
             element: <ProtectedRoute />,
             children: [
               { path: '/payment', element: <PaymentPage /> },
+              { path: '/payment/callback', element: <PaymentCallbackPage /> },
               { path: '/shipping-addresses', element: <ShippingAddressPage /> },
               { path: '/add-shipping', element: <AddShippingPage /> },
               { path: '/coupons', element: <CouponPage /> },
