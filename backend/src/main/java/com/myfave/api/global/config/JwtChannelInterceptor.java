@@ -1,5 +1,7 @@
 package com.myfave.api.global.config;
 
+import com.myfave.api.domain.user.entity.User;
+import com.myfave.api.domain.user.repository.UserRepository;
 import com.myfave.api.global.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Component;
 public class JwtChannelInterceptor implements ChannelInterceptor {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -29,7 +32,13 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
                 String token = authHeader.substring(7);
                 if (jwtTokenProvider.validateToken(token)) {
                     Long userId = jwtTokenProvider.getUserId(token);
+                    User user = userRepository.findById(userId).orElse(null);
+                    if (user == null) {
+                        log.warn("STOMP CONNECT 거부: 사용자를 찾을 수 없음 userId={}", userId);
+                        return null;
+                    }
                     accessor.getSessionAttributes().put("userId", userId);
+                    accessor.getSessionAttributes().put("nickname", user.getNickname());
                 } else {
                     log.warn("STOMP CONNECT 거부: 유효하지 않은 토큰");
                     return null;
