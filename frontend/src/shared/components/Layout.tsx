@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { Footer } from '@/shared/components/Footer'
@@ -6,12 +5,6 @@ import { Header } from '@/shared/components/Header'
 
 export function Layout() {
   const location = useLocation()
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' })
-    // 일부 페이지는 자체 overflow-y-auto 컨테이너를 가지므로 함께 초기화
-    document.querySelector('main')?.scrollTo({ top: 0, behavior: 'instant' })
-  }, [location.pathname])
 
   const getHeaderProps = () => {
     const path = location.pathname
