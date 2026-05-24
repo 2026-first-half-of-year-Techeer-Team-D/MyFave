@@ -16,7 +16,8 @@ const DAON_PICKS = [
 ]
 
 export function MainPage() {
-  const { data: influencerProducts = [] } = useInfluencerPicks()
+  // 로딩/에러 상태를 빈 배열로 숨기면 사용자에게 정상 빈 데이터처럼 오해를 주므로 명시적 분기 (CR M11).
+  const { data: influencerProducts = [], isLoading, isError } = useInfluencerPicks()
 
   return (
     <div className="flex-1 bg-white">
@@ -47,27 +48,46 @@ export function MainPage() {
 
       {/* 3. Photo Grid Section (2*2) - 라이브 채팅 밑 */}
       <div className="mx-auto max-w-md px-[20px] pb-[40px]">
-        <div className="grid grid-cols-2 gap-[12px]">
-          {influencerProducts.map((product) => (
-            <Link
-              key={product.id}
-              to={`/product/${product.id}`}
-              className="relative aspect-square overflow-hidden rounded-[8px] bg-gray-50 border border-separator/10 active:scale-[0.98] transition-transform"
-            >
-              <SmartImage
-                src={product.image}
-                alt={product.title}
-                className="h-full w-full object-cover"
-              />
-            </Link>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-2 gap-[12px]">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="aspect-square rounded-[8px] bg-gray-100 animate-pulse" />
+            ))}
+          </div>
+        ) : isError ? (
+          <p className="py-10 text-center font-noto text-[13px] text-muted-text">
+            상품을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-[12px]">
+            {influencerProducts.map((product) => (
+              <Link
+                key={product.id}
+                to={`/product/${product.id}`}
+                className="relative aspect-square overflow-hidden rounded-[8px] bg-gray-50 border border-separator/10 active:scale-[0.98] transition-transform"
+              >
+                <SmartImage
+                  src={product.image}
+                  alt={product.title}
+                  className="h-full w-full object-cover"
+                />
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 4. DAON'S PICK Section (Horizontal Scroll) */}
       <div className="mx-auto max-w-md pt-[23.99px] pb-20">
         <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">DAON'S PICK</h2>
 
+        {isLoading ? (
+          <div className="flex gap-[12px] px-[19.99px]">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-[288.06px] w-[162.03px] flex-shrink-0 rounded-[8px] bg-gray-100 animate-pulse" />
+            ))}
+          </div>
+        ) : isError ? null : (
         <div className="flex overflow-x-auto pb-4 gap-[12px] px-[19.99px] scrollbar-hide">
           {influencerProducts.map((product, index) => (
             <div
@@ -93,6 +113,7 @@ export function MainPage() {
             </div>
           ))}
         </div>
+        )}
       </div>
     </div>
   )
