@@ -356,6 +356,9 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
         int attemptNo = paymentAttemptRepository.countByPaymentPaymentId(paymentId) + 1;
+        // pgTransactionId 를 Payment 에도 먼저 영속화 — 이후 웹훅이 findByPgTransactionId 로
+        // FAILED 레코드를 찾아 보상/복구할 수 있도록 키 보존 (CR PR#185 C1).
+        payment.recordPgTransactionId(pgTransactionId);
         payment.fail(failReason);
         saveAttempt(payment, attemptNo, PaymentStatus.FAILED, pgTransactionId, failReason);
     }
