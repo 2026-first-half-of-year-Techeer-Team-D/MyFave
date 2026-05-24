@@ -63,6 +63,7 @@ function toProductDetail(item: ProductDetailApiResponse): ProductDetail {
     price: item.price.toLocaleString() + '원',
     priceNumber: item.price,
     images,
+    isSoldOut: item.isSoldOut,
     features: item.description
       ? [{ title: '상품 설명', description: item.description }]
       : [],
