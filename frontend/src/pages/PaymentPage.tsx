@@ -28,6 +28,7 @@ import { useCart } from '@/features/cart/hooks'
 import { useCartStore } from '@/features/cart/store'
 import { useCouponStore } from '@/features/coupons/store'
 import { useCreateOrder } from '@/features/orders/hooks'
+import { paymentsApi } from '@/features/payments/api'
 import { useConfirmPayment, usePreparePayment } from '@/features/payments/hooks'
 import { useCheckoutStore } from '@/features/payments/store'
 import { PAYMENT_METHOD_MAP } from '@/features/payments/types'
@@ -149,9 +150,13 @@ export function PaymentPage() {
     [checkoutItems, backendPriceMap],
   )
 
+  // 백엔드는 SHIPPING 쿠폰을 discountPrice 차감이 아니라 deliveryFee=0 으로 처리한다.
+  // 프론트도 동일 규칙으로 계산해야 preparePayment 응답의 totalPaymentPrice 와 mismatch 가 발생하지 않음 (CR M16).
   const subtotal = syncedItems.reduce((sum, item) => sum + item.price, 0)
-  const shippingFee = 3000
-  const discount = appliedCoupon ? appliedCoupon.discountPrice : 0
+  const isShippingCoupon = appliedCoupon?.couponType === 'SHIPPING'
+  const isDiscountCoupon = appliedCoupon?.couponType === 'DISCOUNT'
+  const shippingFee = isShippingCoupon ? 0 : 3000
+  const discount = isDiscountCoupon ? appliedCoupon!.discountPrice : 0
   const total = subtotal + shippingFee - discount
 
   const handlePayment = async (e: React.FormEvent) => {
@@ -160,6 +165,19 @@ export function PaymentPage() {
 
     const backendMethod = PAYMENT_METHOD_MAP[selectedMethod]
     if (!backendMethod) return
+
+    // PortOne 취소/SDK 오류 분기에서 PENDING 결제를 cleanup 하기 위한 paymentId 저장 (CR M17).
+    let pendingPaymentId: number | null = null
+
+    // 백엔드 cancel 호출 — 실패해도 silent. 사용자에게는 별도 메시지 없음.
+    const cleanupPendingPayment = async (reason: string) => {
+      if (pendingPaymentId == null) return
+      try {
+        await paymentsApi.cancel(pendingPaymentId, { reason })
+      } catch {
+        // cleanup 실패는 사용자 흐름에 영향 없음 — 백엔드 웹훅이나 별도 정리 절차에 의존
+      }
+    }
 
     try {
       // 1. 주문 생성
@@ -177,10 +195,14 @@ export function PaymentPage() {
         ...(appliedCoupon?.couponId && appliedCoupon.couponType === 'SHIPPING' && { shippingCouponId: appliedCoupon.couponId }),
       })
 
+      // PortOne 실패/취소 시 cleanup 대상으로 저장.
+      pendingPaymentId = prepareRes.paymentId
+
       // 금액 일치 검증 (백엔드 값끼리만 비교)
       const expectedTotal = prepareRes.totalProductPrice + prepareRes.deliveryFee - prepareRes.discountPrice
       if (prepareRes.totalPaymentPrice !== expectedTotal) {
         showPopUp('주문 금액이 변경되었습니다. 다시 시도해주세요.')
+        await cleanupPendingPayment('AMOUNT_MISMATCH')
         return
       }
 
@@ -214,6 +236,7 @@ export function PaymentPage() {
         const msg = portoneRes?.message ?? ''
         const isUserCancel = msg.includes('취소') || msg.toLowerCase().includes('cancel')
         showPopUp(isUserCancel ? '결제를 취소하셨습니다.' : `결제 실패: ${msg || '알 수 없는 오류'}`)
+        await cleanupPendingPayment(isUserCancel ? 'USER_CANCEL' : `SDK_ERROR: ${msg}`)
         return
       }
 
@@ -259,9 +282,12 @@ export function PaymentPage() {
         const msg = portoneErr.message ?? ''
         const isUserCancel = msg.includes('취소') || msg.toLowerCase().includes('cancel')
         showPopUp(isUserCancel ? '결제를 취소하셨습니다.' : `결제 실패: ${msg || '알 수 없는 오류'}`)
+        await cleanupPendingPayment(isUserCancel ? 'USER_CANCEL' : `SDK_THROW: ${msg}`)
         return
       }
+      // confirmPayment 등 백엔드 호출에서 throw 한 경우 — 사용자에게 메시지 표시 후 PENDING 정리.
       showPopUp(getPaymentErrorMessage(err))
+      await cleanupPendingPayment('CONFIRM_FAILED')
     } finally {
       // 어떤 종료 경로(성공/취소/예외)에서도 결제버튼 잠금 해제 보장
       setIsPortOneOpen(false)
