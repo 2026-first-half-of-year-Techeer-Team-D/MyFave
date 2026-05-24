@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { UserIcon } from '@/shared/components/UserIcon'
 import { useChatPreview } from '@/features/chat/hooks'
+import { useCurrentSaleEvent } from '@/features/saleevent/hooks'
 import { getChatLifecycleState } from '@/shared/utils/saleSchedule'
 
 function getVariantFromNickname(nickname: string): number {
@@ -15,13 +16,17 @@ function getVariantFromNickname(nickname: string): number {
 
 export function LiveChatPreview() {
   const { data, isLoading, isError } = useChatPreview(5)
+  const { data: saleEvent } = useCurrentSaleEvent()
   // 라이프사이클(시간 기반) 게이트 — 분 단위 갱신으로 충분.
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
     const tick = setInterval(() => setNow(new Date()), 60_000)
     return () => clearInterval(tick)
   }, [])
-  const lifecycle = getChatLifecycleState({ now })
+  const saleStartAt = saleEvent ? new Date(saleEvent.saleStartAt) : null
+  const lifecycle = saleStartAt
+    ? getChatLifecycleState({ saleStartAt, now })
+    : 'BEFORE_OPEN'
 
   if (isLoading) {
     return (

@@ -7,6 +7,7 @@ import { useChatRoomInfo, useChatMessageHistory } from '@/features/chat/hooks'
 import { useAuthStore } from '@/features/auth/store'
 import type { ChatHistoryMessage } from '@/features/chat/types'
 import { getChatLifecycleState, getChatOpenAt, getCountdownSeconds } from '@/shared/utils/saleSchedule'
+import { useCurrentSaleEvent } from '@/features/saleevent/hooks'
 
 const THROTTLE_MS = 3000
 const BEAR_VARIANTS = [1, 3, 5, 6, 7, 10] as const
@@ -53,15 +54,17 @@ function InactiveRoomScreen() {
 }
 
 // 판매 시작 30분 전 이전 — 잠금 화면.
-function BeforeOpenScreen({ countdownSeconds }: { countdownSeconds: number }) {
+function BeforeOpenScreen({ countdownSeconds, saleStartAt }: { countdownSeconds: number; saleStartAt: Date | null }) {
   // 오픈까지 남은 시간 (= 판매 시작 30분 전까지 남은 시간 = countdownSeconds - 30분).
-  const chatOpenAt = getChatOpenAt()
-  const openLabel = chatOpenAt.toLocaleString('ko-KR', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const chatOpenAt = saleStartAt ? getChatOpenAt(saleStartAt) : null
+  const openLabel = chatOpenAt
+    ? chatOpenAt.toLocaleString('ko-KR', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '미정'
   const days = Math.floor(countdownSeconds / 86400)
   const hms = countdownSeconds % 86400
   const h = Math.floor(hms / 3600)
@@ -116,6 +119,8 @@ function ClosedRoomScreen() {
 export function LiveChatPage() {
   const { data: roomInfo, isLoading: isRoomLoading, isError: isRoomError } = useChatRoomInfo()
   const { data: historyData } = useChatMessageHistory(roomInfo?.id)
+  const { data: saleEvent } = useCurrentSaleEvent()
+  const saleStartAt = saleEvent ? new Date(saleEvent.saleStartAt) : null
 
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
@@ -276,9 +281,16 @@ export function LiveChatPage() {
   // 2) 현재 시각이 채팅 오픈 시각(판매시작 30분 전) 이전 → BEFORE_OPEN
   // 3) 백엔드가 isActive=false 또는 에러 → InactiveRoomScreen (이전 폴백)
   // 4) 그 외 → OPEN
-  const lifecycle = getChatLifecycleState({ now, isAdminClosed: isRoomClosed })
+  const lifecycle = saleStartAt
+    ? getChatLifecycleState({ saleStartAt, now, isAdminClosed: isRoomClosed })
+    : 'BEFORE_OPEN'
   if (lifecycle === 'CLOSED') return <ClosedRoomScreen />
-  if (lifecycle === 'BEFORE_OPEN') return <BeforeOpenScreen countdownSeconds={getCountdownSeconds(now)} />
+  if (lifecycle === 'BEFORE_OPEN') return (
+    <BeforeOpenScreen
+      countdownSeconds={saleStartAt ? getCountdownSeconds(saleStartAt, now) : 0}
+      saleStartAt={saleStartAt}
+    />
+  )
 
   if (isRoomError || !roomInfo?.isActive) {
     return <InactiveRoomScreen />
