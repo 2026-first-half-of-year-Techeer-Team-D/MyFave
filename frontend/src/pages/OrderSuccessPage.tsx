@@ -143,11 +143,17 @@ export function OrderSuccessPage() {
         </section>
       )}
 
-      {/* 5. Bottom Action Button */}
-      <div className="px-[19.99px] py-[48px]">
+      {/* 5. Bottom Action Buttons */}
+      <div className="px-[19.99px] py-[48px] space-y-[12px]">
+        <Link
+          to="/orders"
+          className="flex h-[56px] w-full items-center justify-center rounded-[12px] bg-point font-noto text-[16px] font-bold text-white shadow-lg shadow-point/20 active:scale-[0.98] transition-all text-center"
+        >
+          주문 조회하기
+        </Link>
         <Link
           to="/"
-          className="flex h-[56px] w-full items-center justify-center rounded-[12px] bg-point font-noto text-[16px] font-bold text-white shadow-lg shadow-point/20 active:scale-[0.98] transition-all text-center"
+          className="flex h-[56px] w-full items-center justify-center rounded-[12px] border border-[#F2EDEB] bg-white font-noto text-[16px] font-bold text-[#322927] active:scale-[0.98] transition-all text-center"
         >
           계속 쇼핑하기
         </Link>
