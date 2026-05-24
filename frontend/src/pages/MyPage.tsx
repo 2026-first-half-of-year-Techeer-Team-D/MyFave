@@ -35,8 +35,9 @@ export function MyPage() {
   const navigate = useNavigate()
   const user = useUser()
   const logout = useLogout()
-  const { data: availableCoupons = [] } = useMyCoupons('AVAILABLE')
-  const { data: ordersData } = useOrdersQuery()
+  // 로딩/에러 상태를 0 과 구분해서 표시 — 장애가 "주문 0건"으로 묻히지 않도록 (CR M13).
+  const { data: availableCoupons = [], isLoading: isCouponsLoading, isError: isCouponsError } = useMyCoupons('AVAILABLE')
+  const { data: ordersData, isLoading: isOrdersLoading, isError: isOrdersError } = useOrdersQuery()
 
   const orderCounts = useMemo(() => {
     const init: Record<DashboardBucket, number> = {
@@ -52,6 +53,13 @@ export function MyPage() {
     }
     return init
   }, [ordersData])
+
+  // 로딩 중에는 "-", 에러 시 "!" 로 표기해 0 과 시각적으로 구분.
+  const renderCount = (value: number, isLoading: boolean, isError: boolean): string => {
+    if (isLoading) return '-'
+    if (isError) return '!'
+    return String(value)
+  }
 
   const displayName = user ? `${user.nickname}님` : '비회원'
   const displayEmail = user?.email ?? ''
@@ -95,7 +103,7 @@ export function MyPage() {
                 className="flex flex-col items-center justify-between h-full w-[74.12px]"
               >
                 <span className="font-noto text-[24px] font-medium leading-[36px] text-[#322927]">
-                  {orderCounts[bucket]}
+                  {renderCount(orderCounts[bucket], isOrdersLoading, isOrdersError)}
                 </span>
                 <span className="font-noto text-[12px] font-normal leading-[18px] text-[#8B7E74]">
                   {bucket}
@@ -129,7 +137,9 @@ export function MyPage() {
         >
           <span className="font-noto text-[12px] font-medium text-[#322927]">쿠폰</span>
           <div className="flex items-center gap-1">
-            <span className="font-noto text-[12px] font-medium text-chat-font">{availableCoupons.length}장</span>
+            <span className="font-noto text-[12px] font-medium text-chat-font">
+              {renderCount(availableCoupons.length, isCouponsLoading, isCouponsError)}장
+            </span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7E74" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
