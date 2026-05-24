@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useOrderDetailQuery } from '@/features/orders/hooks'
 import type { BackendOrderStatus } from '@/features/orders/types'
 import { getProductThumbnail } from '@/features/products/imageMap'
+import { SmartImage } from '@/shared/components/SmartImage'
 
 const STATUS_LABEL: Record<BackendOrderStatus, string> = {
   PENDING: '결제 대기',
@@ -66,8 +67,9 @@ export function OrderDetailPage() {
             className="flex gap-[11.99px] p-[15.99px] rounded-[12px] border-[1.096px] border-[#F2EDEB] bg-white"
           >
             <div className="w-[84px] h-[84px] flex-shrink-0 overflow-hidden rounded-[15px]">
-              <img
+              <SmartImage
                 // 로컬 imageMap 우선, 매핑 없으면 백엔드 thumbnailUrl fallback.
+                // HEIC-only 상품도 SmartImage 가 자동 변환 (CR M9).
                 src={getProductThumbnail(item.productId) || item.thumbnailUrl || ''}
                 alt={item.productName}
                 className="w-full h-full object-cover"
