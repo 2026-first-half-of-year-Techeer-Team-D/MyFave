@@ -9,7 +9,9 @@ interface PopUpProps {
 
 export function PopUp({ message, isOpen, onClose, duration = 3000 }: PopUpProps) {
   const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
 
   useEffect(() => {
     if (isOpen) {
