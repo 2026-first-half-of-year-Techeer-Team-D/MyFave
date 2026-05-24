@@ -22,6 +22,7 @@ export interface ProductDetail {
   priceNumber: number
   images: string[]
   features: ProductFeature[]
+  isSoldOut: boolean
 }
 
 export interface InfluencerPick extends Product {

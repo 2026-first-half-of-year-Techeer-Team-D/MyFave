@@ -13,6 +13,7 @@ import com.myfave.api.domain.order.repository.OrderRepository;
 import com.myfave.api.domain.payment.dto.request.PaymentCancelRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentConfirmRequest;
 import com.myfave.api.domain.payment.dto.request.PaymentPrepareRequest;
+import com.myfave.api.domain.payment.dto.request.PaymentPrepareRequest.DeviceType;
 import com.myfave.api.domain.payment.dto.request.PaymentWebhookRequest;
 import com.myfave.api.domain.payment.dto.response.PaymentPrepareResponse;
 import com.myfave.api.domain.payment.dto.response.PaymentResponse;
@@ -90,15 +91,29 @@ public class PaymentService {
     @Value("${portone.channel-key.toss-pay}")
     private String tossPayChannelKey;
 
+    @Value("${portone.channel-key.mobile-card}")
+    private String mobileCardChannelKey;
+
+    @Value("${portone.channel-key.mobile-kakao-pay}")
+    private String mobileKakaoPayChannelKey;
+
+    @Value("${portone.channel-key.mobile-naver-pay}")
+    private String mobileNaverPayChannelKey;
+
+    @Value("${portone.channel-key.mobile-toss-pay}")
+    private String mobileTossPayChannelKey;
+
     @Value("${portone.api-secret}")
     private String apiSecret;
 
-    private String resolveChannelKey(PaymentMethod method) {
+    private String resolveChannelKey(PaymentMethod method, DeviceType deviceType) {
+        // deviceType null = PC 폴백 (기존 클라이언트 호환)
+        boolean isMobile = deviceType == DeviceType.MOBILE;
         return switch (method) {
-            case CARD -> cardChannelKey;
-            case KAKAO_PAY -> kakaoPayChannelKey;
-            case NAVER_PAY -> naverPayChannelKey;
-            case TOSS_PAY -> tossPayChannelKey;
+            case CARD -> isMobile ? mobileCardChannelKey : cardChannelKey;
+            case KAKAO_PAY -> isMobile ? mobileKakaoPayChannelKey : kakaoPayChannelKey;
+            case NAVER_PAY -> isMobile ? mobileNaverPayChannelKey : naverPayChannelKey;
+            case TOSS_PAY -> isMobile ? mobileTossPayChannelKey : tossPayChannelKey;
         };
     }
 
@@ -176,7 +191,7 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_LOCK_CONFLICT);
         }
 
-        return PaymentPrepareResponse.of(payment, storeId, resolveChannelKey(request.getPaymentMethod()));
+        return PaymentPrepareResponse.of(payment, storeId, resolveChannelKey(request.getPaymentMethod(), request.getDeviceType()));
     }
 
     public record ConfirmContext(Long paymentId, int totalPaymentPrice) {}

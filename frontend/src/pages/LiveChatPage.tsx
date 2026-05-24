@@ -7,8 +7,13 @@ import { useChatRoomInfo, useChatMessageHistory } from '@/features/chat/hooks'
 import { useAuthStore } from '@/features/auth/store'
 import type { ChatHistoryMessage } from '@/features/chat/types'
 import { getChatLifecycleState, getChatOpenAt, getCountdownSeconds } from '@/shared/utils/saleSchedule'
+import { useCurrentSaleEvent } from '@/features/saleevent/hooks'
+import { useCloseChatRoom } from '@/features/chat/hooks'
+import { Modal } from '@/shared/components/Modal'
+import { CouponIssueModal } from '@/features/coupons/CouponIssueModal'
 
 const THROTTLE_MS = 3000
+const INFLUENCER_ID = Number(import.meta.env.VITE_INFLUENCER_USER_ID)
 const BEAR_VARIANTS = [1, 3, 5, 6, 7, 10] as const
 
 function getVariantFromNickname(nickname: string): number {
@@ -21,6 +26,8 @@ function getVariantFromNickname(nickname: string): number {
 
 interface Message {
   id: string | number
+  // admin 쿠폰 발급 시 대상 user_id 식별용 — WS NEW_MESSAGE 의 payload.userId, history 의 senderId 매핑.
+  userId: number
   user: string
   text: string
   avatarType: 'bear' | 'human' | 'seller'
@@ -32,6 +39,7 @@ interface Message {
 function historyToMessage(msg: ChatHistoryMessage): Message {
   return {
     id: msg.messageId,
+    userId: msg.senderId,
     user: msg.senderNickname,
     text: msg.content,
     avatarType: msg.influencer ? 'seller' : 'bear',
@@ -53,15 +61,17 @@ function InactiveRoomScreen() {
 }
 
 // 판매 시작 30분 전 이전 — 잠금 화면.
-function BeforeOpenScreen({ countdownSeconds }: { countdownSeconds: number }) {
+function BeforeOpenScreen({ countdownSeconds, saleStartAt }: { countdownSeconds: number; saleStartAt: Date | null }) {
   // 오픈까지 남은 시간 (= 판매 시작 30분 전까지 남은 시간 = countdownSeconds - 30분).
-  const chatOpenAt = getChatOpenAt()
-  const openLabel = chatOpenAt.toLocaleString('ko-KR', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const chatOpenAt = saleStartAt ? getChatOpenAt(saleStartAt) : null
+  const openLabel = chatOpenAt
+    ? chatOpenAt.toLocaleString('ko-KR', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '미정'
   const days = Math.floor(countdownSeconds / 86400)
   const hms = countdownSeconds % 86400
   const h = Math.floor(hms / 3600)
@@ -116,6 +126,14 @@ function ClosedRoomScreen() {
 export function LiveChatPage() {
   const { data: roomInfo, isLoading: isRoomLoading, isError: isRoomError } = useChatRoomInfo()
   const { data: historyData } = useChatMessageHistory(roomInfo?.id)
+  const { data: saleEvent } = useCurrentSaleEvent()
+  const saleStartAt = saleEvent ? new Date(saleEvent.saleStartAt) : null
+  const user = useAuthStore((s) => s.user)
+  const isInfluencer = user?.id === INFLUENCER_ID
+  const closeRoomMutation = useCloseChatRoom()
+  const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false)
+  // admin 쿠폰 발급 모달 — 채팅 메시지 옆 🎁 버튼 클릭 시 대상 user 정보 저장.
+  const [couponTarget, setCouponTarget] = useState<{ userId: number; nickname: string } | null>(null)
 
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
@@ -183,6 +201,7 @@ export function LiveChatPage() {
               const isOfficial = payload.nickname?.includes('공식') ?? false
               const newMessage: Message = {
                 id: payload.messageId ?? Date.now(),
+                userId: payload.userId,
                 user: payload.nickname,
                 text: payload.content,
                 avatarType: isOfficial ? 'seller' : 'bear',
@@ -276,9 +295,16 @@ export function LiveChatPage() {
   // 2) 현재 시각이 채팅 오픈 시각(판매시작 30분 전) 이전 → BEFORE_OPEN
   // 3) 백엔드가 isActive=false 또는 에러 → InactiveRoomScreen (이전 폴백)
   // 4) 그 외 → OPEN
-  const lifecycle = getChatLifecycleState({ now, isAdminClosed: isRoomClosed })
+  const lifecycle = saleStartAt
+    ? getChatLifecycleState({ saleStartAt, now, isAdminClosed: isRoomClosed })
+    : 'BEFORE_OPEN'
   if (lifecycle === 'CLOSED') return <ClosedRoomScreen />
-  if (lifecycle === 'BEFORE_OPEN') return <BeforeOpenScreen countdownSeconds={getCountdownSeconds(now)} />
+  if (lifecycle === 'BEFORE_OPEN') return (
+    <BeforeOpenScreen
+      countdownSeconds={saleStartAt ? getCountdownSeconds(saleStartAt, now) : 0}
+      saleStartAt={saleStartAt}
+    />
+  )
 
   if (isRoomError || !roomInfo?.isActive) {
     return <InactiveRoomScreen />
@@ -286,6 +312,29 @@ export function LiveChatPage() {
 
   return (
     <div className="relative flex flex-1 flex-col bg-white overflow-hidden min-h-0">
+      <Modal
+        isOpen={isCloseConfirmOpen}
+        onClose={() => setIsCloseConfirmOpen(false)}
+        buttonText={closeRoomMutation.isPending ? '종료 중...' : '채팅방 종료'}
+        onButtonClick={() => {
+          closeRoomMutation.mutate(undefined, {
+            onSuccess: () => {
+              setIsRoomClosed(true)
+              setIsCloseConfirmOpen(false)
+            },
+          })
+        }}
+      >
+        채팅방을 종료하면 모든 참여자의 채팅이 비활성화됩니다.{'\n'}정말 종료하시겠습니까?
+      </Modal>
+
+      {/* admin 쿠폰 발급 모달 — 채팅 메시지 옆 🎁 버튼 클릭 시 표시. */}
+      <CouponIssueModal
+        isOpen={couponTarget != null}
+        onClose={() => setCouponTarget(null)}
+        target={couponTarget}
+      />
+
       {/* 0. Background Watermark */}
       <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-[0.20]">
         <img src="/logo.svg" alt="My Fave Watermark" className="w-[50%] h-auto grayscale" style={{ imageRendering: 'auto' }} />
@@ -338,6 +387,16 @@ export function LiveChatPage() {
             {isConnected ? '연결됨' : '연결 대기'}
           </span>
         </div>
+        {isInfluencer && !isRoomClosed && (
+          <button
+            type="button"
+            onClick={() => setIsCloseConfirmOpen(true)}
+            className="inline-flex items-center gap-[4px] rounded-[10px] bg-red-50 px-[10px] py-[4px] border border-red-200 active:scale-95 transition-all"
+          >
+            <span className="h-[6px] w-[6px] rounded-full bg-red-400" />
+            <span className="font-noto text-[10px] text-red-500 font-medium">방 종료</span>
+          </button>
+        )}
       </div>
 
       {/* 3. Chat Messages Area */}
@@ -351,6 +410,17 @@ export function LiveChatPage() {
                   <span className={`font-noto text-[12px] leading-[18px] text-[#000000] ${msg.isOfficial ? 'font-bold' : 'font-normal'}`}>
                     {msg.user}
                   </span>
+                  {/* admin(인플루언서)만 보이는 쿠폰 발급 버튼. 인플루언서 본인 메시지엔 표시 안 함. */}
+                  {isInfluencer && !msg.isOfficial && msg.userId !== INFLUENCER_ID && (
+                    <button
+                      type="button"
+                      onClick={() => setCouponTarget({ userId: msg.userId, nickname: msg.user })}
+                      className="rounded-full bg-main-bg/70 px-[6px] py-[1px] font-noto text-[10px] text-point hover:bg-main-bg active:scale-95 transition-all"
+                      aria-label={`${msg.user} 님에게 쿠폰 발급`}
+                    >
+                      🎁
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-end gap-[8px] max-w-[240px]">
                   <div

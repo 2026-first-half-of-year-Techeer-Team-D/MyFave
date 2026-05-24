@@ -30,3 +30,8 @@ export interface ChatPreviewResponse {
   participantCount: number
   recentMessages: ChatPreviewMessage[]
 }
+
+export interface ChatRoomCloseResponse {
+  isActive: boolean
+  closedAt: string
+}
