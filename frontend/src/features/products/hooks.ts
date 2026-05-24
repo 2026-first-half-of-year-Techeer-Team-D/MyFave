@@ -25,10 +25,13 @@ function mapCategory(code: string | null | undefined): ProductCategory {
 }
 
 function toProduct(item: ProductApiItem): Product {
+  // 로컬 imageMap(.jpg) 우선 — 큐레이션된 S3 URL 보장.
+  // 매핑 없는 신상품은 백엔드 thumbnailUrl 로 fallback (없으면 빈 문자열 → alt 노출).
+  const image = getProductThumbnail(item.id) || item.thumbnailUrl || ''
   return {
     id: item.id,
     title: item.productName,
-    image: getProductThumbnail(item.id),
+    image,
     price: item.price.toLocaleString() + '원',
     category: mapCategory(item.categoryCode),
     isSoldOut: item.isSoldOut,
@@ -40,13 +43,26 @@ function toInfluencerPick(item: ProductApiItem): InfluencerPick {
 }
 
 function toProductDetail(item: ProductDetailApiResponse): ProductDetail {
+  // 로컬 imageMap 우선 — .jpg + .heic 2장 큐레이션.
+  // 매핑 없는 신상품은 백엔드 images[] (isMain → sortOrder → 원순서) 정렬해서 fallback.
+  const localImages = getProductImages(item.id)
+  let images: string[] = localImages
+  if (localImages.length === 0 && item.images.length > 0) {
+    images = [...item.images]
+      .sort((a, b) => {
+        if (a.isMain !== b.isMain) return a.isMain ? -1 : 1
+        return a.sortOrder - b.sortOrder
+      })
+      .map((i) => i.imageUrl)
+      .filter((url) => !!url)
+  }
   return {
     id: item.id,
     title: item.productName,
     subtitle: item.shortReview ?? '',
     price: item.price.toLocaleString() + '원',
     priceNumber: item.price,
-    images: getProductImages(item.id),
+    images,
     features: item.description
       ? [{ title: '상품 설명', description: item.description }]
       : [],
