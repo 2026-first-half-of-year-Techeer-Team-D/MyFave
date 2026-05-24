@@ -55,3 +55,16 @@ export interface SignUpResponse {
   userId: number
   nickname: string
 }
+
+export interface FindIdRequest {
+  name: string
+  phoneNumber: string
+}
+
+export interface FindIdResponse {
+  maskedEmail: string
+}
+
+export interface ResetPasswordRequest {
+  email: string
+}
