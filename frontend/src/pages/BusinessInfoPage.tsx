@@ -8,6 +8,7 @@ export function BusinessInfoPage() {
               { label: '상호명', value: '마이페이브(MyFave)' },
               { label: '대표자', value: '이현영' },
               { label: '사업자등록번호', value: '658-47-01216' },
+              { label: '대표전화', value: '010-2721-1116' },
               { label: '통신판매업신고번호', value: '제 2026-인천부평-0795' },
               { label: '주소', value: '인천광역시 부평구 산청로97' },
               { label: '이메일', value: 'team.myfave@gmail.com' },
