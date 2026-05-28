@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: myfave-api
   profiles:
     active: local
 
@@ -95,7 +97,7 @@ management:
         enabled: true
   tracing:
     sampling:
-      probability: 1.0
+      probability: 0.1
   otlp:
     tracing:
       endpoint: ${TEMPO_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
