@@ -70,6 +70,9 @@ portone:
     kakao-pay: ${PORTONE_CHANNEL_KEY_KAKAOPAY}
     naver-pay: ${PORTONE_CHANNEL_KEY_NAVERPAY}
     toss-pay: ${PORTONE_CHANNEL_KEY_TOSSPAY}
+    mobile-kakao-pay: ${MOBILE_PORTONE_CHANNEL_KEY_KAKAOPAY}
+    mobile-naver-pay: ${MOBILE_PORTONE_CHANNEL_KEY_NAVERPAY}
+    mobile-toss-pay: ${MOBILE_PORTONE_CHANNEL_KEY_TOSSPAY}
 
 tracker:
   client-id: ${TRACKER_CLIENT_ID}
