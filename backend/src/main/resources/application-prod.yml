@@ -66,10 +66,10 @@ portone:
   store-id: ${PORTONE_STORE_ID}
   channel-key:
     card: ${PORTONE_CHANNEL_KEY_CARD}
-    mobile-card: ${MOBILE_PORTONE_CHANNEL_KEY_CARD}
     kakao-pay: ${PORTONE_CHANNEL_KEY_KAKAOPAY}
     naver-pay: ${PORTONE_CHANNEL_KEY_NAVERPAY}
     toss-pay: ${PORTONE_CHANNEL_KEY_TOSSPAY}
+    mobile-card: ${MOBILE_PORTONE_CHANNEL_KEY_CARD}
     mobile-kakao-pay: ${MOBILE_PORTONE_CHANNEL_KEY_KAKAOPAY}
     mobile-naver-pay: ${MOBILE_PORTONE_CHANNEL_KEY_NAVERPAY}
     mobile-toss-pay: ${MOBILE_PORTONE_CHANNEL_KEY_TOSSPAY}
