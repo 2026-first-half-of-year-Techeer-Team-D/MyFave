@@ -23,6 +23,8 @@ export interface ProductDetail {
   images: string[]
   features: ProductFeature[]
   isSoldOut: boolean
+  // 상품 상태 등급 라벨 (예: 'S급'). 백엔드 condition(S_GRADE 등)을 변환한 값. 없으면 빈 문자열.
+  conditionLabel: string
 }
 
 export interface InfluencerPick extends Product {
