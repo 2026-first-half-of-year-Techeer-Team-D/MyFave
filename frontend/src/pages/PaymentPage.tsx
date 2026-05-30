@@ -56,6 +56,7 @@ export function PaymentPage() {
   const user = useUser()
   const checkoutItems = useCheckoutStore((s) => s.items)
   const setCheckoutItems = useCheckoutStore((s) => s.setItems)
+  const resetCheckout = useCheckoutStore((s) => s.reset)
   const orderType = useCheckoutStore((s) => s.orderType)
   const cartItems = useCart()
   const clearCart = useCartStore((s) => s.clear)
@@ -265,6 +266,8 @@ export function PaymentPage() {
 
       clearCart()
       applyCoupon(null)
+      // 결제 완료 후 persist 된 주문서를 비워 stale 주문서가 새로고침 시 복원되지 않도록 한다.
+      resetCheckout()
       navigate('/order-success', {
         state: {
           orderNumber: order.orderNumber,
