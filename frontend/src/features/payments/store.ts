@@ -38,6 +38,16 @@ export const useCheckoutStore = create<CheckoutState>()(
       setOrderType: (orderType) => set({ orderType }),
       reset: () => set(initialSession),
     }),
-    { name: 'myfave-checkout' },
+    {
+      name: 'myfave-checkout',
+      // 개인정보(address: 수령인명/연락처/주소)는 localStorage 에 저장하지 않는다.
+      // address 는 PaymentPage 마운트 시 백엔드 배송지에서 다시 채워지므로 영속 대상에서 제외.
+      partialize: (state) => ({
+        items: state.items,
+        appliedCoupon: state.appliedCoupon,
+        paymentMethod: state.paymentMethod,
+        orderType: state.orderType,
+      }),
+    },
   ),
 )
