@@ -11,15 +11,17 @@ interface UserIconProps {
   profileImageUrl?: string
 }
 
-// Figma Node 99:351 (곰돌이), 99:380 (셀러) 기반 100% 실사 이미지 URL
+// 곰돌이 폴백 아이콘은 256px S3 PNG(회원가입 아바타와 동일 소스)를 사용한다.
+// 기존 Builder.io 에셋은 원본이 23px라 56px(마이페이지) 등에서 업스케일 시 깨졌으므로 교체.
+const S3_BEAR_BASE = 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/MyFave_user_icon'
 const ICON_URLS: Record<IconType, Record<number, string>> = {
   bear: {
-    1: 'https://api.builder.io/api/v1/image/assets/TEMP/5c35661ffb032d111daeaeddf909db75bead765c?width=46',
-    3: 'https://api.builder.io/api/v1/image/assets/TEMP/1eba4e904dccbdd1f1c9e77dc7b2459c7f3d30fe?width=46',
-    5: 'https://api.builder.io/api/v1/image/assets/TEMP/5c35661ffb032d111daeaeddf909db75bead765c?width=46',
-    6: 'https://api.builder.io/api/v1/image/assets/TEMP/1eba4e904dccbdd1f1c9e77dc7b2459c7f3d30fe?width=46',
-    7: 'https://api.builder.io/api/v1/image/assets/TEMP/fbce4987b2973b8b3f8ead9a566874da5b500af6?width=46',
-    10: 'https://api.builder.io/api/v1/image/assets/TEMP/5c35661ffb032d111daeaeddf909db75bead765c?width=46',
+    1: `${S3_BEAR_BASE}/Property+1%3DDefault.png`,
+    3: `${S3_BEAR_BASE}/Property+1%3DVariant2.png`,
+    5: `${S3_BEAR_BASE}/Property+1%3DVariant3.png`,
+    6: `${S3_BEAR_BASE}/Property+1%3DVariant4.png`,
+    7: `${S3_BEAR_BASE}/Property+1%3DVariant5.png`,
+    10: `${S3_BEAR_BASE}/Property+1%3DDefault.png`,
   },
   human: {
     1: 'https://api.builder.io/api/v1/image/assets/TEMP/664f3316f9f68e98296767568c4a9a0815d48a0f?width=112',

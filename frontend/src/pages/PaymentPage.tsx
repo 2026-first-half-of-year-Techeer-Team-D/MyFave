@@ -56,6 +56,7 @@ export function PaymentPage() {
   const user = useUser()
   const checkoutItems = useCheckoutStore((s) => s.items)
   const setCheckoutItems = useCheckoutStore((s) => s.setItems)
+  const resetCheckout = useCheckoutStore((s) => s.reset)
   const orderType = useCheckoutStore((s) => s.orderType)
   const cartItems = useCart()
   const clearCart = useCartStore((s) => s.clear)
@@ -265,6 +266,8 @@ export function PaymentPage() {
 
       clearCart()
       applyCoupon(null)
+      // 결제 완료 후 persist 된 주문서를 비워 stale 주문서가 새로고침 시 복원되지 않도록 한다.
+      resetCheckout()
       navigate('/order-success', {
         state: {
           orderNumber: order.orderNumber,
@@ -435,9 +438,22 @@ export function PaymentPage() {
         <section className="mt-[32px] space-y-[16px]">
           <h2 className="font-noto text-[15px] font-bold text-[#322927]">결제 수단</h2>
           <div className="grid grid-cols-2 gap-[11px]">
-            {['카드', '카카오페이', '네이버페이', '토스페이'].map((label) => (
-              <button key={label} onClick={() => setSelectedMethod(label)} className={`h-[42px] rounded-[5px] border font-noto text-[16px] font-medium transition-all ${selectedMethod === label ? 'border-point bg-main-bg text-point' : 'border-[#F2EDEB] bg-[#FAFAF8] text-[#949494]'}`}>{label}</button>
-            ))}
+            {['카드', '카카오페이', '네이버페이', '토스페이'].map((label) => {
+              // 현재 신용카드 결제만 지원. 그 외 수단은 비활성화하고 '준비중'으로 표기.
+              const isReady = label === '카드'
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  disabled={!isReady}
+                  onClick={() => isReady && setSelectedMethod(label)}
+                  className={`flex h-[42px] items-center justify-center gap-[4px] rounded-[5px] border font-noto text-[16px] font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${selectedMethod === label ? 'border-point bg-main-bg text-point' : 'border-[#F2EDEB] bg-[#FAFAF8] text-[#949494]'}`}
+                >
+                  {label}
+                  {!isReady && <span className="font-noto text-[10px] font-normal text-[#B5B5B5]">준비중</span>}
+                </button>
+              )
+            })}
           </div>
         </section>
 

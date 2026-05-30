@@ -8,7 +8,7 @@ import type { User } from './types'
 // 사용자 식별 정보가 담긴 모든 로컬 캐시 키 — 로그인/로그아웃 시 모두 청소.
 // pending avatar 단일 키 + 레거시 이메일-포함 prefix(myfave-avatar:{email}) 도 정리해
 // 이전 사용자 식별자가 브라우저에 잔존하지 않도록 보장 (CodeRabbit Major).
-const USER_STORE_KEYS = ['myfave-shipping', 'myfave-cart', 'myfave-coupons', PENDING_AVATAR_KEY]
+const USER_STORE_KEYS = ['myfave-shipping', 'myfave-cart', 'myfave-coupons', 'myfave-checkout', PENDING_AVATAR_KEY]
 
 const clearUserStores = () => {
   queryClient.clear()

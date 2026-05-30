@@ -91,6 +91,8 @@ export const PRODUCT_DETAILS: Record<number, ProductDetail> = {
       { title: '디테일', description: '빈티지한 넘버링 프린트 포인트' },
       { title: '상태', description: '미착용 (only 피팅)' },
     ],
+    isSoldOut: false,
+    conditionLabel: '',
   },
   2: {
     id: 2,
@@ -105,6 +107,8 @@ export const PRODUCT_DETAILS: Record<number, ProductDetail> = {
       { title: '활용도', description: '어떤 하의에도 무난한 데일리 아이템' },
       { title: '상태', description: '미착용 (only 피팅)' },
     ],
+    isSoldOut: false,
+    conditionLabel: '',
   },
   3: {
     id: 3,
@@ -119,6 +123,8 @@ export const PRODUCT_DETAILS: Record<number, ProductDetail> = {
       { title: '핏', description: '허리라인 포인트로 라인 강조' },
       { title: '상태', description: '착용 1번' },
     ],
+    isSoldOut: false,
+    conditionLabel: '',
   },
   4: {
     id: 4,
@@ -133,6 +139,8 @@ export const PRODUCT_DETAILS: Record<number, ProductDetail> = {
       { title: '소재', description: '슬림한 라인이 돋보이는 세로 골지 패턴' },
       { title: '상태', description: '착용 1번' },
     ],
+    isSoldOut: false,
+    conditionLabel: '',
   },
   5: {
     id: 5,
@@ -147,6 +155,8 @@ export const PRODUCT_DETAILS: Record<number, ProductDetail> = {
       { title: '소재', description: '봄~초여름 데일리에 좋은 가벼운 소재' },
       { title: '상태', description: '미착용 (only 피팅)' },
     ],
+    isSoldOut: false,
+    conditionLabel: '',
   },
   6: {
     id: 6,
@@ -161,6 +171,8 @@ export const PRODUCT_DETAILS: Record<number, ProductDetail> = {
       { title: '활용도', description: '봄·가을·겨울 어울리는 사계절 베이직 아이템' },
       { title: '상태', description: '미착용 (only 피팅)' },
     ],
+    isSoldOut: false,
+    conditionLabel: '',
   },
   7: {
     id: 7,
@@ -175,6 +187,8 @@ export const PRODUCT_DETAILS: Record<number, ProductDetail> = {
       { title: '스타일', description: '청바지와 매치한 빈티지 겨울 코디' },
       { title: '상태', description: '착용 1번' },
     ],
+    isSoldOut: false,
+    conditionLabel: '',
   },
   8: {
     id: 8,
@@ -189,6 +203,8 @@ export const PRODUCT_DETAILS: Record<number, ProductDetail> = {
       { title: '활용도', description: '간절기부터 초겨울까지 폭넓게 활용 가능' },
       { title: '상태', description: '미착용 (only 피팅)' },
     ],
+    isSoldOut: false,
+    conditionLabel: '',
   },
   9: {
     id: 9,
@@ -203,6 +219,8 @@ export const PRODUCT_DETAILS: Record<number, ProductDetail> = {
       { title: '실루엣', description: '풍성한 볼륨감으로 우아한 분위기 연출' },
       { title: '상태', description: '미착용 (only 피팅)' },
     ],
+    isSoldOut: false,
+    conditionLabel: '',
   },
   10: {
     id: 10,
@@ -217,6 +235,8 @@ export const PRODUCT_DETAILS: Record<number, ProductDetail> = {
       { title: '실루엣', description: '발목까지 떨어지는 페미닌한 롱 실루엣' },
       { title: '상태', description: '미착용 (only 피팅)' },
     ],
+    isSoldOut: false,
+    conditionLabel: '',
   },
 }
 

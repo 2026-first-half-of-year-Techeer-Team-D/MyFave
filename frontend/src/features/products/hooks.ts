@@ -24,6 +24,19 @@ function mapCategory(code: string | null | undefined): ProductCategory {
   }
 }
 
+// 백엔드 condition enum(S_GRADE/A_GRADE/B_GRADE/C_GRADE) → 화면 표기 라벨(S급 등).
+// 매핑되지 않는 값은 빈 문자열을 반환해 뱃지를 숨긴다.
+const CONDITION_LABEL_MAP: Record<string, string> = {
+  S_GRADE: 'S급',
+  A_GRADE: 'A급',
+  B_GRADE: 'B급',
+  C_GRADE: 'C급',
+}
+
+function mapConditionLabel(condition: string | null | undefined): string {
+  return CONDITION_LABEL_MAP[condition?.toUpperCase() ?? ''] ?? ''
+}
+
 function toProduct(item: ProductApiItem): Product {
   // 로컬 imageMap(.jpg) 우선 — 큐레이션된 S3 URL 보장.
   // 매핑 없는 신상품은 백엔드 thumbnailUrl 로 fallback (없으면 빈 문자열 → alt 노출).
@@ -64,6 +77,7 @@ function toProductDetail(item: ProductDetailApiResponse): ProductDetail {
     priceNumber: item.price,
     images,
     isSoldOut: item.isSoldOut,
+    conditionLabel: mapConditionLabel(item.condition),
     features: item.description
       ? [{ title: '상품 설명', description: item.description }]
       : [],
