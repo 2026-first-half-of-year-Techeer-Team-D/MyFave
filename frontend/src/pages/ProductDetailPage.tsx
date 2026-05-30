@@ -166,8 +166,13 @@ export function ProductDetailPage() {
         <div className="space-y-[12px]">
           <h1 className="font-noto text-[15px] font-normal leading-[24px] text-[#322927] tracking-tight">{product.title}</h1>
           <p className="font-noto text-[12px] font-normal leading-[18px] text-chat-font">{product.subtitle}</p>
-          <div className="pt-[4px]">
+          <div className="flex items-center gap-[8px] pt-[4px]">
             <span className="font-noto text-[20px] font-medium leading-[30px] text-[#322927]">{product.price}</span>
+            {product.conditionLabel && (
+              <span className="rounded-[4px] border border-point px-[6px] py-[2px] font-noto text-[11px] font-bold text-point">
+                {product.conditionLabel}
+              </span>
+            )}
           </div>
         </div>
       </div>
