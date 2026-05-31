@@ -11,7 +11,7 @@ import type {
   ProductDetailApiResponse,
 } from './types'
 
-// DAON'S PICK: 픽1~4.mp4 영상 순서와 매칭되는 상품 id (고정)
+// MY PICK: 픽1~4.png 순서와 매칭되는 상품 id (고정)
 // 1) 원오프 넘버링 티셔츠, 2) 브라운 무스탕 자켓, 3) 스트라이프 카디건, 4) 플라워 롱스커트
 const INFLUENCER_PICK_IDS = [1, 7, 2, 9] as const
 
