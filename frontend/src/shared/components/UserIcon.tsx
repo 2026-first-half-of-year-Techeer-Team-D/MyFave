@@ -1,14 +1,22 @@
 
 type IconType = 'bear' | 'human' | 'seller'
 type Variant = number
+type IconSize = 'sm' | 'md' | 'lg'
 
 interface UserIconProps {
   type?: IconType
   variant?: Variant
   className?: string
-  size?: number
+  size?: IconSize
   // 사용자별 프로필 이미지 URL. 존재하면 type 매핑보다 우선.
   profileImageUrl?: string
+}
+
+// size 변형 → Tailwind 클래스 (sm 24px / md 40px / lg 56px). 인라인 스타일 대신 클래스로 일관 처리.
+const SIZE_CLASS: Record<IconSize, string> = {
+  sm: 'w-6 h-6',
+  md: 'w-10 h-10',
+  lg: 'w-14 h-14',
 }
 
 // 2026-05-31: S3 버킷 삭제로 곰돌이 아이콘(MyFave_user_icon/*.png)이 유실됨.
@@ -24,12 +32,9 @@ const ICON_URLS: Partial<Record<IconType, Record<number, string>>> = {
 }
 
 // 외부 의존 없는 중립 기본 아바타 (구 곰돌이 자리 대체).
-function DefaultAvatar({ size, className }: { size: number; className: string }) {
+function DefaultAvatar({ size, className }: { size: IconSize; className: string }) {
   return (
-    <div
-      className={`relative overflow-hidden rounded-full flex-shrink-0 bg-[#F1E9E3] ${className}`}
-      style={{ width: size, height: size }}
-    >
+    <div className={`relative overflow-hidden rounded-full flex-shrink-0 bg-[#F1E9E3] ${SIZE_CLASS[size]} ${className}`}>
       <svg viewBox="0 0 40 40" className="h-full w-full" role="img" aria-label="기본 프로필">
         <circle cx="20" cy="15" r="7" fill="#C9BBB0" />
         <path d="M6 36c0-7.7 6.3-14 14-14s14 6.3 14 14" fill="#C9BBB0" />
@@ -38,17 +43,14 @@ function DefaultAvatar({ size, className }: { size: number; className: string })
   )
 }
 
-export function UserIcon({ type = 'bear', variant = 1, className = '', size = 23.17, profileImageUrl }: UserIconProps) {
+export function UserIcon({ type = 'bear', variant = 1, className = '', size = 'sm', profileImageUrl }: UserIconProps) {
   // profileImageUrl 우선, 없으면 type 매핑. bear(기본) 또는 매핑 부재 시 인라인 SVG 기본 아바타.
   const iconUrl = profileImageUrl ?? ICON_URLS[type]?.[variant] ?? ICON_URLS[type]?.[1]
 
   if (!iconUrl) return <DefaultAvatar size={size} className={className} />
 
   return (
-    <div
-      className={`relative overflow-hidden rounded-full flex-shrink-0 ${className}`}
-      style={{ width: size, height: size }}
-    >
+    <div className={`relative overflow-hidden rounded-full flex-shrink-0 ${SIZE_CLASS[size]} ${className}`}>
       <img
         src={iconUrl}
         alt={`${type} icon`}
