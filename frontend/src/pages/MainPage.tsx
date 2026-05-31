@@ -10,7 +10,7 @@ const CDN = 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/
 
 const MAIN_REEL = `${CDN}/%E1%84%86%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AB.png` // 메인.png
 
-const DAON_PICKS = [
+const MY_PICKS = [
   `${CDN}/%E1%84%91%E1%85%B5%E1%86%A81.png`, // 픽1.png
   `${CDN}/%E1%84%91%E1%85%B5%E1%86%A82.png`, // 픽2.png
   `${CDN}/%E1%84%91%E1%85%B5%E1%86%A83.png`, // 픽3.png
@@ -76,9 +76,9 @@ export function MainPage() {
         )}
       </div>
 
-      {/* 4. DAON'S PICK Section (Horizontal Scroll) */}
+      {/* 4. MY PICK Section (Horizontal Scroll) */}
       <div className="mx-auto max-w-md pt-[23.99px] pb-20">
-        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">DAON'S PICK</h2>
+        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">MY PICK</h2>
 
         {isLoading ? (
           <div className="flex gap-[12px] px-[19.99px]">
@@ -95,7 +95,7 @@ export function MainPage() {
             >
               <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-white border-0 shadow-sm">
                 <img
-                  src={DAON_PICKS[index % DAON_PICKS.length]}
+                  src={MY_PICKS[index % MY_PICKS.length]}
                   alt={product.title}
                   className="w-full h-full object-cover border-0"
                 />
