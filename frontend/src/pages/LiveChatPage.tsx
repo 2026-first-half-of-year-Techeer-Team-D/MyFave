@@ -404,7 +404,7 @@ export function LiveChatPage() {
         <div className="flex flex-col gap-[17px]">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex items-start gap-[8.5px] ${msg.isOfficial ? 'flex-row-reverse' : ''}`}>
-              <UserIcon type={msg.avatarType} variant={msg.avatarVariant} size={23.17} className="flex-shrink-0 mt-[1px]" />
+              <UserIcon type={msg.avatarType} variant={msg.avatarVariant} size="sm" className="flex-shrink-0 mt-[1px]" />
               <div className={`flex flex-col gap-[4.5px] ${msg.isOfficial ? 'items-end' : ''}`}>
                 <div className="flex items-center gap-[6px] px-[2px]">
                   <span className={`font-noto text-[12px] leading-[18px] text-[#000000] ${msg.isOfficial ? 'font-bold' : 'font-normal'}`}>

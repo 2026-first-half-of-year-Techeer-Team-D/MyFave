@@ -4,15 +4,17 @@ import { useInfluencerPicks } from '@/features/products/hooks'
 import { LiveChatPreview } from '@/shared/components/LiveChatPreview'
 import { SmartImage } from '@/shared/components/SmartImage'
 
-const S3 = 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com'
+// 2026-05-31: S3 버킷 삭제로 영상(.mp4) 유실. 백업 저장소(asset)에는 정지 이미지(.png)만 있어
+// jsDelivr CDN의 메인/픽 PNG로 대체하고 <video> 대신 <img>로 렌더한다.
+const CDN = 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main'
 
-const MAIN_REEL = `${S3}/%E1%84%8E%E1%85%AC%E1%84%8C%E1%85%A9%E1%86%BC%E1%84%87%E1%85%A9%E1%86%AB.mp4`
+const MAIN_REEL = `${CDN}/%E1%84%86%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AB.png` // 메인.png
 
-const DAON_PICKS = [
-  `${S3}/%E1%84%91%E1%85%B5%E1%86%A81.mp4`,
-  `${S3}/%E1%84%91%E1%85%B5%E1%86%A82.mp4`,
-  `${S3}/%E1%84%91%E1%85%B5%E1%86%A83.mp4`,
-  `${S3}/%E1%84%91%E1%85%B5%E1%86%A84.mp4`,
+const MY_PICKS = [
+  `${CDN}/%E1%84%91%E1%85%B5%E1%86%A81.png`, // 픽1.png
+  `${CDN}/%E1%84%91%E1%85%B5%E1%86%A82.png`, // 픽2.png
+  `${CDN}/%E1%84%91%E1%85%B5%E1%86%A83.png`, // 픽3.png
+  `${CDN}/%E1%84%91%E1%85%B5%E1%86%A84.png`, // 픽4.png
 ]
 
 export function MainPage() {
@@ -30,12 +32,9 @@ export function MainPage() {
             <div className="h-[12px] w-[12px] rounded-full bg-[#FFBD2E] shadow-sm" />
             <div className="h-[12px] w-[12px] rounded-full bg-[#28C840] shadow-sm" />
           </div>
-          <video
+          <img
             src={MAIN_REEL}
-            autoPlay
-            muted
-            loop
-            playsInline
+            alt="MyFave 메인"
             className="w-full h-[595.72px] object-cover border-0"
           />
         </div>
@@ -77,9 +76,9 @@ export function MainPage() {
         )}
       </div>
 
-      {/* 4. DAON'S PICK Section (Horizontal Scroll) */}
+      {/* 4. MY PICK Section (Horizontal Scroll) */}
       <div className="mx-auto max-w-md pt-[23.99px] pb-20">
-        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">DAON'S PICK</h2>
+        <h2 className="px-[19.99px] mb-[15.99px] font-noto text-[16px] font-medium leading-[25.2px] text-dark-text tracking-tight uppercase">MY PICK</h2>
 
         {isLoading ? (
           <div className="flex gap-[12px] px-[19.99px]">
@@ -95,12 +94,9 @@ export function MainPage() {
               className="group flex flex-col flex-shrink-0 w-[162.03px]"
             >
               <div className="relative mb-3 h-[288.06px] overflow-hidden rounded-[8px] bg-white border-0 shadow-sm">
-                <video
-                  src={DAON_PICKS[index % DAON_PICKS.length]}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
+                <img
+                  src={MY_PICKS[index % MY_PICKS.length]}
+                  alt={product.title}
                   className="w-full h-full object-cover border-0"
                 />
               </div>

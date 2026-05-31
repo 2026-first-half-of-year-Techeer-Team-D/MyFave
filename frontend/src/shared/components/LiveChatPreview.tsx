@@ -86,7 +86,7 @@ export function LiveChatPreview() {
               <UserIcon
                 type="bear"
                 variant={getVariantFromNickname(msg.senderNickname)}
-                size={23.17}
+                size="sm"
                 className="flex-shrink-0"
               />
               <div className="flex flex-col gap-[4px]">

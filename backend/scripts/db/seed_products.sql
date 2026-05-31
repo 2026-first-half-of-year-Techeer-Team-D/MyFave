@@ -168,32 +168,22 @@ UPDATE products SET
 WHERE product_id = 10;
 
 -- =====================================================
--- 2) product_images 1~10: 기존 삭제 후 재시드 (대표 jpg + 단독 heic)
+-- 2) product_images 1~10: 기존 삭제 후 재시드 (jsDelivr 단독샷 1장)
 -- =====================================================
 
 DELETE FROM product_images WHERE product_id BETWEEN 1 AND 10;
 
 INSERT INTO product_images (product_id, image_url, sort_order, is_main, created_at, updated_at) VALUES
-(1,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top1_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg',    1, true,  NOW(), NOW()),
-(1,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top1_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',   2, false, NOW(), NOW()),
-(2,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top2_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg',    1, true,  NOW(), NOW()),
-(2,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top2_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',   2, false, NOW(), NOW()),
-(3,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top3_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg',    1, true,  NOW(), NOW()),
-(3,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top3_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',   2, false, NOW(), NOW()),
-(4,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top4_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg',    1, true,  NOW(), NOW()),
-(4,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top4_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',   2, false, NOW(), NOW()),
-(5,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top5_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg',    1, true,  NOW(), NOW()),
-(5,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top5_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',   2, false, NOW(), NOW()),
-(6,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top6_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg',    1, true,  NOW(), NOW()),
-(6,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top6_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',   2, false, NOW(), NOW()),
-(7,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/outer1_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg',  1, true,  NOW(), NOW()),
-(7,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/outer1_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic', 2, false, NOW(), NOW()),
-(8,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/outer2_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg',  1, true,  NOW(), NOW()),
-(8,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/outer2_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic', 2, false, NOW(), NOW()),
-(9,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/bottom1_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true,  NOW(), NOW()),
-(9,  'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/bottom1_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',2, false, NOW(), NOW()),
-(10, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/bottom2_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true,  NOW(), NOW()),
-(10, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/bottom2_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',2, false, NOW(), NOW());
+(1, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/top1_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(2, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/top2_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(3, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/top3_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpeg', 1, true, NOW(), NOW()),
+(4, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/top4_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpeg', 1, true, NOW(), NOW()),
+(5, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/top5_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpeg', 1, true, NOW(), NOW()),
+(6, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/top6_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(7, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/outer1_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(8, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/outer2_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(9, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/bottom1_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(10, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/bottom2_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW());
 
 -- =====================================================
 -- 3) products 11~19: UPSERT (재실행 안전)
@@ -225,26 +215,21 @@ ON CONFLICT (product_id) DO UPDATE SET
 
 -- =====================================================
 -- 4) product_images 11~19: 삭제 후 재시드
---    - 11~14: 대표 .jpg + 단독 .heic (S3에 .jpg 존재 확인됨)
---    - 15~19: .heic 1장만 (S3에 .jpg 없음)
+----    - 11~19: jsDelivr 단독샷 .jpg/.jpeg 1장 (S3 삭제로 백업 저장소 사용)
 -- =====================================================
 
 DELETE FROM product_images WHERE product_id BETWEEN 11 AND 19;
 
 INSERT INTO product_images (product_id, image_url, sort_order, is_main, created_at, updated_at) VALUES
-(11, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top7_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg',     1, true,  NOW(), NOW()),
-(11, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top7_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',    2, false, NOW(), NOW()),
-(12, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top8_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg',     1, true,  NOW(), NOW()),
-(12, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top8_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',    2, false, NOW(), NOW()),
-(13, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top9_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg',     1, true,  NOW(), NOW()),
-(13, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top9_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',    2, false, NOW(), NOW()),
-(14, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top10_%E1%84%8E%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%89%E1%85%A3%E1%86%BA.jpg',    1, true,  NOW(), NOW()),
-(14, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top10_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',   2, false, NOW(), NOW()),
-(15, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/top11_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',   1, true,  NOW(), NOW()),
-(16, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/bottom3_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic', 1, true,  NOW(), NOW()),
-(17, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/bottom4_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic', 1, true,  NOW(), NOW()),
-(18, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/acc1_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',    1, true,  NOW(), NOW()),
-(19, 'https://myfave-team-bucket.s3.ap-northeast-2.amazonaws.com/acc2_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.heic',    1, true,  NOW(), NOW());
+(11, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/top7_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(12, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/top8_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(13, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/top9_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(14, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/top10_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(15, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/top11_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(16, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/bottom3_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(17, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/bottom4_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(18, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/acc1_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW()),
+(19, 'https://cdn.jsdelivr.net/gh/2026-first-half-of-year-Techeer-Team-D/asset@main/acc2_%E1%84%83%E1%85%A1%E1%86%AB%E1%84%83%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A3%E1%86%BA.jpg', 1, true, NOW(), NOW());
 
 -- =====================================================
 -- 5) 시퀀스 보정 (명시 ID INSERT 후)
