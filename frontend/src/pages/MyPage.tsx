@@ -5,7 +5,6 @@ import { useLogout, useUser } from '@/features/auth/hooks'
 import { useMyCoupons } from '@/features/coupons/hooks'
 import { useOrdersQuery } from '@/features/orders/hooks'
 import type { OrderSummaryApiResponse } from '@/features/orders/types'
-import { UserIcon } from '@/shared/components/UserIcon'
 import { SaleEventModal } from '@/shared/components/SaleEventModal'
 
 type DashboardBucket = '입금확인' | '배송준비' | '배송중' | '배송완료'
@@ -81,14 +80,7 @@ export function MyPage() {
       />
       {/* 1. User Profile Section - Figma Node 99:1201 */}
       <div className="px-[19.99px] pt-[23.99px] pb-[19.99px]">
-        <div className="flex items-center gap-[14px]">
-          <UserIcon
-            type="bear"
-            variant={10}
-            size={56}
-            className="shadow-sm"
-            profileImageUrl={user?.profileImageUrl}
-          />
+        <div className="flex items-center">
           <div className="flex flex-col gap-[1.99px]">
             <h2 className="font-noto text-[16px] font-medium leading-[24px] text-[#322927] tracking-tight">
               {displayName}
