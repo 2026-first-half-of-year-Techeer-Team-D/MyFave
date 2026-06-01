@@ -19,6 +19,7 @@ export function Layout() {
     if (path === '/about') return { title: '마이페이브 소개', showBackButton: true }
     if (path === '/notice') return { title: '공지사항', showBackButton: true }
     if (path === '/faq') return { title: '자주 묻는 질문', showBackButton: true }
+    if (path === '/inquiry') return { title: '1:1 문의', showBackButton: true }
     if (path === '/shipping-addresses') return { title: '배송지 관리', showBackButton: true }
     if (path === '/shipping') return { title: '배송/주문 안내', showBackButton: true }
     if (path === '/business') return { title: '사업자 정보', showBackButton: true }
