@@ -19,7 +19,7 @@ const NOTICES: NoticeItem[] = [
   {
     id: 3,
     title: '1:1 문의',
-    content: '1:1 문의는 DM(@daonmoood)으로 부탁드립니다!<br>최대한 빠르게 답변 드릴게요 :)',
+    content: '1:1 문의는 DM으로 부탁드립니다!<br>최대한 빠르게 답변 드릴게요 :)',
   },
 ]
 
