@@ -22,7 +22,7 @@ export function ShippingInfoPage() {
         <section>
           <h2 className="mb-3 font-noto text-base font-bold text-dark-text">주문 취소</h2>
           <p className="font-noto text-sm leading-relaxed text-muted-text">
-            플리마켓 특성상 주문 후 취소는 어렵습니다. 꼭 필요한 경우에만 @daonmoood로 상세 사유와 함께 DM 부탁드립니다.
+            플리마켓 특성상 주문 후 취소는 어렵습니다. 꼭 필요한 경우에만 DM으로 상세 사유와 함께 부탁드립니다.
           </p>
         </section>
 

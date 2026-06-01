@@ -42,7 +42,6 @@ const router = createBrowserRouter([
       { path: '/signup', element: <SignUpPage /> },
       { path: '/find-id', element: <FindIdPage /> },
       { path: '/find-password', element: <FindPasswordPage /> },
-      { path: '/inquiry', element: <InquiryPage /> },
       { path: '/auth/kakao/callback', element: <KakaoCallbackPage /> },
 
       // Pages with Header + Footer (Layout)
@@ -58,6 +57,7 @@ const router = createBrowserRouter([
           { path: '/about', element: <AboutPage /> },
           { path: '/notice', element: <NoticePage /> },
           { path: '/faq', element: <FAQPage /> },
+          { path: '/inquiry', element: <InquiryPage /> },
           { path: '/shipping', element: <ShippingInfoPage /> },
           { path: '/business', element: <BusinessInfoPage /> },
           { path: '/terms', element: <TermsPage /> },

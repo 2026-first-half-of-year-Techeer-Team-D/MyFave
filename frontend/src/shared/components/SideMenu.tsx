@@ -157,6 +157,7 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
                     { label: '마이 페이브 소개', path: '/about' },
                     { label: '공지사항', path: '/notice' },
                     { label: '자주 묻는 질문', path: '/faq' },
+                    { label: '1:1 문의', path: '/inquiry' },
                   ].map((item) => (
                     <Link
                       key={item.label}
@@ -167,15 +168,6 @@ export function SideMenu({ isOpen, onClose }: SideMenuProps) {
                       {item.label}
                     </Link>
                   ))}
-                  <a
-                    href="https://www.instagram.com/daonmoood/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={onClose}
-                    className="block px-10 py-3 font-noto text-[15px] font-medium text-dark-text/70 transition-colors hover:text-point active:translate-x-1"
-                  >
-                    1:1 문의
-                  </a>
                 </div>
               )}
             </div>
