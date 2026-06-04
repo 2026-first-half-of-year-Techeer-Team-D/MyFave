@@ -131,6 +131,7 @@ public class ShippingService {
                     .carrierId(delivery.getCarrierId())
                     .statusCode("DELIVERED")
                     .statusName("배송 완료")
+                    .events(List.of())
                     .build();
         }
 
