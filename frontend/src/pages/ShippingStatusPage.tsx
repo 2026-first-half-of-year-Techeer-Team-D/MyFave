@@ -114,7 +114,7 @@ export function ShippingStatusPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.events.length === 0 ? (
+                  {(data.events ?? []).length === 0 ? (
                     <tr>
                       <td
                         colSpan={3}
@@ -124,13 +124,13 @@ export function ShippingStatusPage() {
                       </td>
                     </tr>
                   ) : (
-                    data.events.map((event, index) => (
+                    (data.events ?? []).map((event, index) => (
                       <tr
                         key={`${event.time}-${index}`}
                         className="border-b border-[#F2EDEB]/60 last:border-0"
                       >
                         <td className="py-[12px] pr-[8px] align-top font-noto text-[11px] text-dark-text leading-[16px] whitespace-pre-line">
-                          {format(new Date(event.time), 'yyyy-MM-dd\nHH:mm:ss')}
+                          {event.time ? format(new Date(event.time), 'yyyy-MM-dd\nHH:mm:ss') : '-'}
                         </td>
                         <td className="py-[12px] pr-[8px] align-top font-noto text-[12px] text-dark-text leading-[18px]">
                           {event.location ?? '-'}

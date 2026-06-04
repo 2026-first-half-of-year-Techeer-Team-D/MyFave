@@ -12,9 +12,9 @@ export interface Address {
 export interface TrackingEvent {
   statusCode: string
   statusName: string
-  time: string
-  location: string
-  description: string
+  time: string | null
+  location: string | null
+  description: string | null
 }
 
 export interface TrackingResponse {
@@ -25,5 +25,5 @@ export interface TrackingResponse {
   time: string
   location: string
   description: string
-  events: TrackingEvent[]
+  events: TrackingEvent[] | null
 }
