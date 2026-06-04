@@ -131,6 +131,7 @@ public class ShippingService {
                     .carrierId(delivery.getCarrierId())
                     .statusCode("DELIVERED")
                     .statusName("배송 완료")
+                    .deliveryStatus(DeliveryStatus.DELIVERED.name())
                     .events(List.of())
                     .build();
         }
@@ -145,6 +146,6 @@ public class ShippingService {
             order.completeDelivery();
         }
 
-        return TrackingResponse.from(delivery.getCarrierId(), result);
+        return TrackingResponse.from(delivery.getCarrierId(), delivery.getDeliveryStatus().name(), result);
     }
 }

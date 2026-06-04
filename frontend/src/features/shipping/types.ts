@@ -22,6 +22,7 @@ export interface TrackingResponse {
   carrierId: string
   statusCode: string
   statusName: string
+  deliveryStatus?: string
   time: string
   location: string
   description: string
