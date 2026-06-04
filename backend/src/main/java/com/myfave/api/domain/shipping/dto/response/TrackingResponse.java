@@ -15,6 +15,7 @@ public class TrackingResponse {
     private String carrierId;
     private String statusCode;
     private String statusName;
+    private String deliveryStatus;
     private OffsetDateTime time;
     private String location;
     private String description;
@@ -30,7 +31,7 @@ public class TrackingResponse {
         private String description;
     }
 
-    public static TrackingResponse from(String carrierId,
+    public static TrackingResponse from(String carrierId, String deliveryStatus,
                                         TrackerDeliveryClient.TrackResult result) {
         TrackerDeliveryClient.EventData lastEvent = result.getLastEvent();
 
@@ -73,6 +74,7 @@ public class TrackingResponse {
                 .carrierId(carrierId)
                 .statusCode(statusCode)
                 .statusName(statusName)
+                .deliveryStatus(deliveryStatus)
                 .time(time)
                 .location(location)
                 .description(description)

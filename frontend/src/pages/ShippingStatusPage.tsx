@@ -22,10 +22,12 @@ const STEPS = ['결제완료', '배송준비중', '배송중', '배송완료'] a
 
 // Tracker.delivery statusCode → 4-step 진행도 index.
 // 알 수 없는 코드는 1(배송준비중)로 안전 fallback.
-function getStepIndex(statusCode: string | undefined | null): number {
-  if (!statusCode) return 1
+function getStepIndex(statusCode: string | undefined | null, deliveryStatus?: string): number {
   if (statusCode === 'DELIVERED') return 3
-  if (['OUT_FOR_DELIVERY', 'SHIPPING', 'AT_HUB', 'IN_TRANSIT'].includes(statusCode)) return 2
+  if (statusCode && ['OUT_FOR_DELIVERY', 'SHIPPING', 'AT_HUB', 'IN_TRANSIT'].includes(statusCode)) return 2
+  // tracker statusCode가 UNKNOWN 등 미인식 값이면 DB delivery_status로 fallback
+  if (deliveryStatus === 'DELIVERED') return 3
+  if (deliveryStatus === 'SHIPPING') return 2
   return 1
 }
 
@@ -42,7 +44,7 @@ export function ShippingStatusPage() {
   const { orderId } = useParams()
   const { data, isLoading, error } = useTracking(orderId ? Number(orderId) : undefined)
 
-  const currentStep = getStepIndex(data?.statusCode)
+  const currentStep = getStepIndex(data?.statusCode, data?.deliveryStatus)
   const carrierLabel = data?.carrierId ? CARRIER_NAMES[data.carrierId] ?? data.carrierId : undefined
 
   return (
