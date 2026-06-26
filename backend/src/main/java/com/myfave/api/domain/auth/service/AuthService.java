@@ -194,6 +194,7 @@ public class AuthService {
         String newAccessToken = jwtTokenProvider.createAccessToken(userId);
         String newRefreshToken = jwtTokenProvider.createRefreshToken(userId);
 
+        redisTemplate.delete("refresh:" + userId);
         redisTemplate.opsForValue().set(
                 "refresh:" + userId,
                 newRefreshToken,
