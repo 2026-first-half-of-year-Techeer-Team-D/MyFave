@@ -30,6 +30,10 @@ public class StyleFeed {
     @Column(nullable = false, length = 500)
     private String imageUrl;
 
+    // 조회수 — Redis 누적분을 스케줄러가 주기적으로 write-back (고빈도 쓰기 DB 락 회피)
+    @Column(nullable = false)
+    private Long viewCount = 0L;
+
     @CreatedDate
     @Column(updatable = false)
     private ZonedDateTime createdAt;
