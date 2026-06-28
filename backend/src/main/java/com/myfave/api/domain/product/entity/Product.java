@@ -60,6 +60,10 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private Long viewCount = 0L;
 
+    // 좋아요 수 — 비정규화 카운터 (표시·정렬용). 토글 트랜잭션에서 동기 갱신
+    @Column(nullable = false)
+    private Long likeCount = 0L;
+
     private ZonedDateTime deletedAt;
 
     @Builder
