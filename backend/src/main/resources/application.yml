@@ -36,6 +36,12 @@ app:
 influencer:
   user-id: 1
 
+# 상품 조회수 카운터
+product:
+  view:
+    counter-mode: redis        # redis | db (부하테스트 비교군: db=조회 시 DB 직접 +1, 락 경합 유발)
+    write-back-delay-ms: 30000 # redis 누적분을 DB로 반영하는 스케줄러 주기(ms)
+
 # JWT 설정
 jwt:
   secret: ${JWT_SECRET:local-dev-jwt-secret-key-must-be-at-least-256-bits-long-here}
