@@ -20,6 +20,7 @@ public class ShortFormResponse {
     private Long productId;
     private String productName;
     private Integer price;
+    private Long viewCount; // 목록은 DB 확정값 (Redis 미반영분은 write-back 후 반영)
 
     public static ShortFormResponse from(ShortForm shortForm) {
         return new ShortFormResponse(
@@ -29,7 +30,8 @@ public class ShortFormResponse {
                 shortForm.getThumbnailUrl(),
                 shortForm.getProduct() != null ? shortForm.getProduct().getProductId() : null,
                 shortForm.getProduct() != null ? shortForm.getProduct().getProductName() : null,
-                shortForm.getProduct() != null ? shortForm.getProduct().getPrice() : null
+                shortForm.getProduct() != null ? shortForm.getProduct().getPrice() : null,
+                shortForm.getViewCount()
         );
     }
 }

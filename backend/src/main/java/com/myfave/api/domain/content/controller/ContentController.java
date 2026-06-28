@@ -4,6 +4,7 @@ import com.myfave.api.domain.content.service.ContentService;
 import com.myfave.api.domain.content.service.ContentViewService;
 import com.myfave.api.domain.content.dto.request.ContentRegisterRequest;
 import com.myfave.api.domain.content.dto.response.ContentRegisterResponse;
+import com.myfave.api.domain.content.dto.response.ContentViewResponse;
 import com.myfave.api.domain.content.dto.response.StyleFeedResponse;
 import com.myfave.api.domain.content.dto.response.ShortFormResponse;
 import com.myfave.api.domain.content.entity.ContentType;
@@ -50,13 +51,14 @@ public class ContentController {
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
-    // 9-4. 콘텐츠 조회수 증가 (Redis 누적, DB 미접근 — type: short_form|style_feed)
+    // 9-4. 콘텐츠 조회수 증가 (Redis 누적 — type: short_form|style_feed)
     @PostMapping("/{type}/{contentId}/view")
-    public ResponseEntity<ApiResponse<Void>> increaseViewCount(
+    public ResponseEntity<ApiResponse<ContentViewResponse>> increaseViewCount(
             @PathVariable String type,
             @PathVariable Long contentId) {
-        contentViewService.increment(ContentType.from(type), contentId);
-        return ResponseEntity.ok(ApiResponse.ok("조회수가 반영되었습니다."));
+        ContentType contentType = ContentType.from(type);
+        long viewCount = contentViewService.incrementAndGetTotal(contentType, contentId);
+        return ResponseEntity.ok(ApiResponse.ok(new ContentViewResponse(contentType, contentId, viewCount)));
     }
 
     // 9-3. 콘텐츠 등록 (Influencer)

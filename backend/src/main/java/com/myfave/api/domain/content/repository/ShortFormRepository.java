@@ -34,4 +34,8 @@ public interface ShortFormRepository extends JpaRepository<ShortForm, Long> {
     @Query("UPDATE ShortForm s SET s.viewCount = s.viewCount + :delta WHERE s.shortFormId = :id")
     int addViewCount(@Param("id") Long id, @Param("delta") long delta);
 
+    // 조회수 단건 조회 — 엔티티 미로딩 (없으면 null)
+    @Query("SELECT s.viewCount FROM ShortForm s WHERE s.shortFormId = :id")
+    Long findViewCountById(@Param("id") Long id);
+
 }

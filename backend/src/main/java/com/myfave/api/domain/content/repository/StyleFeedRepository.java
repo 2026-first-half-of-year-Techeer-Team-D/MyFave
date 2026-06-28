@@ -26,4 +26,8 @@ public interface StyleFeedRepository extends JpaRepository<StyleFeed, Long> {
     @Modifying
     @Query("UPDATE StyleFeed sf SET sf.viewCount = sf.viewCount + :delta WHERE sf.styleFeedId = :id")
     int addViewCount(@Param("id") Long id, @Param("delta") long delta);
+
+    // 조회수 단건 조회 — 엔티티 미로딩 (없으면 null)
+    @Query("SELECT sf.viewCount FROM StyleFeed sf WHERE sf.styleFeedId = :id")
+    Long findViewCountById(@Param("id") Long id);
 }

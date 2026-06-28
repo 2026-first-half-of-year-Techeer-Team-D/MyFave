@@ -23,8 +23,8 @@ class CursorResponseCacheSerdeTest {
     @Test
     void cursorResponse_라운드트립() throws Exception {
         CursorResponse<StyleFeedResponse> origin = CursorResponse.of(
-                List.of(new StyleFeedResponse(2L, 100L, "url2"),
-                        new StyleFeedResponse(1L, 101L, "url1")),
+                List.of(new StyleFeedResponse(2L, 100L, "url2", 7L),
+                        new StyleFeedResponse(1L, 101L, "url1", 3L)),
                 1L, true);
 
         String json = CACHE_MAPPER.writeValueAsString(origin);
@@ -37,6 +37,7 @@ class CursorResponseCacheSerdeTest {
         assertThat(restored.getItems()).hasSize(2);
         assertThat(restored.getItems().get(0).getStyleFeedId()).isEqualTo(2L);
         assertThat(restored.getItems().get(0).getImageUrl()).isEqualTo("url2");
+        assertThat(restored.getItems().get(0).getViewCount()).isEqualTo(7L);
         assertThat(restored.getItems().get(1).getProductId()).isEqualTo(101L);
     }
 }

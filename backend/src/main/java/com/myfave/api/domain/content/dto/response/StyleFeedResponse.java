@@ -14,12 +14,14 @@ public class StyleFeedResponse {
     private Long styleFeedId;
     private Long productId;
     private String imageUrl;
+    private Long viewCount; // 목록은 DB 확정값 (Redis 미반영분은 write-back 후 반영)
 
     public static StyleFeedResponse from(StyleFeed styleFeed) {
         return new StyleFeedResponse(
                 styleFeed.getStyleFeedId(),
                 styleFeed.getProduct().getProductId(),
-                styleFeed.getImageUrl()
+                styleFeed.getImageUrl(),
+                styleFeed.getViewCount()
         );
     }
 }
