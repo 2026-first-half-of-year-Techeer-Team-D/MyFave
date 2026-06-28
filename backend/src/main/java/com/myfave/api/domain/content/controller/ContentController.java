@@ -10,6 +10,7 @@ import com.myfave.api.global.common.ApiResponse;
 import com.myfave.api.global.common.CursorResponse;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
@@ -33,7 +34,7 @@ public class ContentController {
     public ResponseEntity<ApiResponse<CursorResponse<ShortFormResponse>>> getShortForms(
             @RequestParam(required = false) ShortFormType type,
             @RequestParam(required = false) Long cursor,
-            @Min(1) @RequestParam(defaultValue = "10") int size) {
+            @Min(1) @Max(100) @RequestParam(defaultValue = "10") int size) {
         CursorResponse<ShortFormResponse> response = contentService.getShortForms(type, cursor, size);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
@@ -42,7 +43,7 @@ public class ContentController {
     @GetMapping("/style-feeds")
     public ResponseEntity<ApiResponse<CursorResponse<StyleFeedResponse>>> getStyleFeeds(
             @RequestParam(required = false) Long cursor,
-            @Min(1) @RequestParam(defaultValue = "12") int size) {
+            @Min(1) @Max(100) @RequestParam(defaultValue = "12") int size) {
         CursorResponse<StyleFeedResponse> response = contentService.getStyleFeeds(cursor, size);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
