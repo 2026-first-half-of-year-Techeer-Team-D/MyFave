@@ -8,8 +8,7 @@ import { check, sleep } from 'k6';
 import { Counter } from 'k6/metrics';
 import http from 'k6/http';
 
-import { post, BASE_URL } from '../lib/http.js';
-import { tokens } from '../lib/pool.js';
+import { BASE_URL } from '../lib/http.js';
 
 http.setResponseCallback(http.expectedStatuses({ min: 200, max: 299 }));
 
@@ -39,15 +38,17 @@ export const options = {
 const viewErrors = new Counter('view_counter_errors');
 
 export function setup() {
-  console.log(`[scenario-C] BASE_URL=${BASE_URL}, 핫상품=product/${HOT_PRODUCT_ID}, 토큰 풀=${tokens.length}`);
+  console.log(`[scenario-C] BASE_URL=${BASE_URL}, 핫상품=product/${HOT_PRODUCT_ID}`);
 }
 
 export default function () {
-  // view 엔드포인트는 공개(permitAll)지만 헤더 일관성 위해 토큰 부착
-  const accessToken = tokens[(__VU - 1) % tokens.length].accessToken;
-
+  // view 엔드포인트는 공개(permitAll) — 인증 시드(tokens.json)와 분리해 무인증 POST
   // 단일 인기 상품에 조회수 몰빵 — 카운터 쓰기 경합 집중
-  const res = post(`/products/${HOT_PRODUCT_ID}/view`, accessToken, {});
+  const res = http.post(
+    `${BASE_URL}/products/${HOT_PRODUCT_ID}/view`,
+    null,
+    { headers: { 'Content-Type': 'application/json' } },
+  );
 
   const ok = check(res, { 'status < 500': (r) => r.status < 500 });
   if (!ok) viewErrors.add(1);
