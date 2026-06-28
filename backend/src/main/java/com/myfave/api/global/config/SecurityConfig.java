@@ -63,6 +63,8 @@ public class SecurityConfig {
                                 "/chat-room/preview",
                                 "/chat-room/messages"
                         ).permitAll()
+                        // 상품 조회수 증가는 비로그인 포함 모두 허용 (Redis 누적, 인증 불필요)
+                        .requestMatchers(HttpMethod.POST, "/products/*/view").permitAll()
                         .anyRequest().authenticated()  // 그 외 모든 요청은 JWT 인증 필수
                 )
                 .exceptionHandling(ex -> ex

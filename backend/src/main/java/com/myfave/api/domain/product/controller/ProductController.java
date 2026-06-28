@@ -4,8 +4,10 @@ import com.myfave.api.domain.product.dto.request.ProductRequest;
 import com.myfave.api.domain.product.dto.request.ProductUpdateRequest;
 import com.myfave.api.domain.product.dto.response.ProductListResponse;
 import com.myfave.api.domain.product.dto.response.ProductResponse;
+import com.myfave.api.domain.product.dto.response.ProductViewResponse;
 import com.myfave.api.domain.product.entity.CategoryCode;
 import com.myfave.api.domain.product.service.ProductService;
+import com.myfave.api.domain.product.service.ProductViewService;
 import com.myfave.api.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,6 +30,7 @@ import java.util.Map;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductViewService productViewService;
 
     // 3-1. 상품 목록 조회
     @GetMapping
@@ -46,6 +49,14 @@ public class ProductController {
             @PathVariable Long productId) {
         ProductResponse.Detail response = productService.getProduct(productId);
         return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    // 3-7. 상품 조회수 증가 (Redis 누적, 비로그인 포함 공개)
+    @PostMapping("/{productId}/view")
+    public ResponseEntity<ApiResponse<ProductViewResponse>> increaseViewCount(
+            @PathVariable Long productId) {
+        long viewCount = productViewService.incrementAndGetTotal(productId);
+        return ResponseEntity.ok(ApiResponse.ok(new ProductViewResponse(productId, viewCount)));
     }
 
     // 3-3. 상품 등록 (인플루언서 전용)
