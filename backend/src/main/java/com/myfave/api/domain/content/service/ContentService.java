@@ -11,6 +11,7 @@ import com.myfave.api.domain.content.repository.ShortFormRepository;
 import com.myfave.api.domain.content.repository.StyleFeedRepository;
 import com.myfave.api.domain.product.entity.Product;
 import com.myfave.api.domain.product.repository.ProductRepository;
+import com.myfave.api.global.common.CursorResponse;
 import com.myfave.api.global.error.CustomException;
 import com.myfave.api.global.error.ErrorCode;
 import com.myfave.api.global.util.S3UploadService;
@@ -19,15 +20,13 @@ import org.springframework.beans.factory.annotation.Value;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -42,30 +41,27 @@ public class ContentService {
     @Value("${influencer.user-id}")
     private Long influencerUserId;
 
-    // 9-1. 숏폼 목록 조회
-    public List<ShortFormResponse> getShortForms(ShortFormType type, int size) {
-        Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "shortFormId"));
-
-        List<ShortFormResponse> shortForms;
-
-        if (type != null) {
-            shortForms = shortFormRepository.findByDisplayType(type, pageable).stream()
-                    .map(ShortFormResponse::from)
-                    .toList();
-        } else {
-            shortForms = shortFormRepository.findAll(pageable).getContent().stream()
-                    .map(ShortFormResponse::from)
-                    .toList();
-        }
-
-        return shortForms;
+    // 9-1. 숏폼 목록 조회 (커서 페이징)
+    public CursorResponse<ShortFormResponse> getShortForms(ShortFormType type, Long cursor, int size) {
+        // hasNext 판별 위해 size+1개 조회
+        List<ShortForm> rows = shortFormRepository.findByCursor(type, cursor, PageRequest.of(0, size + 1));
+        return toCursorResponse(rows, size, ShortFormResponse::from, ShortForm::getShortFormId);
     }
 
-    // 9-2. 스타일 피드 목록 조회
-    public Page<StyleFeedResponse> getStyleFeeds(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "styleFeedId"));
-        return styleFeedRepository.findAll(pageable)
-                .map(StyleFeedResponse::from);
+    // 9-2. 스타일 피드 목록 조회 (커서 페이징)
+    public CursorResponse<StyleFeedResponse> getStyleFeeds(Long cursor, int size) {
+        List<StyleFeed> rows = styleFeedRepository.findByCursor(cursor, PageRequest.of(0, size + 1));
+        return toCursorResponse(rows, size, StyleFeedResponse::from, StyleFeed::getStyleFeedId);
+    }
+
+    // 커서 응답 변환 — size+1 조회분으로 hasNext 판별, 마지막 항목 id를 nextCursor로
+    private <E, R> CursorResponse<R> toCursorResponse(
+            List<E> rows, int size, Function<E, R> mapper, Function<E, Long> idExtractor) {
+        boolean hasNext = rows.size() > size;
+        List<E> page = hasNext ? rows.subList(0, size) : rows;
+        List<R> items = page.stream().map(mapper).toList();
+        Long nextCursor = page.isEmpty() ? null : idExtractor.apply(page.get(page.size() - 1));
+        return CursorResponse.of(items, nextCursor, hasNext);
     }
 
     // 9-3. 콘텐츠 등록
