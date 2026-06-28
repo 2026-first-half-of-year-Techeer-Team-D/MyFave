@@ -12,6 +12,7 @@ export interface Product {
   price: string
   category: ProductCategory
   isSoldOut?: boolean
+  likeCount: number
 }
 
 export interface ProductDetail {
@@ -45,6 +46,7 @@ export interface ProductApiItem {
   thumbnailUrl: string | null
   isSoldOut: boolean
   categoryCode: string | null
+  likeCount: number
 }
 
 export interface ProductDetailApiResponse {

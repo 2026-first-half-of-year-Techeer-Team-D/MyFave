@@ -48,6 +48,7 @@ function toProduct(item: ProductApiItem): Product {
     price: item.price.toLocaleString() + '원',
     category: mapCategory(item.categoryCode),
     isSoldOut: item.isSoldOut,
+    likeCount: item.likeCount ?? 0,
   }
 }
 

@@ -14,13 +14,28 @@ const CATEGORIES = [
 export function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedCategory = searchParams.get('category') ?? 'all'
+  // 정렬: 기본 latest(최신=서버 기본순), likes(좋아요순). 카테고리 필터처럼 클라이언트에서 처리.
+  const sort = searchParams.get('sort') === 'likes' ? 'likes' : 'latest'
   // 로딩/에러 상태를 빈 배열로 숨기면 장애가 "상품 0개" 로 묻혀 사용자에게 혼란을 줌 (CR M12).
   const { data: products = [], isLoading, isError } = useProducts()
 
-  const filteredProducts =
+  const categoryFiltered =
     selectedCategory === 'all'
       ? products
       : products.filter((p) => p.category === selectedCategory)
+
+  const filteredProducts =
+    sort === 'likes'
+      ? [...categoryFiltered].sort((a, b) => b.likeCount - a.likeCount)
+      : categoryFiltered
+
+  // category는 유지하면서 sort만 갱신 (빈 값이면 파라미터 제거)
+  const updateSort = (next: 'latest' | 'likes') => {
+    const params = new URLSearchParams(searchParams)
+    if (next === 'likes') params.set('sort', 'likes')
+    else params.delete('sort')
+    setSearchParams(params)
+  }
 
   return (
     <div className="flex-1 bg-white">
@@ -31,11 +46,13 @@ export function ProductListPage() {
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.value}
-                onClick={() =>
-                  cat.value === 'all'
-                    ? setSearchParams({})
-                    : setSearchParams({ category: cat.value })
-                }
+                onClick={() => {
+                  // sort 파라미터는 유지하면서 category만 변경
+                  const params = new URLSearchParams(searchParams)
+                  if (cat.value === 'all') params.delete('category')
+                  else params.set('category', cat.value)
+                  setSearchParams(params)
+                }}
                 className={`h-full font-noto text-[12px] font-medium transition-all ${
                   selectedCategory === cat.value
                     ? 'text-dark-text border-b-[1.096px] border-dark-text'
@@ -49,11 +66,27 @@ export function ProductListPage() {
         </div>
       </div>
 
-      {/* 2. Product count - 카테고리 탭 바로 아래 위치 (간격 축소) */}
-      <div className="mx-auto max-w-[376.04px] bg-white h-[40px] px-[19.99px] flex items-center">
+      {/* 2. Product count + 정렬 토글 - 카테고리 탭 바로 아래 */}
+      <div className="mx-auto max-w-[376.04px] bg-white h-[40px] px-[19.99px] flex items-center justify-between">
         <p className="font-noto text-[12px] font-normal text-dark-text">
           상품 <span className="font-medium text-black">{filteredProducts.length}</span>개
         </p>
+        <div className="flex items-center gap-[12px]">
+          {([
+            { label: '최신순', value: 'latest' },
+            { label: '좋아요순', value: 'likes' },
+          ] as const).map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => updateSort(opt.value)}
+              className={`font-noto text-[12px] transition-colors ${
+                sort === opt.value ? 'font-medium text-point' : 'text-muted-text hover:text-dark-text/70'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 3. Products grid - 하단 상품 카드 리스트 (각진 모서리 반영) */}
