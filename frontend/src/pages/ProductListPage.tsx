@@ -14,7 +14,7 @@ const CATEGORIES = [
 export function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedCategory = searchParams.get('category') ?? 'all'
-  // 정렬: 기본 latest(최신=서버 기본순), likes(좋아요순). 카테고리 필터처럼 클라이언트에서 처리.
+  // 정렬: 기본 latest(최신=서버 기본순), likes(인기순=좋아요 수). 카테고리 필터처럼 클라이언트에서 처리.
   const sort = searchParams.get('sort') === 'likes' ? 'likes' : 'latest'
   // 로딩/에러 상태를 빈 배열로 숨기면 장애가 "상품 0개" 로 묻혀 사용자에게 혼란을 줌 (CR M12).
   const { data: products = [], isLoading, isError } = useProducts()
@@ -74,7 +74,7 @@ export function ProductListPage() {
         <div className="flex items-center gap-[12px]">
           {([
             { label: '최신순', value: 'latest' },
-            { label: '좋아요순', value: 'likes' },
+            { label: '인기순', value: 'likes' },
           ] as const).map((opt) => (
             <button
               key={opt.value}
