@@ -101,11 +101,15 @@ export default function () {
       break;
   }
 
-  const ok = check(res, { 'status < 500': (r) => r.status < 500 });
-  if (!ok) errorBuckets.add(1, { endpoint });
-
-  if (isFirstPage) firstPageLatency.add(res.timings.duration);
-  else deepPageLatency.add(res.timings.duration);
+  // 13번 줄 expectedStatuses(2xx)와 기준 일치 — 성공 응답만 latency에 집계
+  const ok = check(res, { 'status 2xx': (r) => r.status >= 200 && r.status < 300 });
+  if (ok) {
+    if (isFirstPage) firstPageLatency.add(res.timings.duration);
+    else deepPageLatency.add(res.timings.duration);
+  } else {
+    // 실패는 status 태그로 분리 — latency 분포 오염 방지
+    errorBuckets.add(1, { endpoint, status: res.status });
+  }
 
   sleep(Math.random() * 0.5);
 }
