@@ -1,6 +1,8 @@
 package com.myfave.api.domain.product.service;
 
 import com.myfave.api.domain.product.repository.ProductRepository;
+import com.myfave.api.global.error.CustomException;
+import com.myfave.api.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -32,6 +34,10 @@ public class ProductViewService {
 
     // 조회수 증가 후 최신 총합 반환 — 모드에 따라 Redis 누적 / DB 직접 +1
     public long incrementAndGetTotal(Long productId) {
+        // 유령/삭제 상품 차단 — Redis 쓰레기 키·write-back 0건 유실 방지(404 계약)
+        if (!productRepository.existsByProductIdAndDeletedAtIsNull(productId)) {
+            throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
         if ("db".equalsIgnoreCase(counterMode)) {
             return incrementInDb(productId);
         }
