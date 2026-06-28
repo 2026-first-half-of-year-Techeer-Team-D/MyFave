@@ -15,11 +15,15 @@ export function ProductDetailPage() {
   const productId = Number(id) || 1
   const { data: product, isLoading } = useProduct(productId)
   const { mutate: increaseView, data: viewData } = useIncreaseProductView()
+  const viewedRef = useRef<number | null>(null)
 
-  // 상세 진입 시 조회수 +1 (productId 바뀔 때마다). view 응답이 가장 최신값
+  // 상세 로드 성공 후 상품당 한 번만 조회수 +1 — 없는 상품/조회 실패엔 집계 안 보냄
   useEffect(() => {
+    if (product?.id !== productId) return
+    if (viewedRef.current === productId) return
+    viewedRef.current = productId
     increaseView(productId)
-  }, [productId, increaseView])
+  }, [product, productId, increaseView])
   const addCartItem = useCartStore((s) => s.addItem)
   const setCheckoutItems = useCheckoutStore((s) => s.setItems)
   const setOrderType = useCheckoutStore((s) => s.setOrderType)
@@ -177,7 +181,7 @@ export function ProductDetailPage() {
               <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
               <circle cx="12" cy="12" r="3" />
             </svg>
-            조회 {(viewData?.viewCount ?? product.viewCount ?? 0).toLocaleString()}
+            조회 {(viewData?.productId === productId ? viewData.viewCount : product.viewCount ?? 0).toLocaleString()}
           </p>
           <div className="flex items-center gap-[8px] pt-[4px]">
             <span className="font-noto text-[20px] font-medium leading-[30px] text-[#322927]">{product.price}</span>
