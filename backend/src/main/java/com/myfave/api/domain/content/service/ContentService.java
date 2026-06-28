@@ -18,7 +18,6 @@ import com.myfave.api.global.util.S3UploadService;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -90,25 +89,26 @@ public class ContentService {
         return response;
     }
 
-    // 캐시 조회 — 손상/미스 시 null 반환해 DB 폴백
+    // 캐시 조회 — Redis 장애·역직렬화 실패 모두 캐시 미스로 처리해 DB 폴백
     private <R> CursorResponse<R> readCache(String key, Class<R> itemType) {
-        Object raw = redisTemplate.opsForValue().get(key);
-        if (raw == null) return null;
         try {
+            Object raw = redisTemplate.opsForValue().get(key);
+            if (raw == null) return null;
             JavaType type = CACHE_MAPPER.getTypeFactory()
                     .constructParametricType(CursorResponse.class, itemType);
             return CACHE_MAPPER.readValue(raw.toString(), type);
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
+            // Redis 다운(DataAccessException) 포함 — 조회는 DB로 폴백
             return null;
         }
     }
 
-    // 캐시 적재 — 실패해도 조회는 정상 동작하도록 예외 무시
+    // 캐시 적재 — Redis 장애·직렬화 실패해도 조회는 정상 동작하도록 예외 무시
     private void writeCache(String key, Object value) {
         try {
             redisTemplate.opsForValue().set(key, CACHE_MAPPER.writeValueAsString(value), FEED_CACHE_TTL);
-        } catch (JsonProcessingException e) {
-            // 캐싱 실패 무시
+        } catch (Exception e) {
+            // 캐싱 실패 무시 (Redis 다운 포함)
         }
     }
 
@@ -118,7 +118,8 @@ public class ContentService {
         boolean hasNext = rows.size() > size;
         List<E> page = hasNext ? rows.subList(0, size) : rows;
         List<R> items = page.stream().map(mapper).toList();
-        Long nextCursor = page.isEmpty() ? null : idExtractor.apply(page.get(page.size() - 1));
+        // 다음 페이지가 있을 때만 커서 발급 — 마지막 페이지는 null로 불필요 요청 차단
+        Long nextCursor = hasNext ? idExtractor.apply(page.get(page.size() - 1)) : null;
         return CursorResponse.of(items, nextCursor, hasNext);
     }
 
