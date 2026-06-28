@@ -19,6 +19,11 @@ export function ProductListPage() {
   // 로딩/에러 상태를 빈 배열로 숨기면 장애가 "상품 0개" 로 묻혀 사용자에게 혼란을 줌 (CR M12).
   const { data: products = [], isLoading, isError } = useProducts()
 
+  // [SCALE/MSA NOTE] 현재 카테고리 필터·정렬 모두 클라이언트 처리 (전체 50개 로드 → JS 가공)
+  // 상품 수 급증/MSA 전환 시 서버 주도로 이관 필요. 백엔드는 이미 지원: GET /products?categoryCode=&sort=likeCount,desc&page=&size=
+  // 주의 ① "정렬만" 서버로 옮기면 버그 — 서버가 전체 인기순 상위 N개 준 뒤 클라가 카테고리 필터하면 누락 발생.
+  //      카테고리·정렬·페이지네이션을 한 묶음으로 서버 이관해야 함
+  // 주의 ② 목록용 hook은 useProducts(=메인 useInfluencerPicks와 ['products'] 캐시 공유, 전체 로드 의존)와 분리 필요
   const categoryFiltered =
     selectedCategory === 'all'
       ? products
