@@ -4,6 +4,7 @@ import com.myfave.api.domain.content.entity.StyleFeed;
 import com.myfave.api.domain.product.entity.Product;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -20,4 +21,9 @@ public interface StyleFeedRepository extends JpaRepository<StyleFeed, Long> {
             "WHERE (:cursor IS NULL OR sf.styleFeedId < :cursor) " +
             "ORDER BY sf.styleFeedId DESC")
     List<StyleFeed> findByCursor(@Param("cursor") Long cursor, Pageable pageable);
+
+    // 조회수 write-back — 누적 delta를 한 번에 더함 (엔티티 미로딩, 행 단위 +)
+    @Modifying
+    @Query("UPDATE StyleFeed sf SET sf.viewCount = sf.viewCount + :delta WHERE sf.styleFeedId = :id")
+    int addViewCount(@Param("id") Long id, @Param("delta") long delta);
 }

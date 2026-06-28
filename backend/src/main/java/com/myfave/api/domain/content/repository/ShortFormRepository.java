@@ -5,6 +5,7 @@ import com.myfave.api.domain.product.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.myfave.api.domain.content.entity.ShortFormType;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -27,5 +28,10 @@ public interface ShortFormRepository extends JpaRepository<ShortForm, Long> {
     List<ShortForm> findByCursor(@Param("type") ShortFormType type,
                                  @Param("cursor") Long cursor,
                                  Pageable pageable);
+
+    // 조회수 write-back — 누적 delta를 한 번에 더함 (엔티티 미로딩, 행 단위 +)
+    @Modifying
+    @Query("UPDATE ShortForm s SET s.viewCount = s.viewCount + :delta WHERE s.shortFormId = :id")
+    int addViewCount(@Param("id") Long id, @Param("delta") long delta);
 
 }
