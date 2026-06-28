@@ -46,11 +46,15 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     long sumStockQuantityByProductIds(@Param("productIds") List<Long> productIds);
 
     // 조회수 write-back — 누적 delta를 한 번에 더함 (엔티티 미로딩, 행 단위 +)
+    // soft-delete 행 제외 — flush 전 삭제된 상품 누적 방지
     @Modifying
-    @Query("UPDATE Product p SET p.viewCount = p.viewCount + :delta WHERE p.productId = :id")
+    @Query("UPDATE Product p SET p.viewCount = p.viewCount + :delta WHERE p.productId = :id AND p.deletedAt is null")
     int addViewCount(@Param("id") Long id, @Param("delta") long delta);
 
-    // 조회수 단건 조회 — 엔티티 미로딩 (없으면 null)
-    @Query("SELECT p.viewCount FROM Product p WHERE p.productId = :id")
+    // 조회수 단건 조회 — 엔티티 미로딩 (없거나 삭제 시 null)
+    @Query("SELECT p.viewCount FROM Product p WHERE p.productId = :id AND p.deletedAt is null")
     Long findViewCountById(@Param("id") Long id);
+
+    // 활성 상품 존재 여부 — 조회수 증가 전 유령/삭제 상품 차단용
+    boolean existsByProductIdAndDeletedAtIsNull(Long productId);
 }
