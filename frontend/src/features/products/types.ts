@@ -27,6 +27,10 @@ export interface ProductDetail {
   conditionLabel: string
   // 조회수 (DB 확정값). 조회 시 view 호출 응답으로 최신값 갱신
   viewCount: number
+  // 좋아요 수
+  likeCount: number
+  // 현재 로그인 유저가 좋아요 눌렀는지 (비로그인=false)
+  liked: boolean
 }
 
 export interface InfluencerPick extends Product {
@@ -56,12 +60,21 @@ export interface ProductDetailApiResponse {
   images: { imageId: number; imageUrl: string; sortOrder: number; isMain: boolean }[]
   createdAt: string
   viewCount: number
+  likeCount: number
+  liked: boolean
 }
 
 // 조회수 증가 응답 — DB 확정값 + Redis 미반영분 합산한 최신 총합
 export interface ProductViewApiResponse {
   productId: number
   viewCount: number
+}
+
+// 좋아요 토글 응답 — 현재 유저 좋아요 상태 + 총 좋아요 수
+export interface ProductLikeApiResponse {
+  productId: number
+  liked: boolean
+  likeCount: number
 }
 
 export interface ProductListApiResponse {
