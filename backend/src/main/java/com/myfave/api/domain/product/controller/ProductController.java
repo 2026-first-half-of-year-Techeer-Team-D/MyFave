@@ -4,8 +4,10 @@ import com.myfave.api.domain.product.dto.request.ProductRequest;
 import com.myfave.api.domain.product.dto.request.ProductUpdateRequest;
 import com.myfave.api.domain.product.dto.response.ProductListResponse;
 import com.myfave.api.domain.product.dto.response.ProductResponse;
+import com.myfave.api.domain.product.dto.response.ProductLikeResponse;
 import com.myfave.api.domain.product.dto.response.ProductViewResponse;
 import com.myfave.api.domain.product.entity.CategoryCode;
+import com.myfave.api.domain.product.service.ProductLikeService;
 import com.myfave.api.domain.product.service.ProductService;
 import com.myfave.api.domain.product.service.ProductViewService;
 import com.myfave.api.global.common.ApiResponse;
@@ -31,6 +33,7 @@ public class ProductController {
 
     private final ProductService productService;
     private final ProductViewService productViewService;
+    private final ProductLikeService productLikeService;
 
     // 3-1. 상품 목록 조회
     @GetMapping
@@ -57,6 +60,15 @@ public class ProductController {
             @PathVariable Long productId) {
         long viewCount = productViewService.incrementAndGetTotal(productId);
         return ResponseEntity.ok(ApiResponse.ok(new ProductViewResponse(productId, viewCount)));
+    }
+
+    // 3-8. 상품 좋아요 토글 (로그인 필수) — 누르면 추가, 이미 눌렀으면 취소
+    @PostMapping("/{productId}/like")
+    public ResponseEntity<ApiResponse<ProductLikeResponse>> toggleLike(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long productId) {
+        ProductLikeResponse response = productLikeService.toggle(userId, productId);
+        return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
     // 3-3. 상품 등록 (인플루언서 전용)

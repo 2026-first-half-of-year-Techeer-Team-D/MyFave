@@ -55,6 +55,15 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p.viewCount FROM Product p WHERE p.productId = :id AND p.deletedAt is null")
     Long findViewCountById(@Param("id") Long id);
 
-    // 활성 상품 존재 여부 — 조회수 증가 전 유령/삭제 상품 차단용
+    // 활성 상품 존재 여부 — 조회수 증가·좋아요 토글 전 유령/삭제 상품 차단용
     boolean existsByProductIdAndDeletedAtIsNull(Long productId);
+
+    // 좋아요 수 비정규화 카운터 갱신 — 토글 트랜잭션에서 원자적 +1/-1
+    @Modifying
+    @Query("UPDATE Product p SET p.likeCount = p.likeCount + :delta WHERE p.productId = :id")
+    int addLikeCount(@Param("id") Long id, @Param("delta") long delta);
+
+    // 좋아요 수 단건 조회 — 엔티티 미로딩 (없으면 null)
+    @Query("SELECT p.likeCount FROM Product p WHERE p.productId = :id")
+    Long findLikeCountById(@Param("id") Long id);
 }
