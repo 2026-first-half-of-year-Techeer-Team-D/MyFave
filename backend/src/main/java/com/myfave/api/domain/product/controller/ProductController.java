@@ -46,11 +46,12 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
-    // 3-2. 상품 상세 조회
+    // 3-2. 상품 상세 조회 (공개 — 로그인 시 userId로 liked 계산, 비로그인 null)
     @GetMapping("/{productId}")
     public ResponseEntity<ApiResponse<ProductResponse.Detail>> getProduct(
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long productId) {
-        ProductResponse.Detail response = productService.getProduct(productId);
+        ProductResponse.Detail response = productService.getProduct(productId, userId);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 

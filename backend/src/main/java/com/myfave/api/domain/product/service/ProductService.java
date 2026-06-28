@@ -8,6 +8,7 @@ import com.myfave.api.domain.product.entity.CategoryCode;
 import com.myfave.api.domain.product.entity.Product;
 import com.myfave.api.domain.product.entity.ProductImage;
 import com.myfave.api.domain.product.repository.ProductImageRepository;
+import com.myfave.api.domain.product.repository.ProductLikeRepository;
 import com.myfave.api.domain.product.repository.ProductRepository;
 import com.myfave.api.domain.user.entity.User;
 import com.myfave.api.domain.user.repository.UserRepository;
@@ -33,6 +34,7 @@ public class ProductService {
 
     private final ProductRepository productRepository; //상품 데이터
     private final ProductImageRepository productImageRepository; //이미지 데이터
+    private final ProductLikeRepository productLikeRepository; //좋아요 데이터
     private final UserRepository userRepository;
     private final S3UploadService s3UploadService;
 
@@ -64,15 +66,18 @@ public class ProductService {
         return ProductListResponse.from(responsePage);
     }
 
-    // 3-2. 상품 상세 조회
-    public ProductResponse.Detail getProduct(Long productId) {
+    // 3-2. 상품 상세 조회 (userId: 비로그인 시 null → liked=false)
+    public ProductResponse.Detail getProduct(Long productId, Long userId) {
         // ID기반으로 찾고 못찾으면 404 에러
         Product product = productRepository.findByProductIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
         List<ProductImage> images = productImageRepository.findByProductOrderBySortOrderAsc(product);
 
-        return ProductResponse.Detail.from(product, images);
+        boolean liked = userId != null
+                && productLikeRepository.existsByUser_UserIdAndProduct_ProductId(userId, productId);
+
+        return ProductResponse.Detail.from(product, images, liked);
     }
     // 3-3. 상품 등록 (인플루언서 전용)
     @Transactional //쓰기 가능

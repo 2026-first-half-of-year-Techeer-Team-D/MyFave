@@ -21,6 +21,7 @@ public class ProductResponse {
     private String thumbnailUrl;
     private Boolean isSoldOut;
     private CategoryCode categoryCode;
+    private Long likeCount; // 좋아요순 정렬·표시용
 
     public static ProductResponse from(Product product, String thumbnailUrl) {
         return new ProductResponse(
@@ -29,7 +30,8 @@ public class ProductResponse {
                 product.getPrice(),
                 thumbnailUrl,
                 product.getIsSoldout(),
-                product.getCategoryCode()
+                product.getCategoryCode(),
+                product.getLikeCount()
         );
     }
 
@@ -47,10 +49,12 @@ public class ProductResponse {
         private CategoryCode categoryCode;
         private Boolean isSoldOut;
         private Long viewCount; // DB 확정값 (Redis 미반영분은 view 엔드포인트 응답에서 합산)
+        private Long likeCount; // 상품 총 좋아요 수
+        private Boolean liked;  // 현재 로그인 유저의 좋아요 여부 (비로그인=false)
         private List<ImageDto> images;
         private ZonedDateTime createdAt;
 
-        public static Detail from(Product product, List<ProductImage> images) {
+        public static Detail from(Product product, List<ProductImage> images, boolean liked) {
             List<ImageDto> imageDtos = images.stream()
                     .map(ImageDto::from)
                     .toList();
@@ -66,6 +70,8 @@ public class ProductResponse {
                     .categoryCode(product.getCategoryCode())
                     .isSoldOut(product.getIsSoldout())
                     .viewCount(product.getViewCount())
+                    .likeCount(product.getLikeCount())
+                    .liked(liked)
                     .images(imageDtos)
                     .createdAt(product.getCreatedAt())
                     .build();
