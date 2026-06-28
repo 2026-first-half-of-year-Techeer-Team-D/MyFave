@@ -4,8 +4,11 @@ import com.myfave.api.domain.content.entity.ContentType;
 import com.myfave.api.domain.content.repository.ShortFormRepository;
 import com.myfave.api.domain.content.repository.StyleFeedRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 조회수 카운터 — 조회 시점에 Redis에만 누적 (쓰기 DB 미접근, 락 없음)
@@ -19,17 +22,34 @@ public class ContentViewService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final ShortFormRepository shortFormRepository;
     private final StyleFeedRepository styleFeedRepository;
+    private final ContentViewWriteBackService writeBackService;
+
+    // redis(권장) | db(부하테스트 비교군: 조회마다 DB 직접 +1, 락 경합)
+    @Value("${content.view.counter-mode:redis}")
+    private String counterMode;
 
     // counter:* 키엔 TTL 없음 — cache:*(만료 O)와 네임스페이스 분리
     public static final String COUNTER_KEY_PREFIX = "counter:view:";
     // write-back 대상 키 집합 — 스케줄러가 전체 SCAN 없이 이 set만 순회
     public static final String DIRTY_SET_KEY = "counter:view:dirty";
 
-    // 조회수 증가 후 최신 총합 반환 — Redis INCR(쓰기 락 없음) + DB 확정값 read(non-locking)
+    // 조회수 증가 후 최신 총합 반환 — 모드에 따라 Redis 누적 / DB 직접 +1
     public long incrementAndGetTotal(ContentType type, Long contentId) {
+        if ("db".equalsIgnoreCase(counterMode)) {
+            return incrementInDb(type, contentId);
+        }
+        // redis 모드: INCR(쓰기 락 없음) + DB 확정값 read(non-locking)
         long pending = increment(type, contentId);
         Long dbCount = findDbViewCount(type, contentId);
         return (dbCount == null ? 0L : dbCount) + pending;
+    }
+
+    // 비교군 — 조회마다 DB 행에 직접 +1 (동시성 시 락 경합 발생). write-back 우회
+    private long incrementInDb(ContentType type, Long contentId) {
+        String member = type.name() + ":" + contentId;
+        writeBackService.applyAll(List.of(new ContentViewDelta(type, contentId, 1L, member)));
+        Long dbCount = findDbViewCount(type, contentId);
+        return dbCount == null ? 0L : dbCount;
     }
 
     // Redis 증분 한 줄 — member 예: "SHORT_FORM:5"
