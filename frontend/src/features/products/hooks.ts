@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { productsApi } from './api'
 import { getProductImages, getProductThumbnail } from './imageMap'
@@ -122,7 +122,12 @@ export function useProduct(id: number | undefined) {
 
 // 상품 조회 시 조회수 +1 (Redis 누적) — 응답으로 최신 총합을 받음
 export function useIncreaseProductView() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => productsApi.increaseView(id),
+    // 성공 후 상세 캐시 무효화 — viewData를 직접 안 쓰는 소비자도 최신 viewCount 반영
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['product', id] })
+    },
   })
 }
