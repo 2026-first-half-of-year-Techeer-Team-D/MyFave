@@ -25,6 +25,8 @@ export interface ProductDetail {
   isSoldOut: boolean
   // 상품 상태 등급 라벨 (예: 'S급'). 백엔드 condition(S_GRADE 등)을 변환한 값. 없으면 빈 문자열.
   conditionLabel: string
+  // 조회수 (DB 확정값). 조회 시 view 호출 응답으로 최신값 갱신
+  viewCount: number
 }
 
 export interface InfluencerPick extends Product {
@@ -53,6 +55,13 @@ export interface ProductDetailApiResponse {
   isSoldOut: boolean
   images: { imageId: number; imageUrl: string; sortOrder: number; isMain: boolean }[]
   createdAt: string
+  viewCount: number
+}
+
+// 조회수 증가 응답 — DB 확정값 + Redis 미반영분 합산한 최신 총합
+export interface ProductViewApiResponse {
+  productId: number
+  viewCount: number
 }
 
 export interface ProductListApiResponse {
