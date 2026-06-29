@@ -53,6 +53,7 @@ class AuthServiceReissueTest {
         // then
         assertThat(response.getAccessToken()).isEqualTo(NEW_ACCESS_TOKEN);
         assertThat(response.getRefreshToken()).isEqualTo(NEW_REFRESH_TOKEN);
+        verify(redisTemplate).delete("refresh:" + USER_ID);
         verify(valueOperations).set(eq("refresh:" + USER_ID), eq(NEW_REFRESH_TOKEN), anyLong(), any());
     }
 
