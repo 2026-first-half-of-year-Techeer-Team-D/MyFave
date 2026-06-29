@@ -3,6 +3,7 @@ import type {
   ProductListApiResponse,
   ProductDetailApiResponse,
   ProductViewApiResponse,
+  ProductLikeApiResponse,
 } from './types'
 
 export const productsApi = {
@@ -19,6 +20,11 @@ export const productsApi = {
   // 조회수 증가 (Redis 누적) — 최신 총합 반환
   increaseView: async (id: number): Promise<ProductViewApiResponse> => {
     const res = await apiClient.post<{ data: ProductViewApiResponse }>(`/products/${id}/view`)
+    return res.data.data
+  },
+  // 좋아요 토글 (로그인 필수) — 토글 후 상태·총합 반환
+  toggleLike: async (id: number): Promise<ProductLikeApiResponse> => {
+    const res = await apiClient.post<{ data: ProductLikeApiResponse }>(`/products/${id}/like`)
     return res.data.data
   },
 }

@@ -48,6 +48,7 @@ function toProduct(item: ProductApiItem): Product {
     price: item.price.toLocaleString() + '원',
     category: mapCategory(item.categoryCode),
     isSoldOut: item.isSoldOut,
+    likeCount: item.likeCount ?? 0,
   }
 }
 
@@ -79,6 +80,8 @@ function toProductDetail(item: ProductDetailApiResponse): ProductDetail {
     isSoldOut: item.isSoldOut,
     conditionLabel: mapConditionLabel(item.condition),
     viewCount: item.viewCount ?? 0,
+    likeCount: item.likeCount ?? 0,
+    liked: item.liked ?? false,
     features: item.description
       ? [{ title: '상품 설명', description: item.description }]
       : [],
@@ -128,6 +131,40 @@ export function useIncreaseProductView() {
     // 성공 후 상세 캐시 무효화 — viewData를 직접 안 쓰는 소비자도 최신 viewCount 반영
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['product', id] })
+    },
+  })
+}
+
+// 좋아요 토글 — 낙관적 업데이트(즉시 하트·숫자 반영) 후 서버 응답으로 보정
+export function useToggleProductLike(productId: number) {
+  const queryClient = useQueryClient()
+  const key = ['product', productId]
+  return useMutation({
+    mutationFn: () => productsApi.toggleLike(productId),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: key })
+      const prev = queryClient.getQueryData<ProductDetail>(key)
+      if (prev) {
+        queryClient.setQueryData<ProductDetail>(key, {
+          ...prev,
+          liked: !prev.liked,
+          likeCount: prev.likeCount + (prev.liked ? -1 : 1),
+        })
+      }
+      return { prev }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prev) queryClient.setQueryData(key, context.prev)
+    },
+    onSuccess: (res) => {
+      const cur = queryClient.getQueryData<ProductDetail>(key)
+      if (cur) {
+        queryClient.setQueryData<ProductDetail>(key, {
+          ...cur,
+          liked: res.liked,
+          likeCount: res.likeCount,
+        })
+      }
     },
   })
 }

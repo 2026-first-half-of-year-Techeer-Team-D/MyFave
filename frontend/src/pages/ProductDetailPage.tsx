@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useIsAuthenticated } from '@/features/auth/hooks'
 import { useCartStore } from '@/features/cart/store'
 import { useCheckoutStore } from '@/features/payments/store'
-import { useIncreaseProductView, useProduct } from '@/features/products/hooks'
+import { useIncreaseProductView, useProduct, useToggleProductLike } from '@/features/products/hooks'
 import { Modal } from '@/shared/components/Modal'
 import { PopUp } from '@/shared/components/PopUp'
 import { SmartImage } from '@/shared/components/SmartImage'
@@ -16,6 +16,7 @@ export function ProductDetailPage() {
   const { data: product, isLoading } = useProduct(productId)
   const { mutate: increaseView, data: viewData } = useIncreaseProductView()
   const viewedRef = useRef<number | null>(null)
+  const { mutate: toggleLike } = useToggleProductLike(productId)
 
   // 상세 로드 성공 후 상품당 한 번만 조회수 +1 — 없는 상품/조회 실패엔 집계 안 보냄
   useEffect(() => {
@@ -24,6 +25,15 @@ export function ProductDetailPage() {
     viewedRef.current = productId
     increaseView(productId)
   }, [product, productId, increaseView])
+
+  // 좋아요 클릭 — 비로그인은 로그인 유도, 로그인은 토글(낙관적 업데이트)
+  const handleLikeClick = () => {
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true)
+      return
+    }
+    toggleLike()
+  }
   const addCartItem = useCartStore((s) => s.addItem)
   const setCheckoutItems = useCheckoutStore((s) => s.setItems)
   const setOrderType = useCheckoutStore((s) => s.setOrderType)
@@ -176,13 +186,28 @@ export function ProductDetailPage() {
         <div className="space-y-[12px]">
           <h1 className="font-noto text-[15px] font-normal leading-[24px] text-[#322927] tracking-tight">{product.title}</h1>
           <p className="font-noto text-[12px] font-normal leading-[18px] text-chat-font">{product.subtitle}</p>
-          <p className="flex items-center gap-[4px] font-noto text-[11px] font-normal leading-[16px] text-chat-font">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-            조회 {(viewData?.productId === productId ? viewData.viewCount : product.viewCount ?? 0).toLocaleString()}
-          </p>
+          <div className="flex items-center justify-between pt-[2px]">
+            <span className="flex items-center gap-[4px] font-noto text-[11px] font-normal leading-[16px] text-chat-font">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              조회 {(viewData?.productId === productId ? viewData.viewCount : product.viewCount ?? 0).toLocaleString()}
+            </span>
+            {/* 좋아요 토글 — 빈 하트 ↔ 채운 하트(팀컬러 point). 비로그인 클릭 시 로그인 유도 */}
+            <button
+              type="button"
+              onClick={handleLikeClick}
+              aria-pressed={product.liked}
+              aria-label={product.liked ? '좋아요 취소' : '좋아요'}
+              className={`flex items-center gap-[4px] font-noto text-[12px] font-medium leading-[16px] transition-colors active:scale-95 ${product.liked ? 'text-point' : 'text-chat-font'}`}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill={product.liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              {(product.likeCount ?? 0).toLocaleString()}
+            </button>
+          </div>
           <div className="flex items-center gap-[8px] pt-[4px]">
             <span className="font-noto text-[20px] font-medium leading-[30px] text-[#322927]">{product.price}</span>
             {product.conditionLabel && (
