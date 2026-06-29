@@ -21,6 +21,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import reactor.core.publisher.Mono;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -85,7 +87,7 @@ class DeliveryTrackingServiceTest {
 
         given(orderRepository.findById(ORDER_ID)).willReturn(Optional.of(order));
         given(deliveryRepository.findByOrder(order)).willReturn(Optional.of(delivery));
-        given(trackerDeliveryClient.track("kr.cupost", "1234567890")).willReturn(result);
+        given(trackerDeliveryClient.trackAsync("kr.cupost", "1234567890")).willReturn(Mono.just(result));
 
         TrackingResponse response = shippingService.trackDelivery(USER_ID, ORDER_ID);
 
@@ -104,7 +106,7 @@ class DeliveryTrackingServiceTest {
 
         given(orderRepository.findById(ORDER_ID)).willReturn(Optional.of(order));
         given(deliveryRepository.findByOrder(order)).willReturn(Optional.of(delivery));
-        given(trackerDeliveryClient.track("kr.cupost", "1234567890")).willReturn(result);
+        given(trackerDeliveryClient.trackAsync("kr.cupost", "1234567890")).willReturn(Mono.just(result));
 
         TrackingResponse response = shippingService.trackDelivery(USER_ID, ORDER_ID);
 
@@ -178,6 +180,6 @@ class DeliveryTrackingServiceTest {
         TrackingResponse response = shippingService.trackDelivery(USER_ID, ORDER_ID);
 
         assertThat(response.getStatusCode()).isEqualTo("DELIVERED");
-        verify(trackerDeliveryClient, never()).track(anyString(), anyString());
+        verify(trackerDeliveryClient, never()).trackAsync(anyString(), anyString());
     }
 }

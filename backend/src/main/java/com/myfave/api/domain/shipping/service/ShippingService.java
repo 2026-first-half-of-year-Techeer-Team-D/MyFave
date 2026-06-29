@@ -137,7 +137,8 @@ public class ShippingService {
         }
 
         TrackerDeliveryClient.TrackResult result =
-                trackerDeliveryClient.track(delivery.getCarrierId(), delivery.getTrackingNumber());
+                trackerDeliveryClient.trackAsync(delivery.getCarrierId(), delivery.getTrackingNumber())
+                        .block();
 
         TrackerDeliveryClient.EventData lastEvent = result.getLastEvent();
         if (lastEvent != null && lastEvent.getStatus() != null

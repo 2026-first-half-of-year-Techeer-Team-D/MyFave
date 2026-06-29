@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -45,33 +47,28 @@ public class TrackerDeliveryClient {
             }
             """;
 
-    public TrackResult track(String carrierId, String trackingNumber) {
+    public Mono<TrackResult> trackAsync(String carrierId, String trackingNumber) {
         Map<String, Object> body = Map.of(
                 "query", TRACK_QUERY,
                 "variables", Map.of("carrierId", carrierId, "trackingNumber", trackingNumber)
         );
 
-        try {
-            GraphQLResponse response = trackerWebClient.post()
-                    .bodyValue(body)
-                    .retrieve()
-                    .bodyToMono(GraphQLResponse.class)
-                    .block(Duration.ofSeconds(15));
-
-            if (response == null || response.getData() == null
-                    || response.getData().getTrack() == null) {
-                throw new CustomException(ErrorCode.TRACKING_API_ERROR);
-            }
-
-            return response.getData().getTrack();
-
-        } catch (CustomException e) {
-            throw e;
-        } catch (WebClientResponseException e) {
-            throw new CustomException(ErrorCode.TRACKING_API_ERROR);
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.TRACKING_API_ERROR);
-        }
+        return trackerWebClient.post()
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(GraphQLResponse.class)
+                .subscribeOn(Schedulers.boundedElastic())
+                .switchIfEmpty(Mono.error(new CustomException(ErrorCode.TRACKING_API_ERROR)))
+                .timeout(Duration.ofSeconds(15))
+                .map(response -> {
+                    if (response.getData() == null || response.getData().getTrack() == null) {
+                        throw new CustomException(ErrorCode.TRACKING_API_ERROR);
+                    }
+                    return response.getData().getTrack();
+                })
+                .onErrorMap(CustomException.class, e -> e)
+                .onErrorMap(e -> !(e instanceof CustomException),
+                            e -> new CustomException(ErrorCode.TRACKING_API_ERROR));
     }
 
     // ── GraphQL 응답 역직렬화용 inner class ────────────────────────
