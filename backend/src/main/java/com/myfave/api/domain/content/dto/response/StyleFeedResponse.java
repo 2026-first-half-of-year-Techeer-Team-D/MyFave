@@ -1,11 +1,14 @@
 package com.myfave.api.domain.content.dto.response;
 
 import com.myfave.api.domain.content.entity.StyleFeed;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE) // Redis 캐시 역직렬화용
 public class StyleFeedResponse {
 
     private Long styleFeedId;
