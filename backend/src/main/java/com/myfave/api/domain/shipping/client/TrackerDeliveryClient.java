@@ -61,6 +61,9 @@ public class TrackerDeliveryClient {
                 .switchIfEmpty(Mono.error(new CustomException(ErrorCode.TRACKING_API_ERROR)))
                 .timeout(Duration.ofSeconds(15))
                 .map(response -> {
+                    if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+                        throw new CustomException(ErrorCode.TRACKING_API_ERROR);
+                    }
                     if (response.getData() == null || response.getData().getTrack() == null) {
                         throw new CustomException(ErrorCode.TRACKING_API_ERROR);
                     }
@@ -76,6 +79,7 @@ public class TrackerDeliveryClient {
     @Getter @Setter @JsonIgnoreProperties(ignoreUnknown = true)
     public static class GraphQLResponse {
         private DataBody data;
+        private List<Map<String, Object>> errors;
     }
 
     @Getter @Setter @JsonIgnoreProperties(ignoreUnknown = true)
