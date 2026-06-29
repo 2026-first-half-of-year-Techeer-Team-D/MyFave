@@ -46,6 +46,7 @@ public class ProductResponse {
         private ConditionCode condition;
         private CategoryCode categoryCode;
         private Boolean isSoldOut;
+        private Long viewCount; // DB 확정값 (Redis 미반영분은 view 엔드포인트 응답에서 합산)
         private List<ImageDto> images;
         private ZonedDateTime createdAt;
 
@@ -64,6 +65,7 @@ public class ProductResponse {
                     .condition(product.getConditionCode())
                     .categoryCode(product.getCategoryCode())
                     .isSoldOut(product.getIsSoldout())
+                    .viewCount(product.getViewCount())
                     .images(imageDtos)
                     .createdAt(product.getCreatedAt())
                     .build();

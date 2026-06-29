@@ -1,10 +1,10 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { useIsAuthenticated } from '@/features/auth/hooks'
 import { useCartStore } from '@/features/cart/store'
 import { useCheckoutStore } from '@/features/payments/store'
-import { useProduct } from '@/features/products/hooks'
+import { useIncreaseProductView, useProduct } from '@/features/products/hooks'
 import { Modal } from '@/shared/components/Modal'
 import { PopUp } from '@/shared/components/PopUp'
 import { SmartImage } from '@/shared/components/SmartImage'
@@ -14,6 +14,16 @@ export function ProductDetailPage() {
   const navigate = useNavigate()
   const productId = Number(id) || 1
   const { data: product, isLoading } = useProduct(productId)
+  const { mutate: increaseView, data: viewData } = useIncreaseProductView()
+  const viewedRef = useRef<number | null>(null)
+
+  // 상세 로드 성공 후 상품당 한 번만 조회수 +1 — 없는 상품/조회 실패엔 집계 안 보냄
+  useEffect(() => {
+    if (product?.id !== productId) return
+    if (viewedRef.current === productId) return
+    viewedRef.current = productId
+    increaseView(productId)
+  }, [product, productId, increaseView])
   const addCartItem = useCartStore((s) => s.addItem)
   const setCheckoutItems = useCheckoutStore((s) => s.setItems)
   const setOrderType = useCheckoutStore((s) => s.setOrderType)
@@ -166,6 +176,13 @@ export function ProductDetailPage() {
         <div className="space-y-[12px]">
           <h1 className="font-noto text-[15px] font-normal leading-[24px] text-[#322927] tracking-tight">{product.title}</h1>
           <p className="font-noto text-[12px] font-normal leading-[18px] text-chat-font">{product.subtitle}</p>
+          <p className="flex items-center gap-[4px] font-noto text-[11px] font-normal leading-[16px] text-chat-font">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            조회 {(viewData?.productId === productId ? viewData.viewCount : product.viewCount ?? 0).toLocaleString()}
+          </p>
           <div className="flex items-center gap-[8px] pt-[4px]">
             <span className="font-noto text-[20px] font-medium leading-[30px] text-[#322927]">{product.price}</span>
             {product.conditionLabel && (

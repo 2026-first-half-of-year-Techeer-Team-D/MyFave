@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { productsApi } from './api'
 import { getProductImages, getProductThumbnail } from './imageMap'
@@ -78,6 +78,7 @@ function toProductDetail(item: ProductDetailApiResponse): ProductDetail {
     images,
     isSoldOut: item.isSoldOut,
     conditionLabel: mapConditionLabel(item.condition),
+    viewCount: item.viewCount ?? 0,
     features: item.description
       ? [{ title: '상품 설명', description: item.description }]
       : [],
@@ -116,5 +117,17 @@ export function useProduct(id: number | undefined) {
     queryKey: ['product', id],
     queryFn: () => productsApi.getDetail(id!).then(toProductDetail),
     enabled: id != null,
+  })
+}
+
+// 상품 조회 시 조회수 +1 (Redis 누적) — 응답으로 최신 총합을 받음
+export function useIncreaseProductView() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => productsApi.increaseView(id),
+    // 성공 후 상세 캐시 무효화 — viewData를 직접 안 쓰는 소비자도 최신 viewCount 반영
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['product', id] })
+    },
   })
 }
