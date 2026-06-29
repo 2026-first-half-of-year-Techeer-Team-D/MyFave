@@ -26,14 +26,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                // TODO: 테스트 후 인터셉터 활성화
-                // .addInterceptors(jwtHandshakeInterceptor)
+                .addInterceptors(jwtHandshakeInterceptor)
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
-
-        // TODO: 테스트 전용 — 배포 전 제거
-        registry.addEndpoint("/ws-test")
-                .setAllowedOriginPatterns("*");
     }
 
     @Override
