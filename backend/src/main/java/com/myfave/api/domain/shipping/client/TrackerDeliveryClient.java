@@ -57,9 +57,9 @@ public class TrackerDeliveryClient {
                 .bodyValue(body)
                 .retrieve()
                 .bodyToMono(GraphQLResponse.class)
+                .subscribeOn(Schedulers.boundedElastic())
                 .switchIfEmpty(Mono.error(new CustomException(ErrorCode.TRACKING_API_ERROR)))
                 .timeout(Duration.ofSeconds(15))
-                .subscribeOn(Schedulers.boundedElastic())
                 .map(response -> {
                     if (response.getData() == null || response.getData().getTrack() == null) {
                         throw new CustomException(ErrorCode.TRACKING_API_ERROR);
