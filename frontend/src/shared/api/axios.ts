@@ -1,5 +1,6 @@
 import axios from 'axios'
 import type { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import { toast } from 'sonner'
 
 import { useAuthStore } from '@/features/auth/store'
 
@@ -58,7 +59,8 @@ apiClient.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`
           return apiClient(originalRequest)
         } catch {
-          localStorage.clear()
+          toast.error('세션이 만료되었습니다. 다시 로그인해주세요.')
+          useAuthStore.getState().logout()
           window.location.href = '/login'
         }
       }
