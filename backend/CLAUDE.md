@@ -1,7 +1,7 @@
 # MyFave Backend Guide (Token-Optimized)
 
 ## 1. Critical Implementation Standards (Strict)
-- **Timezone**: DB `TIMESTAMPTZ`, Java `OffsetDateTime` 필수 (`LocalDateTime` 금지).
+- **Timezone**: DB `TIMESTAMPTZ`. 영속 엔티티·도메인 필드는 `ZonedDateTime` (`BaseEntity`가 기준). 외부 API 응답 파싱 DTO는 `OffsetDateTime` 허용 (shipping의 택배사 연동). `LocalDateTime`은 어느 계층에서도 금지.
 - **Audit**: UPDATE 시 `updated_at` 수동 갱신 (JPA `@PreUpdate` 또는 Service 레이어).
 - **Inheritance**: `CartItem`, `ChatRoom`, `OrderItem`, `ShortForm`, `StyleFeed`는 `BaseEntity`를 상속하지 않음 (`updated_at` 필드 없음).
 - **Format**: 모든 응답은 `global/common/ApiResponse.java` 사용.
