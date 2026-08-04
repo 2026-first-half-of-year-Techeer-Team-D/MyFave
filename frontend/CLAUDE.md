@@ -11,7 +11,7 @@
 ## Context
 
 - **프로젝트**: 인플루언서가 팔로워(약 1만 명)를 대상으로 한정 수량 상품을 드롭하는 플리마켓 커머스
-- **백엔드**: Java/Spring Boot, PostgreSQL, Redis. API 명세서는 `/docs/api/MyFave_API_명세서.md` 참고
+- **백엔드**: Java/Spring Boot, PostgreSQL, Redis. API 스펙은 Swagger UI(`/swagger-ui/index.html`)에서 확인
 - **핵심 시나리오**: 오픈 예고 → 오픈 30분 전 채팅방 자동 개설 → 오픈 즉시 재고 5개에 300명 동시 구매
 - **디자인**: Figma 프로토타입 기반 (핑크 팔레트, 모바일 퍼스트)
 
@@ -81,14 +81,6 @@
 - 훅/유틸 파일: `camelCase.ts` (예: `useDebounce.ts`, `formatPrice.ts`)
 - 폴더: `kebab-case` (예: `sale-events/`)
 
-### Import 순서 (ESLint가 강제)
-
-1. 빌트인 (`react`, `react-dom`)
-2. 외부 패키지 (`axios`, `@tanstack/react-query`)
-3. 내부 `@/` alias
-4. 상대경로
-5. 스타일 import는 마지막
-
 ### 커밋 컨벤션
 
 - 예시
@@ -153,64 +145,6 @@ if (error.response?.data?.errorCode === 'PRODUCT_SOLD_OUT') {
 - ❌ 상대경로 지옥 (`../../../`) — `@/` alias 사용
 - ❌ localStorage에 민감정보 저장 (JWT 제외. JWT도 XSS 취약하다는 건 인지)
 - ❌ `<form>` 안에서 `<button>` type 미지정 (기본 submit이라 버그 유발)
-
-## 자주 쓰는 스니펫
-
-### 보호된 라우트 가드
-
-```tsx
-import { Navigate, Outlet } from 'react-router-dom'
-
-export function ProtectedRoute() {
-  const token = localStorage.getItem('accessToken')
-  if (!token) return <Navigate to="/login" replace />
-  return <Outlet />
-}
-```
-
-### 무한스크롤 (상품 목록)
-
-```tsx
-import { useInfiniteQuery } from '@tanstack/react-query'
-
-export function useProductsInfinite(categoryCode: string) {
-  return useInfiniteQuery({
-    queryKey: ['products', { categoryCode }],
-    queryFn: ({ pageParam = 0 }) => productsApi.getList({ categoryCode, page: pageParam }),
-    initialPageParam: 0,
-    getNextPageParam: (lastPage) => (lastPage.hasNext ? lastPage.page + 1 : undefined),
-  })
-}
-```
-
-### 카운트다운 타이머 바
-
-```tsx
-import { useEffect, useState } from 'react'
-import { differenceInSeconds } from 'date-fns'
-
-export function CountdownBar({ saleStartAt }: { saleStartAt: string }) {
-  const [remaining, setRemaining] = useState(() =>
-    differenceInSeconds(new Date(saleStartAt), new Date()),
-  )
-
-  useEffect(() => {
-    if (remaining <= 0) return
-    const t = setInterval(() => setRemaining((r) => r - 1), 1000)
-    return () => clearInterval(t)
-  }, [remaining])
-
-  const hh = String(Math.floor(remaining / 3600)).padStart(2, '0')
-  const mm = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0')
-  const ss = String(remaining % 60).padStart(2, '0')
-
-  return (
-    <div className="bg-pink-100 text-pink-700 text-center py-2">
-      마이페이브 판매 시작까지 {hh}:{mm}:{ss}
-    </div>
-  )
-}
-```
 
 ## 응답 포맷 (사용자에게 답할 때)
 
